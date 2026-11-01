@@ -234,7 +234,18 @@
         async function startLoginView() {
             show('v-login');
             const info = $('loginKodInfo');
-            if (kod) { info.textContent = 'Okutulan kontrol noktası kodu: ' + kod; info.classList.remove('hidden'); } else info.classList.add('hidden');
+            if (kod) {
+                const draw = (ad) => {
+                    info.innerHTML = '';
+                    const l1 = document.createElement('div'); l1.className = 'text-[10px] font-bold uppercase opacity-80'; l1.textContent = 'Okutulan kontrol noktası';
+                    info.appendChild(l1);
+                    if (ad) { const l2 = document.createElement('div'); l2.className = 'text-sm font-extrabold break-words leading-tight mt-0.5'; l2.textContent = ad; info.appendChild(l2); }
+                    const l3 = document.createElement('div'); l3.className = 'font-mono font-bold mt-0.5'; l3.textContent = 'Kod: ' + kod; info.appendChild(l3);
+                    info.classList.remove('hidden');
+                };
+                draw('');
+                api('GET', { action: 'konum', kod }).then(o => { if (o && o.status === 'success' && o.ad) draw(o.ad); }).catch(() => {});
+            } else info.classList.add('hidden');
             const sel = $('loginName');
             try {
                 const out = await api('GET', { action: 'personel' });

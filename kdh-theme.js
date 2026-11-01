@@ -28,6 +28,8 @@
   'html[data-kdh-theme="dark"] #v-login .text-slate-900,html[data-kdh-theme="dark"] #v-login .text-slate-800,html[data-kdh-theme="dark"] #v-login .text-slate-700{color:#f1f5f9!important}',
   'html[data-kdh-theme="dark"] #v-login .text-slate-500{color:#cbd5e1!important}',
   'html[data-kdh-theme="dark"] #v-login input,html[data-kdh-theme="dark"] #v-login select{background:#1e293b!important;color:#f8fafc!important;border-color:#475569!important}',
+  'html[data-kdh-theme="dark"] #v-login #loginKodInfo{background:rgba(6,78,59,.45)!important;border-color:#059669!important;color:#a7f3d0!important}',
+  'html[data-kdh-theme="dark"] #v-login .bg-red-50{background:rgba(127,29,29,.35)!important}',
   /* ---------- Ana portala dön bağlantısı ---------- */
   '#kdhBackLink{position:fixed;top:12px;left:12px;z-index:60;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:12px;font:700 11px Inter,system-ui,sans-serif;text-decoration:none;background:rgba(15,23,42,.75);color:#e2e8f0;border:1px solid #475569;backdrop-filter:blur(6px)}',
   'html[data-kdh-theme="light"] #kdhBackLink{background:#fff;color:#334155;border-color:#cbd5e1}'

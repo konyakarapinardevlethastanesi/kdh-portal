@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style id="dynamicPrinterStyle">
         body { font-family: 'Inter', sans-serif; }
         input, textarea, select { -webkit-user-select: text; user-select: text; }
@@ -553,7 +552,7 @@
         const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
         const MM = 96 / 25.4;
         let lastSig = "", refreshing = false;
-        let LABEL_LOGO_URL = "logo.png";
+        let LABEL_LOGO_URL = "logo1.png";
         const SORT = { dev: { key: null, dir: 'asc' }, zim: { key: 'tarih', dir: 'desc' } };
         const TAB_IDS = ['devices-tab', 'zimmet-tab', 'qrprint-tab', 'history-tab'];
 
@@ -1003,44 +1002,137 @@
                     refreshLabelPreview();
                 } catch (e) { /* canvas okunamazsa orijinal logo kullanılır */ }
             };
-            img.src = 'logo.png';
+            img.src = 'logo1.png';
         }
 
-        function downloadCurrentPreviewDeviceQR() {
-            const host = $('labelPreviewHost');
-            const card = host && host.querySelector('.lbl');
-            if (!card) { alert('Önce soldan bir cihaz seçiniz.'); return; }
-            const qrEl = card.querySelector('.lbl-qr'), url = qrEl && qrEl.dataset.url;
+        // ---- Etiket PNG: html2canvas yerine doğrudan canvas'a çizilir (yazı kayması / boş QR olmaz) ----
+        function _rrPath(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+            ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+            ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+            ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.closePath();
+        }
+        function _loadImg(src) {
+            return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+        }
+        async function renderLabelCanvas(d, dm, scale, url) {
+            try { await Promise.all([document.fonts.load('900 20px Inter'), document.fonts.load('800 10px Inter'), document.fonts.load('700 13px Inter')]); } catch (e) {}
+            const logo = await _loadImg(LABEL_LOGO_URL);
+            const { hh, qs } = labelGeom(dm);
+            const W = dm.dw, H = dm.dh, B = 3, DARK = '#0f172a';
+            const SANS = "Inter, Arial, Helvetica, sans-serif", MONO = "ui-monospace, Menlo, Consolas, 'Courier New', monospace";
+            const cv = document.createElement('canvas');
+            cv.width = Math.round(W * scale); cv.height = Math.round(H * scale);
+            const ctx = cv.getContext('2d');
+            ctx.scale(scale, scale);
+            ctx.textBaseline = 'middle';
+            const setLS = v => { if ('letterSpacing' in ctx) ctx.letterSpacing = v; };
+            const fit = (txt, maxW) => {
+                let t = String(txt);
+                if (ctx.measureText(t).width <= maxW) return t;
+                while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+                return t + '…';
+            };
+            const g = (p, i) => String(getDevProp(d, p, i) || '-');
+
+            // dış çerçeve + beyaz zemin
+            _rrPath(ctx, 0, 0, W, H, 8); ctx.fillStyle = DARK; ctx.fill();
+            _rrPath(ctx, B, B, W - 2 * B, H - 2 * B, 5); ctx.fillStyle = '#fff'; ctx.fill();
+            ctx.save(); _rrPath(ctx, B, B, W - 2 * B, H - 2 * B, 5); ctx.clip();
+
+            const innerW = W - 2 * B, innerH = H - 2 * B;
+            // üst bilgi
+            ctx.fillStyle = DARK; ctx.fillRect(B, B, innerW, hh);
+            const ls = hh - 8;
+            if (logo) {
+                const ar = logo.naturalWidth / logo.naturalHeight || 1;
+                const lw = ar >= 1 ? ls : ls * ar, lh = ar >= 1 ? ls / ar : ls;
+                ctx.drawImage(logo, B + 10 + (ls - lw) / 2, B + (hh - lh) / 2, lw, lh);
+            }
+            const tLeft = B + 10 + ls + 8, tWidth = innerW - 20 - ls - 8;
+            const tcx = tLeft + (tWidth - ls) / 2;
+            const top = B + (hh - 20.7) / 2;
+            ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+            ctx.font = `800 10px ${SANS}`; setLS('0.2px'); ctx.fillText('T.C. SAĞLIK BAKANLIĞI', tcx, top + 5.75);
+            ctx.font = `700 8px ${SANS}`; setLS('0px'); ctx.fillStyle = '#e2e8f0'; ctx.fillText('KONYA KARAPINAR DEVLET HASTANESİ', tcx, top + 11.5 + 4.6);
+
+            // gövde
+            const by = B + hh, bodyH = innerH - hh, colW = qs + 12, leftW = innerW - colW, leftX = B;
+            const qrColX = leftX + leftW;
+            ctx.fillStyle = DARK; ctx.fillRect(qrColX, by, 2, bodyH);
+            const u = (bodyH - 6) / 5.2, titleH = 2.2 * u, rowH = u + 2;
+
+            // başlık (çok satırlı, sığmazsa küçülür)
+            const title = String(getDevProp(d, 'malzemeTanimi', 6) || '-').toLocaleUpperCase('tr');
+            let tf = title.length <= 24 ? 21 : title.length <= 38 ? 17 : title.length <= 56 ? 14 : 12;
+            const maxTW = leftW - 12;
+            let lines;
+            for (;;) {
+                ctx.font = `900 ${tf}px ${SANS}`;
+                lines = []; let cur = '';
+                title.split(/\s+/).forEach(w => {
+                    const t = cur ? cur + ' ' + w : w;
+                    if (ctx.measureText(t).width <= maxTW || !cur) cur = t; else { lines.push(cur); cur = w; }
+                });
+                if (cur) lines.push(cur);
+                if (lines.length * tf * 1.1 <= titleH - 4 || tf <= 8) break;
+                tf -= 1;
+            }
+            ctx.fillStyle = DARK; ctx.textAlign = 'center';
+            const lhT = tf * 1.1, y0 = by + titleH / 2 - (lines.length * lhT) / 2 + lhT / 2;
+            lines.forEach((ln, i) => ctx.fillText(fit(ln, maxTW), leftX + leftW / 2, y0 + i * lhT));
+
+            // satırlar
+            const row = (yTop, cells, font, mono) => {
+                ctx.fillStyle = DARK; ctx.fillRect(leftX, yTop, leftW, 2);
+                let x = leftX;
+                cells.forEach((c, i) => {
+                    const w = leftW * c.w / 100, sep = i > 0 ? 2 : 0;
+                    if (sep) { ctx.fillStyle = DARK; ctx.fillRect(x, yTop + 2, 2, u); }
+                    const cf = c.font || font, fam = (c.mono !== undefined ? c.mono : mono) ? MONO : SANS;
+                    ctx.font = `${cf} ${fam}`; setLS(c.ls || '0px'); ctx.fillStyle = DARK; ctx.textAlign = 'center';
+                    ctx.fillText(fit(c.t, w - sep - 8), x + sep + (w - sep) / 2, yTop + 2 + u / 2 + 0.5);
+                    x += w;
+                });
+                setLS('0px');
+            };
+            const y1 = by + titleH, y2 = y1 + rowH, y3 = y2 + rowH;
+            row(y1, [{ t: g('marka', 7), w: 32 }, { t: g('model', 8), w: 38 }, { t: g('seriNo', 9), w: 30, mono: true }], '700 13px', false);
+            row(y2, [{ t: g('butceTuru', 2), w: 25 }, { t: g('sicilNo', 5), w: 75, mono: true }], '700 13px', false);
+            row(y3, [{ t: g('edinmeYili', 3), w: 25 }, { t: g('kunyeNo', 1), w: 75, font: '900 17px', ls: '0.34px' }], '900 15px', false);
+            ctx.restore();
+
+            // QR: piksel-tam
+            if (url) {
+                const { n, cells } = qrMatrix(url), T = n + 2 * QR_QUIET;
+                const rx = (qrColX + 2 + 5) * scale, ry = (by + (bodyH - qs) / 2) * scale, rs = qs * scale;
+                const pm = Math.max(1, Math.floor(rs / T)), size = pm * T;
+                const ox = Math.round(rx + (rs - size) / 2), oy = Math.round(ry + (rs - size) / 2);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(ox, oy, size, size);
+                ctx.fillStyle = '#000000';
+                for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (cells[r * n + c]) ctx.fillRect(ox + (c + QR_QUIET) * pm, oy + (r + QR_QUIET) * pm, pm, pm);
+            }
+            return cv;
+        }
+
+        async function downloadCurrentPreviewDeviceQR() {
+            const device = selectedPreviewKunye && findDevice(selectedPreviewKunye);
+            if (!device) { alert('Önce soldan bir cihaz seçiniz.'); return; }
             const dm = labelDims();
             const scale = Math.max(4, (dm.iw / 25.4 * 400) / dm.dw);   // ~400 dpi
-            // Etiketin tamamı yazdırmadaki aynı yapıdan alınır; QR ise bulanmaması için sonradan piksel-tam çizilir.
-            html2canvas(card, {
-                scale, useCORS: true, logging: false, backgroundColor: '#ffffff',
-                onclone: doc => { const h = doc.querySelector('#labelPreviewHost .lbl-qr'); if (h) h.style.visibility = 'hidden'; }
-            }).then(canvas => {
-                if (url) {
-                    const cr = card.getBoundingClientRect(), hr = qrEl.getBoundingClientRect();
-                    const sx = canvas.width / cr.width, sy = canvas.height / cr.height;
-                    const rx = Math.round((hr.left - cr.left) * sx), ry = Math.round((hr.top - cr.top) * sy);
-                    const rw = Math.round(hr.width * sx), rh = Math.round(hr.height * sy);
-                    const { n, cells } = qrMatrix(url), T = n + 2 * QR_QUIET;
-                    const pm = Math.max(1, Math.floor(Math.min(rw, rh) / T)), size = pm * T;
-                    const ox = rx + Math.floor((rw - size) / 2), oy = ry + Math.floor((rh - size) / 2);
-                    const ctx = canvas.getContext('2d');
-                    ctx.imageSmoothingEnabled = false;
-                    ctx.fillStyle = '#ffffff'; ctx.fillRect(ox, oy, size, size);
-                    ctx.fillStyle = '#000000';
-                    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (cells[r * n + c]) ctx.fillRect(ox + (c + QR_QUIET) * pm, oy + (r + QR_QUIET) * pm, pm, pm);
-                }
-                const name = `Demirbas_Etiketi_${selectedPreviewKunye || 'Karisik'}.png`;
-                canvas.toBlob(blob => {
-                    const link = document.createElement('a');
-                    link.download = name;
-                    link.href = URL.createObjectURL(blob);
-                    document.body.appendChild(link); link.click(); link.remove();
-                    setTimeout(() => URL.revokeObjectURL(link.href), 4000);
-                }, 'image/png');
-            });
+            let canvas;
+            try { canvas = await renderLabelCanvas(device, dm, scale, mobileUrlFor(selectedPreviewKunye)); }
+            catch (e) { console.error(e); alert('Etiket resmi oluşturulamadı.'); return; }
+            const name = `Demirbas_Etiketi_${selectedPreviewKunye || 'Karisik'}.png`;
+            canvas.toBlob(blob => {
+                const link = document.createElement('a');
+                link.download = name;
+                link.href = URL.createObjectURL(blob);
+                document.body.appendChild(link); link.click(); link.remove();
+                setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+            }, 'image/png');
         }
 
         // ==================== YAZDIRMA ====================
