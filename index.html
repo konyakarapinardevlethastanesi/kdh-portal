@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karapınar Devlet Hastanesi - Entegre Kurumsal Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.4s ease, color 0.4s ease; }
+        h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; }
+        
+        /* FARE İMLECİ IŞIK EFEKTİ */
+        #cursorGlow {
+            position: fixed;
+            width: 550px;
+            height: 550px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+        
+        .dark #cursorGlow {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(99, 102, 241, 0.1) 45%, transparent 70%);
+        }
+        html:not(.dark) #cursorGlow {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(99, 102, 241, 0.1) 40%, transparent 70%);
+        }
+
+        /* DİNAMİK CAM KART STİLLERİ */
+        .header-card {
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+        }
+        .dark .header-card {
+            background: rgba(51, 65, 85, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.25);
+        }
+        html:not(.dark) .header-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 20px 40px -10px rgba(148, 163, 184, 0.2);
+        }
+
+        .portal-card {
+            backdrop-filter: blur(16px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .dark .portal-card {
+            background: linear-gradient(145deg, rgba(51, 65, 85, 0.85), rgba(30, 41, 59, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.2);
+        }
+        html:not(.dark) .portal-card {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(148, 163, 184, 0.15);
+        }
+        
+        /* HOVER EFEKTLERİ */
+        .portal-card-zimmet:hover {
+            transform: translateY(-6px);
+        }
+        .dark .portal-card-zimmet:hover {
+            border-color: rgba(96, 165, 250, 0.8);
+            box-shadow: 0 20px 45px -10px rgba(59, 130, 246, 0.35);
+            background: rgba(51, 65, 85, 0.98);
+        }
+        html:not(.dark) .portal-card-zimmet:hover {
+            border-color: rgba(37, 99, 235, 0.6);
+            box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.2);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .portal-card-vardiya:hover {
+            transform: translateY(-6px);
+        }
+        .dark .portal-card-vardiya:hover {
+            border-color: rgba(251, 191, 36, 0.8);
+            box-shadow: 0 20px 45px -10px rgba(245, 158, 11, 0.35);
+            background: rgba(51, 65, 85, 0.98);
+        }
+        html:not(.dark) .portal-card-vardiya:hover {
+            border-color: rgba(217, 119, 6, 0.6);
+            box-shadow: 0 20px 40px -10px rgba(217, 119, 6, 0.2);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .portal-card-anket:hover {
+            transform: translateY(-6px);
+        }
+        .dark .portal-card-anket:hover {
+            border-color: rgba(52, 211, 153, 0.8);
+            box-shadow: 0 20px 45px -10px rgba(16, 185, 129, 0.35);
+            background: rgba(51, 65, 85, 0.98);
+        }
+        html:not(.dark) .portal-card-anket:hover {
+            border-color: rgba(5, 150, 105, 0.6);
+            box-shadow: 0 20px 40px -10px rgba(5, 150, 105, 0.2);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .modal-card {
+            backdrop-filter: blur(25px);
+            transition: all 0.3s ease;
+        }
+        .dark .modal-card {
+            background: rgba(30, 41, 59, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.5);
+        }
+        html:not(.dark) .modal-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 25px 50px -12px rgba(100, 116, 139, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br dark:from-slate-700 dark:via-slate-800 dark:to-slate-900 from-slate-100 via-slate-200 to-slate-300 dark:text-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased relative overflow-x-hidden select-none">
+
+    <!-- FARE IŞIK EFEKTİ VE ARKA PLAN CANVASI -->
+    <div id="cursorGlow"></div>
+    <canvas id="animatedPortalBg" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <!-- ANA PORTAL EKRANI -->
+    <div class="relative z-10 max-w-6xl w-full mx-auto p-4 sm:p-8 space-y-8 my-auto">
+        
+        <!-- YATAY KURUMSAL BAŞLIK BARI -->
+        <div class="header-card rounded-3xl p-5 sm:p-6 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-5 sm:gap-6">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 shrink-0 p-1 dark:bg-slate-800/90 bg-white rounded-2xl dark:border-slate-600 border-slate-200 shadow-xl flex items-center justify-center">
+                    <img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg/512px-T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg.png'">
+                </div>
+                <div class="space-y-1">
+                    <div class="text-[10px] sm:text-xs font-black tracking-[0.25em] dark:text-red-400 text-red-600 uppercase brand-font">
+                        T.C. SAĞLIK BAKANLIĞI • KONYA İL SAĞLIK MÜDÜRLÜĞÜ
+                    </div>
+                    <h1 class="text-xl sm:text-3xl font-extrabold dark:text-white text-slate-900 tracking-tight">
+                        Karapınar Devlet Hastanesi
+                    </h1>
+                    <p class="text-[11px] sm:text-xs font-semibold dark:text-slate-300 text-slate-500">
+                        Entegre Kurumsal Yönetim & Operasyon Portalı
+                    </p>
+                </div>
+            </div>
+
+            <!-- TEMA DEĞİŞTİRME BUTONU -->
+            <button onclick="toggleTheme()" class="px-3.5 py-2.5 dark:bg-slate-800/80 bg-white/90 dark:text-amber-400 text-slate-700 rounded-2xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold shrink-0">
+                <i id="themeIcon" class="fa-solid fa-moon"></i>
+                <span id="themeText" class="hidden sm:inline">Koyu Tema</span>
+            </button>
+        </div>
+
+        <!-- 3 YAN YANA MODÜL KARTLARI -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- 1. MODÜL: ZİMMET -->
+            <div onclick="window.location.href='zimmet/'" class="portal-card portal-card-zimmet rounded-3xl p-7 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-blue-400/10 rounded-full blur-2xl group-hover:bg-blue-400/20 transition duration-500"></div>
+                <div>
+                    <div class="w-14 h-14 dark:bg-blue-500/20 dark:border-blue-400/30 dark:text-blue-300 bg-blue-50 border-blue-200 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:bg-blue-600 group-hover:text-white transition duration-300 shadow-md">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <h2 class="text-lg font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">Zimmet & Envanter</h2>
+                    <p class="text-xs dark:text-slate-300 text-slate-600 mt-2.5 leading-relaxed font-medium">Demirbaş kayıtları, cihaz künyeleri, etiket basımı ve zimmet takip sistemi.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-xs font-bold dark:text-blue-300 text-blue-600">
+                    <span>Uygulamaya Git</span>
+                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-2 transition duration-300"></i>
+                </div>
+            </div>
+
+            <!-- 2. MODÜL: VARDİYA -->
+            <div onclick="window.location.href='devriye/'" class="portal-card portal-card-vardiya rounded-3xl p-7 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-amber-400/10 rounded-full blur-2xl group-hover:bg-amber-400/20 transition duration-500"></div>
+                <div>
+                    <div class="w-14 h-14 dark:bg-amber-500/20 dark:border-amber-400/30 dark:text-amber-300 bg-amber-50 border-amber-200 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:bg-amber-600 group-hover:text-white transition duration-300 shadow-md">
+                        <i class="fa-solid fa-user-clock"></i>
+                    </div>
+                    <h2 class="text-lg font-bold dark:text-white text-slate-900 group-hover:dark:text-amber-300 group-hover:text-amber-600 transition">Vardiya & Devriye</h2>
+                    <p class="text-xs dark:text-slate-300 text-slate-600 mt-2.5 leading-relaxed font-medium">Güvenlik nöbet devriyeleri, vardiya çizelgeleri ve nokta kontrol sistemi.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-xs font-bold dark:text-amber-300 text-amber-600">
+                    <span>Uygulamaya Git</span>
+                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-2 transition duration-300"></i>
+                </div>
+            </div>
+
+            <!-- 3. MODÜL: ANKET (AÇILIR SEÇENEKLİ) -->
+            <div onclick="openAnketModal()" class="portal-card portal-card-anket rounded-3xl p-7 cursor-pointer group flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-emerald-400/10 rounded-full blur-2xl group-hover:bg-emerald-400/20 transition duration-500"></div>
+                <div>
+                    <div class="w-14 h-14 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-300 bg-emerald-50 border-emerald-200 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:bg-emerald-600 group-hover:text-white transition duration-300 shadow-md">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h2 class="text-lg font-bold dark:text-white text-slate-900 group-hover:dark:text-emerald-300 group-hover:text-emerald-600 transition">Anket & Analiz</h2>
+                    <p class="text-xs dark:text-slate-300 text-slate-600 mt-2.5 leading-relaxed font-medium">Çalışan memnuniyet analitiği, birim anketleri ve Excel raporlama paneli.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-xs font-bold dark:text-emerald-300 text-emerald-600">
+                    <span>Anket Seçiniz</span>
+                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-2 transition duration-300"></i>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="text-center text-[11px] dark:text-slate-300 text-slate-500 font-medium">
+            T.C. Sağlık Bakanlığı • Karapınar Devlet Hastanesi © <span id="yearSpan">2026</span>
+        </footer>
+    </div>
+
+    <!-- ANKET UYGULAMASI SEÇİM MODALI -->
+    <div id="anketSelectModal" class="fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-card max-w-md w-full p-6 sm:p-7 rounded-3xl space-y-6 relative">
+            
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 dark:bg-emerald-500/20 dark:text-emerald-300 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto dark:border-emerald-400/30 border-emerald-200 border shadow-inner">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <h3 class="text-base font-extrabold dark:text-white text-slate-900 leading-snug">Giriş Yapmak İstediğiniz Anket Uygulamasını Seçiniz</h3>
+                <p class="text-xs dark:text-slate-300 text-slate-500">Lütfen erişmek istediğiniz anket modülüne tıklayın.</p>
+            </div>
+
+            <!-- SEÇENEK KARTLARI -->
+            <div class="space-y-3">
+                <!-- 1. ANKET UYGULAMASI -->
+                <div onclick="window.location.href='anket/'" class="p-4 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-2xl cursor-pointer hover:border-emerald-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-3">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-300 bg-emerald-50 border-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold dark:text-white text-slate-900 group-hover:dark:text-emerald-300 group-hover:text-emerald-600 transition">Çalışan Memnuniyet Anketi</h4>
+                            <p class="text-[11px] dark:text-slate-300 text-slate-500">Personel durum ve ortam değerlendirme uygulaması</p>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[11px] font-bold dark:text-emerald-300 text-emerald-600 gap-1.5 group-hover:translate-x-1 transition">
+                        <span>Uygulamaya Git</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </div>
+                </div>
+
+                <!-- 2. ANKET UYGULAMASI -->
+                <div onclick="window.location.href='anket2/'" class="p-4 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-2xl cursor-pointer hover:border-blue-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-3">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 dark:bg-blue-500/20 dark:border-blue-400/30 dark:text-blue-300 bg-blue-50 border-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-hospital-user"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">Birim & Hizmet Anketi</h4>
+                            <p class="text-[11px] dark:text-slate-300 text-slate-500">Poliklinik ve hizmet kalitesi bildirimi uygulaması</p>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[11px] font-bold dark:text-blue-300 text-blue-600 gap-1.5 group-hover:translate-x-1 transition">
+                        <span>Uygulamaya Git</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VAZGEÇ / KAPAT BUTONU -->
+            <button onclick="closeAnketModal()" class="w-full py-3 dark:bg-slate-800 bg-slate-100 hover:dark:bg-slate-700 hover:bg-slate-200 dark:text-slate-300 text-slate-600 font-bold rounded-2xl text-xs transition dark:border-slate-600 border-slate-200 border">
+                Vazgeç
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // TEMA GEÇİŞ MANTIĞI
+        function updateThemeUI(isDark) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+                text.innerText = 'Açık Tema';
+            } else {
+                document.documentElement.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-slate-700';
+                text.innerText = 'Koyu Tema';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const newDark = !isDark;
+            localStorage.setItem('kdh_theme', newDark ? 'dark' : 'light');
+            updateThemeUI(newDark);
+        }
+
+        // Sayfa yüklendiğinde tercih edilen temayı hatırla
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('kdh_theme');
+            if (savedTheme === 'light') {
+                updateThemeUI(false);
+            } else {
+                updateThemeUI(true); // Varsayılan Koyu Tema
+            }
+        })();
+
+        function openAnketModal() {
+            document.getElementById('anketSelectModal').classList.remove('hidden');
+        }
+
+        function closeAnketModal() {
+            document.getElementById('anketSelectModal').classList.add('hidden');
+        }
+
+        // FARE İMLECİ IŞIK EFEKTİ
+        const glow = document.getElementById('cursorGlow');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        // PARÇACIK ANİMASYONU
+        (function initPortalAnimation() {
+            const canvas = document.getElementById('animatedPortalBg');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize); resize();
+            const particles = [];
+            for (let i = 0; i < 45; i++) {
+                particles.push({ 
+                    x: Math.random() * width, 
+                    y: Math.random() * height, 
+                    size: Math.random() * 2.5 + 1, 
+                    speedX: (Math.random() - 0.5) * 0.3, 
+                    speedY: -Math.random() * 0.4 - 0.1, 
+                    opacity: Math.random() * 0.35 + 0.15 
+                });
+            }
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                const isDark = document.documentElement.classList.contains('dark');
+                particles.forEach(p => {
+                    p.x += p.speedX; p.y += p.speedY;
+                    if (p.y < -10) p.y = height + 10;
+                    ctx.save(); 
+                    ctx.globalAlpha = p.opacity; 
+                    ctx.fillStyle = isDark ? '#cbd5e1' : '#64748b';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        document.getElementById('yearSpan').innerText = new Date().getFullYear();
+    </script>
+</body>
+</html>

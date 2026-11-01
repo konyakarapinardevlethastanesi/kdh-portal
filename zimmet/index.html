@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <script src="../kdh-theme.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demirbaş & Cihaz Zimmet Takip Sistemi - Konya Karapınar Devlet Hastanesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style id="dynamicPrinterStyle">
+        body { font-family: 'Inter', sans-serif; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
+        button { cursor: pointer; transition: transform .12s ease, filter .12s ease, background-color .15s ease, box-shadow .15s ease; -webkit-tap-highlight-color: transparent; }
+        button:hover:not(:disabled) { filter: brightness(1.12); }
+        button:active:not(:disabled) { transform: scale(0.95); filter: brightness(0.9); }
+        button:disabled { opacity: .75; cursor: wait; }
+        button:focus-visible, select:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+        select { cursor: pointer; }
+
+        @keyframes popIn { 0% { opacity: 0; transform: scale(.7) translateY(24px); } 60% { opacity: 1; transform: scale(1.04); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shake { 0%,100% { transform: rotate(0); } 15% { transform: rotate(-14deg); } 30% { transform: rotate(11deg); } 45% { transform: rotate(-8deg); } 60% { transform: rotate(6deg); } 75% { transform: rotate(-3deg); } }
+        @keyframes rowFlash { 0% { background: #fde68a; } 100% { background: transparent; } }
+        .anim-pop { animation: popIn .38s cubic-bezier(.2,.9,.3,1.2) both; }
+        .anim-fade { animation: fadeIn .22s ease both; }
+        .anim-shake { animation: shake .9s ease .3s both; }
+        tr.row-flash { animation: rowFlash 1.8s ease; }
+        @media (prefers-reduced-motion: reduce) { .anim-pop, .anim-shake { animation: none; } }
+
+        /* ETİKET: QR (canvas gösterilir, img gizlenir; boyut CSS değişkeninden) */
+        .lbl-qr { width: var(--qs); height: var(--qs); line-height: 0; }
+        .lbl-qr svg { display: block; width: var(--qs); height: var(--qs); }
+
+        /* LİSTE ÇIKTISI */
+        .lp { font-family: 'Inter', Arial, sans-serif; color: #000; }
+        .lp-head { text-align: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px; }
+        .lp-head .a { font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+        .lp-head .b { font-size: 15px; font-weight: 900; margin-top: 1px; }
+        .lp-head .c { font-size: 13px; font-weight: 800; margin-top: 2px; text-decoration: underline; }
+        .lp-head .d { font-size: 10px; font-weight: 600; margin-top: 3px; }
+        .lp table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+        .lp th, .lp td { border: 1px solid #000; padding: 3px 4px; vertical-align: top; text-align: left; }
+        .lp th { background: #e2e8f0; font-weight: 800; text-transform: uppercase; }
+        .lp thead { display: table-header-group; }
+        .lp tr { page-break-inside: avoid; break-inside: avoid; }
+        .lp tr.grp td { background: #cbd5e1; font-weight: 900; font-size: 10.5px; }
+        .lp td.c { text-align: center; }
+        .lp td.m { font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+        /* Her yerde büyük harf görünüm (arşiv dahil) */
+        #devicesTableBody, #zimmetTableBody, #historyTableBody, #historyDetailContent, #qrDeviceSelectList, #zimmetEditInfo, .lbl, .lp { text-transform: uppercase; }
+
+        #labelPrintArea, #listPrintArea { display: none; }
+
+        /* YAZDIRMA: yalnızca ilgili alan basılır, gerisi tamamen kaldırılır (boş sayfa üretmez) */
+        @media print {
+            .no-print { display: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            html, body { margin: 0 !important; padding: 0 !important; }
+            body.print-label, body.print-list { display: block !important; min-height: 0 !important; height: auto !important; background: #fff !important; }
+            body.print-label > *:not(#labelPrintArea), body.print-list > *:not(#listPrintArea) { display: none !important; }
+            body.print-label #labelPrintArea, body.print-list #listPrintArea { display: block !important; }
+        }
+    </style>
+    <style id="pageRuleStyle"></style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- ==================== 1. GİRİŞ PORTALI ==================== -->
+    <div id="mainAuthPortal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden select-none">
+        <canvas id="animatedPortalBg" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+        <div class="max-w-md w-full space-y-5 my-auto relative z-10">
+            <div class="text-center space-y-2">
+                <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto drop-shadow-2xl">
+                    <img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-lg" onerror="this.onerror=null;this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg/512px-T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg.png'">
+                </div>
+                <div class="text-[12px] font-bold tracking-widest text-red-500 uppercase">T.C. Sağlık Bakanlığı</div>
+                <div class="text-[12px] font-semibold text-slate-200">Konya İl Sağlık Müdürlüğü</div>
+                <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
+                <p class="text-[11px] text-slate-400 font-bold">Demirbaş ve Cihaz Zimmet Takip Sistemi</p>
+            </div>
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
+                <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-3">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
+                        <i class="fa-solid fa-user-gear text-slate-900"></i> Yönetici Giriş Paneli
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
+                        <input type="password" id="adminPasswordInputPortal" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-slate-900">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> Yönetici Paneline Giriş Yap
+                    </button>
+                    <p id="adminLoginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
+                </form>
+            </div>
+        </div>
+        <script>
+            (function initPortalAnimation() {
+                const canvas = document.getElementById('animatedPortalBg');
+                if(!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let width, height;
+                function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+                window.addEventListener('resize', resize); resize();
+                const particles = [];
+                for (let i = 0; i < 40; i++) {
+                    particles.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 3 + 1, speedX: (Math.random() - 0.5) * 0.3, speedY: -Math.random() * 0.5 - 0.2, opacity: Math.random() * 0.5 + 0.2 });
+                }
+                function animate() {
+                    ctx.clearRect(0, 0, width, height);
+                    particles.forEach(p => {
+                        p.x += p.speedX; p.y += p.speedY;
+                        if (p.y < -10) p.y = height + 10;
+                        ctx.save(); ctx.globalAlpha = p.opacity; ctx.fillStyle = '#94a3b8';
+                        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                    });
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            })();
+        </script>
+    </div>
+
+    <!-- ==================== 2. YÖNETİCİ PANELİ ==================== -->
+    <div id="adminInterface" class="hidden flex-col flex-grow">
+        <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-[56px] h-[56px] flex items-center justify-center shrink-0">
+                        <img src="logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.onerror=null;this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg/512px-T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg.png'">
+                    </div>
+                    <div class="flex flex-col justify-center leading-tight">
+                        <div class="text-[11px] font-extrabold text-red-500 uppercase tracking-wide">T.C. Sağlık Bakanlığı</div>
+                        <div class="text-[10.5px] font-semibold text-slate-200 mt-0.5">Konya İl Sağlık Müdürlüğü</div>
+                        <h1 class="text-sm font-extrabold text-white mt-0.5">Karapınar Devlet Hastanesi</h1>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Demirbaş & Cihaz Zimmet Takip Paneli</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="hidden sm:flex flex-col text-right pr-3 border-r border-slate-700">
+                        <span id="live-date" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</span>
+                        <span id="live-time" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</span>
+                    </div>
+                    <button onclick="logoutToPortal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Çıkış
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
+            <!-- SEKMELER -->
+            <div class="flex gap-2 border-b border-slate-300 overflow-x-auto no-print items-end">
+                <button onclick="switchAdminTab('devices-tab')" id="tab-btn-devices" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-laptop-medical"></i> Cihaz / Envanter Kayıtları</button>
+                <button onclick="switchAdminTab('zimmet-tab')" id="tab-btn-zimmet" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-user-check"></i> Zimmet İşlemleri &amp; Atama</button>
+                <button onclick="switchAdminTab('qrprint-tab')" id="tab-btn-qrprint" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-qrcode"></i> QR Etiket Üretici</button>
+                <button onclick="switchAdminTab('history-tab')" id="tab-btn-history" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> Zimmet Geçmişi / Arşiv</button>
+                <span id="lastUpdate" class="ml-auto self-center text-[10px] text-slate-400 font-semibold whitespace-nowrap pr-1"></span>
+            </div>
+
+            <!-- İSTATİSTİKLER -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 no-print">
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Toplam Envanter</p><h3 id="statTotal" class="text-lg font-black text-slate-900">0</h3></div>
+                    <div class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700"><i class="fa-solid fa-boxes-stacked text-sm"></i></div>
+                </div>
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div><p class="text-[10px] font-bold text-blue-500 uppercase">Zimmetli</p><h3 id="statZimmetli" class="text-lg font-black text-blue-600">0</h3></div>
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-shield text-sm"></i></div>
+                </div>
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div><p class="text-[10px] font-bold text-slate-500 uppercase">Zimmetsiz (Depoda)</p><h3 id="statZimmetsiz" class="text-lg font-black text-slate-700">0</h3></div>
+                    <div class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600"><i class="fa-solid fa-warehouse text-sm"></i></div>
+                </div>
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div><p class="text-[10px] font-bold text-rose-500 uppercase">Hurda / İmha</p><h3 id="statHurda" class="text-lg font-black text-rose-600">0</h3></div>
+                    <div class="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600"><i class="fa-solid fa-triangle-exclamation text-sm"></i></div>
+                </div>
+            </div>
+
+            <!-- TAB CİHAZ / ENVANTER KAYITLARI -->
+            <section id="devices-tab" class="admin-tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-5 bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4 no-print">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                            <i class="fa-solid fa-plus-circle text-red-600"></i> Yeni Taşınır / Cihaz Kaydı
+                        </h2>
+                        <form id="newDeviceForm" onsubmit="addNewDevice(event)" class="space-y-3 text-xs">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Künye No *</label><input type="text" id="newKunye" required placeholder="Örn: 1015875568" class="w-full p-2 border rounded-lg font-mono"></div>
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Bütçe Türü</label><input type="text" id="newButceTuru" placeholder="Örn: GB" class="w-full p-2 border rounded-lg"></div>
+                            </div>
+                            <div><label class="block font-bold text-slate-700 mb-0.5">Malzeme Tanımı *</label><input type="text" id="newMalzemeTanimi" required placeholder="Örn: BİLGİSAYAR LED MONİTÖR" class="w-full p-2 border rounded-lg uppercase font-semibold"></div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Marka</label><input type="text" id="newMarka" placeholder="Örn: FUJITSU" class="w-full p-2 border rounded-lg"></div>
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Model</label><input type="text" id="newModel" placeholder="Örn: L22T 6" class="w-full p-2 border rounded-lg"></div>
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Seri No</label><input type="text" id="newSeriNo" placeholder="Örn: YV8U006" class="w-full p-2 border rounded-lg font-mono"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Demirbaş No</label><input type="text" id="newDemirbasNo" placeholder="Örn: DMR-001" class="w-full p-2 border rounded-lg font-mono"></div>
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Sicil No</label><input type="text" id="newSicilNo" placeholder="Örn: 255-02-01" class="w-full p-2 border rounded-lg font-mono"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Edinme Yılı</label><input type="text" id="newEdinmeYili" placeholder="Örn: 2014" class="w-full p-2 border rounded-lg"></div>
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Cihaz Durumu</label>
+                                    <select id="newDurum" class="w-full p-2 border rounded-lg font-bold bg-white">
+                                        <option value="Aktif">🟢 Aktif</option>
+                                        <option value="Bakımda">🟡 Bakımda</option>
+                                        <option value="Hurda">🔴 Hurda</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Tedarikçi</label><input type="text" id="newTedarikci" placeholder="Örn: Firma Adı" class="w-full p-2 border rounded-lg"></div>
+                                <div><label class="block font-bold text-slate-700 mb-0.5">Tedarik Türü</label><input type="text" id="newTedarikTuru" placeholder="Örn: Satın Alma" class="w-full p-2 border rounded-lg"></div>
+                            </div>
+                            <div><label class="block font-bold text-slate-700 mb-0.5">Açıklama</label><textarea id="newAciklama" rows="2" placeholder="Örn: Ek notlar ve açıklamalar..." class="w-full p-2 border rounded-lg"></textarea></div>
+                            <button type="submit" id="submitBtnDevice" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 shadow transition">
+                                <i class="fa-solid fa-floppy-disk"></i> Envantere Kaydet (Depoya Al)
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border">
+                            <div class="relative w-full sm:w-64">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="text" id="deviceSearchInput" oninput="renderDevicesTable()" placeholder="Künye, malzeme ara..." class="w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs bg-white">
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <select id="deviceStatusFilter" onchange="renderDevicesTable()" class="p-1.5 border rounded-lg text-xs font-semibold bg-white">
+                                    <option value="ALL">Tüm Durumlar</option>
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Bakımda">Bakımda</option>
+                                    <option value="Hurda">Hurda</option>
+                                </select>
+                                <button onclick="printInventoryA4List()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
+                                    <i class="fa-solid fa-print"></i> Liste Çıktısı
+                                </button>
+                                <button id="refreshBtn" onclick="refreshNow()" title="Yenile" class="text-xs bg-slate-700 hover:bg-slate-800 text-white font-semibold px-2.5 py-1.5 rounded-lg transition"><i id="refreshIcon" class="fa-solid fa-rotate"></i></button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto max-h-[550px]">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead class="bg-slate-50 text-slate-600 font-bold border-b sticky top-0 z-10">
+<tr>
+<th class="p-2.5 w-10">#</th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('dev','kunye')">Künye / Malzeme <i data-sk="dev:kunye" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('dev','marka')">Marka / Model / Seri <i data-sk="dev:marka" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('dev','demirbas')">Demirbaş / Sicil <i data-sk="dev:demirbas" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('dev','durum')">Durum <i data-sk="dev:durum" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 text-center">İşlem</th>
+</tr>
+</thead>
+                                <tbody id="devicesTableBody" class="divide-y text-slate-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB ZİMMET İŞLEMLERİ & ATAMA -->
+            <section id="zimmet-tab" class="admin-tab-content hidden space-y-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-user-check text-blue-600"></i> Personel Zimmet Atama ve Birim Yönetimi
+                            </h2>
+                            <p class="text-[11px] text-slate-400">Cihazları personele zimmetleyin veya birim değiştirin. Hurdaya ayrılan cihazlar bu listede gösterilmez. Sıralamak için sütun başlığına tıklayın.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            
+                            <select id="zimmetFilterSelect" onchange="renderZimmetTable()" class="p-1.5 border rounded-lg text-xs font-semibold bg-slate-50">
+                                <option value="ALL">Tüm Cihazlar</option>
+                                <option value="ZIMMETLI">Zimmetliler</option>
+                                <option value="ZIMMETSIZ">Zimmetsiz (Depoda)</option>
+                            </select>
+                            <div class="relative w-full sm:w-48">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="text" id="zimmetSearchInput" oninput="renderZimmetTable()" placeholder="Ara..." class="w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs bg-white">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table class="w-full text-left text-xs text-slate-700 border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b sticky top-0 z-10">
+<tr>
+<th class="p-2.5 w-10">#</th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','kunye')">Künye No <i data-sk="zim:kunye" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','demirbas')">Demirbaş No <i data-sk="zim:demirbas" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','malzeme')">Malzeme Tanımı <i data-sk="zim:malzeme" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','birim')">Zimmet Yeri / Birim <i data-sk="zim:birim" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','personel')">Zimmetli Personel <i data-sk="zim:personel" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','tarih')">Zimmet Tarihi <i data-sk="zim:tarih" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+<th class="p-2.5 text-center">Zimmet İşlemi</th>
+</tr>
+</thead>
+                            <tbody id="zimmetTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB QR ETİKET -->
+            <section id="qrprint-tab" class="admin-tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-6 bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-list-check text-blue-600"></i> Etiket Basılacak Cihazı Seçiniz</h2>
+                            <select id="qrZimmetStatusFilter" onchange="renderQrSelectorList()" class="p-1.5 border rounded-lg text-xs font-semibold bg-slate-50">
+                                <option value="ALL">Tüm Cihazlar</option>
+                                <option value="ZIMMETLI">Zimmetliler</option>
+                                <option value="ZIMMETSIZ">Zimmetsiz (Depoda)</option>
+                            </select>
+                        </div>
+                        <div class="relative w-full">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="qrDeviceSearchBox" oninput="renderQrSelectorList()" placeholder="Cihaz ara (künye, malzeme, marka)..." class="w-full pl-8 pr-3 py-2 border rounded-lg text-xs bg-slate-50">
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs bg-slate-50 border rounded-lg px-3 py-2">
+                            <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer select-none">
+                                <input type="checkbox" id="qrSelectAll" onchange="toggleSelectAllQr(this.checked)" class="w-4 h-4 accent-slate-900"> Listedekilerin tümünü seç
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <span id="qrBatchCount" class="text-[11px] font-bold text-slate-500">0 seçili</span>
+                                <button type="button" onclick="clearQrSelection()" class="px-2.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-[11px] font-bold transition">Temizle</button>
+                                <button type="button" onclick="printSelectedLabels()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow transition flex items-center gap-1.5"><i class="fa-solid fa-print"></i> Toplu Yazdır</button>
+                            </div>
+                        </div>
+                        <div id="qrDeviceSelectList" class="max-h-[420px] overflow-y-auto border rounded-xl bg-white divide-y text-xs"></div>
+                    </div>
+
+                    <div class="lg:col-span-6 bg-white p-5 rounded-xl shadow-sm border space-y-4 flex flex-col items-center">
+                        <div class="w-full flex justify-between items-center border-b pb-2">
+                            <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-print text-red-600"></i> Resmi Etiket Önizleme</h2>
+                            <button onclick="openPrinterConfigModal()" title="Yazıcı / Etiket Boyut Ayarları" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                                <i class="fa-solid fa-gear"></i> Ayarlar
+                            </button>
+                        </div>
+
+                        <!-- ETİKET ÖNİZLEME (ayarlardaki boyutla birebir aynı oranda) -->
+                        <div class="w-full overflow-x-auto flex justify-center">
+                            <div id="labelPreviewHost" class="my-auto shrink-0"><div class="p-6 text-xs text-slate-400">Soldan bir cihaz seçiniz.</div></div>
+                        </div>
+                        <p id="labelSizeInfo" class="text-[10px] text-slate-400 font-semibold text-center"></p>
+
+                        <div class="w-full grid grid-cols-2 gap-2 pt-2">
+                            <button onclick="downloadCurrentPreviewDeviceQR()" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download"></i> Etiketi HD İndir
+                            </button>
+                            <button onclick="printSingleQRCode()" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-print"></i> Etiketi Yazdır
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- TAB GEÇMİŞ / ARŞİV -->
+            <section id="history-tab" class="admin-tab-content hidden space-y-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-box-archive"></i> İşlem Arşivi</h2>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-64">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="text" id="historySearchInput" oninput="renderHistoryTable()" placeholder="Geçmişte ara (künye, personel)..." class="w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs bg-white">
+                            </div>
+                            <button onclick="loadHistoryFromSheets()" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-arrows-rotate"></i> Yenile</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 font-bold uppercase sticky top-0">
+                                <tr>
+                                    <th class="p-3">Tarih</th>
+                                    <th class="p-3">Künye No</th>
+                                    <th class="p-3">Malzeme</th>
+                                    <th class="p-3">Durum / İşlem Türü</th>
+                                    <th class="p-3">İlgili Personel</th>
+                                    <th class="p-3 text-center">Detay</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800 no-print">
+            <p>Konya Karapınar Devlet Hastanesi <span id="currentYearSpan"></span> © Tüm Hakları Saklıdır.</p>
+        </footer>
+    </div>
+
+    <!-- YAZDIRMA ALANLARI (sadece yazdırırken görünür, doğrudan body çocuğu olmalı) -->
+    <div id="listPrintArea" class="lp"></div>
+    <div id="labelPrintArea"></div>
+
+    <!-- MODAL 1: CİHAZ DÜZENLEME -->
+    <div id="editInventoryModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 anim-fade">
+        <div class="anim-pop bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-xs max-h-[90vh] overflow-y-auto">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 border-b pb-2">
+                <i class="fa-solid fa-laptop-medical text-slate-900"></i> Cihaz / Teknik Bilgi Düzenle
+            </h3>
+            <form onsubmit="saveInventoryDeviceWithReason(event)" class="space-y-3">
+                <input type="hidden" id="invEditId">
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">Künye No</label><input type="text" id="invEditKunye" disabled class="w-full p-2 border bg-slate-100 rounded-lg font-mono"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Cihaz Durumu</label>
+                        <select id="invEditDurum" class="w-full p-2 border rounded-lg font-bold">
+                            <option value="Aktif">🟢 Aktif</option>
+                            <option value="Bakımda">🟡 Bakımda</option>
+                            <option value="Hurda">🔴 Hurda</option>
+                        </select>
+                    </div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">Malzeme Tanımı *</label><input type="text" id="invEditMalzeme" required class="w-full p-2 border rounded-lg font-bold uppercase"></div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">Marka</label><input type="text" id="invEditMarka" class="w-full p-2 border rounded-lg"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Model</label><input type="text" id="invEditModel" class="w-full p-2 border rounded-lg"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Seri No</label><input type="text" id="invEditSeri" class="w-full p-2 border rounded-lg font-mono"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">Demirbaş No</label><input type="text" id="invEditDemirbas" class="w-full p-2 border rounded-lg font-mono"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Sicil No</label><input type="text" id="invEditSicil" class="w-full p-2 border rounded-lg font-mono"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Bütçe Türü</label><input type="text" id="invEditButce" class="w-full p-2 border rounded-lg"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">Edinme Yılı</label><input type="text" id="invEditEdinme" class="w-full p-2 border rounded-lg"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Tedarikçi</label><input type="text" id="invEditTedarikci" class="w-full p-2 border rounded-lg"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Tedarik Türü</label><input type="text" id="invEditTedarikTuru" class="w-full p-2 border rounded-lg"></div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">Açıklama</label><textarea id="invEditAciklama" rows="2" class="w-full p-2 border rounded-lg"></textarea></div>
+                <div>
+                    <label class="block font-bold text-rose-600 mb-1">İşlem / Değişiklik / Silme Nedeni *</label>
+                    <textarea id="invEditReason" required rows="2" placeholder="Örn: Bilgiler güncellendi..." class="w-full p-2 border border-rose-300 rounded-lg font-medium"></textarea>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t">
+                    <button type="button" onclick="openDeleteConfirmModal()" class="text-rose-600 hover:underline font-bold flex items-center gap-1"><i class="fa-solid fa-trash-can"></i> Cihazı Tamamen Sil</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModals()" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-semibold">İptal</button>
+                        <button type="submit" id="submitBtnEdit" class="px-4 py-1.5 bg-slate-900 text-white rounded-lg font-bold transition">Kaydet ve Arşive İşle</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 1.1: ZİMMETLİ HURDAYA AYIRMA UYARI MODALI -->
+    <div id="hurdaWarningModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center p-4 anim-fade">
+        <div class="anim-pop bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-xs border border-amber-200 text-center">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Zimmetli Cihaz Hurdaya Ayrılamaz!</h3>
+            <p id="hurdaWarningText" class="text-slate-600 text-xs leading-relaxed">Bu cihaz halen bir personele zimmetlidir. Grafiklerde ve kayıtlarda çakışma yaşanmaması için önce zimmeti kaldırıp Depoya alınız.</p>
+            <button type="button" onclick="document.getElementById('hurdaWarningModal').classList.add('hidden')" class="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl shadow">Anladım, Kapat</button>
+        </div>
+    </div>
+
+    <!-- MODAL 1.2: CİHAZ SİLME ONAY MODALI -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center p-4 anim-fade">
+        <div class="anim-pop bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-xs border border-rose-200">
+            <div class="text-center space-y-2">
+                <i class="fa-solid fa-triangle-exclamation text-4xl text-rose-500"></i>
+                <h3 class="text-base font-bold text-slate-900">Cihazı Silmek İstediğinize Emin Misiniz?</h3>
+                <p class="text-slate-500 text-[11px]">Bu işlem cihazı envanterden kalıcı olarak silecektir. Lütfen silme nedeninizi belirtiniz.</p>
+            </div>
+            <div>
+                <label class="block font-bold text-rose-600 mb-1">Silme Nedeni *</label>
+                <textarea id="deleteReasonInput" required rows="2" placeholder="Örn: Hatalı kayıt, mükerrer veri..." class="w-full p-2 border border-rose-300 rounded-lg font-medium"></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t">
+                <button type="button" onclick="document.getElementById('deleteConfirmModal').classList.add('hidden')" class="px-3 py-2 bg-slate-200 text-slate-700 rounded-lg font-semibold">İptal</button>
+                <button type="button" onclick="executeDeviceDelete()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold shadow">Sil ve Arşive Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ZİMMET ATAMA -->
+    <div id="editZimmetModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 anim-fade">
+        <div class="anim-pop bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-xs">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 border-b pb-2">
+                <i class="fa-solid fa-user-check text-blue-600"></i> Zimmet Atama & Birim İşlemi
+            </h3>
+            <form onsubmit="saveZimmetAssignment(event)" class="space-y-3">
+                <input type="hidden" id="zimmetEditId">
+                <div><label class="block font-bold text-slate-700 mb-1">Künye & Malzeme</label><input type="text" id="zimmetEditInfo" disabled class="w-full p-2 border bg-slate-100 rounded-lg font-mono font-bold"></div>
+                
+                <div class="bg-slate-50 p-2.5 rounded-xl border flex items-center gap-2">
+                    <input type="checkbox" id="depoCheckbox" onchange="toggleDepoMode(this)" class="w-4 h-4 text-blue-600 rounded">
+                    <label for="depoCheckbox" class="font-bold text-slate-800 cursor-pointer">Ayniyat Taşınır Deposuna Kaldır (Zimmetsiz)</label>
+                </div>
+
+                <div><label class="block font-bold text-slate-700 mb-1">Bulunduğu Birim / Oda *</label><input type="text" id="zimmetEditBirim" required placeholder="Örn: Acil Servis" class="w-full p-2 border rounded-lg font-semibold"></div>
+                <div><label class="block font-bold text-slate-700 mb-1">Zimmet Edilecek Personel</label><input type="text" id="zimmetEditPersonel" placeholder="Örn: Dr. Ahmet Yılmaz" class="w-full p-2 border rounded-lg font-bold text-blue-700"></div>
+                
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="closeModals()" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-semibold">İptal</button>
+                    <button type="submit" id="submitBtnZimmet" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold transition">Zimmetle / Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GEÇMİŞ DETAY MODALI -->
+    <div id="historyDetailModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 anim-fade">
+        <div class="anim-pop bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-xs">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 border-b pb-2"><i class="fa-solid fa-file-lines text-blue-600"></i> İşlem ve İlk Kayıt Detay Arşivi</h3>
+            <div id="historyDetailContent" class="space-y-2 max-h-[400px] overflow-y-auto"></div>
+            <div class="flex justify-end pt-2 border-t">
+                <button type="button" onclick="document.getElementById('historyDetailModal').classList.add('hidden')" class="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- YAZICI / ETİKET ÖZEL BOYUT AYARLARI MODALI -->
+    <div id="printerConfigModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4 anim-fade">
+        <div class="anim-pop bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-xs">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 border-b pb-2"><i class="fa-solid fa-sliders text-slate-900"></i> Etiket Yazıcı Boyut Ayarları</h3>
+            <form onsubmit="savePrinterSettings(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block font-bold text-slate-700 mb-1">Genişlik (mm)</label><input type="number" id="cfgWidth" required min="10" step="0.1" value="80" class="w-full p-2 border rounded-lg font-bold"></div>
+                    <div><label class="block font-bold text-slate-700 mb-1">Yükseklik (mm)</label><input type="number" id="cfgHeight" required min="10" step="0.1" value="40" class="w-full p-2 border rounded-lg font-bold"></div>
+                </div>
+                <div><label class="block font-bold text-slate-700 mb-1">Kenar Boşluğu (mm)</label><input type="number" id="cfgMargin" required min="0" step="0.1" value="0" class="w-full p-2 border rounded-lg font-bold"></div>
+                <p class="text-[10px] text-slate-500 leading-snug bg-slate-50 border rounded-lg p-2">Etiket tam bu ölçüde çıkar. Yazdırma penceresinde <b>Ölçek: %100 (Varsayılan)</b>, <b>Kağıt boyutu</b> yazıcıdaki etiket boyutuyla aynı olmalı. Üstbilgi/altbilgi kapalı olsun.</p>
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="document.getElementById('printerConfigModal').classList.add('hidden')" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-semibold">İptal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-slate-900 text-white rounded-lg font-bold">Ayarları Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT MANTIĞI -->
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbygz_tvIoxfziUITJDqzyypreETKUNp2o6ANTW0TVsyEf4j32G_uDXa6Ogu0O0wiwd9/exec";
+        let globalDevices = [];
+        let globalHistory = [];
+        let selectedPreviewKunye = null;
+        const qrBatchSel = new Set();
+        let qrFilteredKunyes = [];
+
+        // ==================== YARDIMCILAR ====================
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const MM = 96 / 25.4;
+        let lastSig = "", refreshing = false;
+        let LABEL_LOGO_URL = "logo.png";
+        const SORT = { dev: { key: null, dir: 'asc' }, zim: { key: 'tarih', dir: 'desc' } };
+        const TAB_IDS = ['devices-tab', 'zimmet-tab', 'qrprint-tab', 'history-tab'];
+
+        const hasZs = s => String(s ?? '').toLocaleLowerCase('tr').includes('zimmetsiz');
+        function isZimmetli(d) { const p = getDevProp(d, 'personel', 12) || ''; return !!p && !hasZs(p); }
+        function isHurda(d) { return (getDevProp(d, 'durum', 10) || 'Aktif') === 'Hurda'; }
+        function findDevice(kunye) { return globalDevices.find(d => String(getDevProp(d, 'kunyeNo', 1)) === String(kunye)); }
+
+        const ADMIN_KEY = () => sessionStorage.getItem('kdh_admin_key') || '';
+        async function fetchSheet(name, key) {
+            const res = await fetch(API_URL + "?sheet=" + name + "&key=" + encodeURIComponent(key !== undefined ? key : ADMIN_KEY()));
+            const data = await res.json();
+            if (!Array.isArray(data)) throw new Error((data && data.message === 'unauthorized') ? 'unauthorized' : 'Veri alınamadı: ' + name);
+            return data;
+        }
+        // Tüm kayıt/güncelleme/silme istekleri şifreyle gider; sunucu "success" demezse hata gösterilir
+        async function apiPost(payload) {
+            let out;
+            try {
+                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ ...payload, key: ADMIN_KEY() }) });
+                out = await res.json();
+            } catch (e) { alert('Sunucuya ulaşılamadı, işlem kaydedilmedi.'); throw e; }
+            if (out.status !== 'success') {
+                if (out.message === 'unauthorized') { alert('Oturum geçersiz. Lütfen tekrar giriş yapın.'); logoutToPortal(); }
+                else alert('Kaydedilemedi: ' + (out.message || 'bilinmeyen hata'));
+                throw new Error(out.message || 'Kayıt hatası');
+            }
+            return out;
+        }
+
+        // Giriş sırasında tüm veriler önceden çekilir; panel açıldığında hazırdır
+        async function preloadAll(key) {
+            const [dev, hist] = await Promise.all([fetchSheet('EnvanterYeni', key), fetchSheet('ZimmetGecmisi', key)]);
+            globalDevices = dev; globalHistory = hist;
+            lastSig = JSON.stringify([dev, hist]);
+        }
+
+        // ==================== GİRİŞ ====================
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const err = $('adminLoginError');
+            const btn = e.target.querySelector('button[type=submit]');
+            const oldHtml = btn.innerHTML;
+            err.classList.add('hidden');
+            const key = $('adminPasswordInputPortal').value;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
+            try {
+                await preloadAll(key);          // şifre sunucuda doğrulanır
+                sessionStorage.setItem('kdh_admin_key', key);
+                showAdminInterface();
+            } catch (x) {
+                err.textContent = (x && x.message === 'unauthorized') ? "Hatalı şifre!" : "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.";
+                err.classList.remove('hidden');
+            } finally { btn.disabled = false; btn.innerHTML = oldHtml; }
+        }
+
+        function showAdminInterface() {
+            $('mainAuthPortal').classList.add('hidden');
+            $('adminInterface').classList.remove('hidden');
+            $('adminInterface').classList.add('flex');
+            updateClock();
+            $('currentYearSpan').innerText = new Date().getFullYear();
+            renderAll();
+            renderHistoryTable();
+            setLastUpdate();
+            const saved = sessionStorage.getItem('kdh_tab');
+            switchAdminTab(TAB_IDS.includes(saved) ? saved : 'devices-tab');
+        }
+
+        function panelOpen() { return !$('adminInterface').classList.contains('hidden'); }
+        function anyModalOpen() { return ['editInventoryModal', 'hurdaWarningModal', 'deleteConfirmModal', 'editZimmetModal', 'historyDetailModal', 'printerConfigModal'].some(id => !$(id).classList.contains('hidden')); }
+
+        function setLastUpdate(msg) {
+            const el = $('lastUpdate'); if (!el) return;
+            el.textContent = msg || ('Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR', { hourCycle: 'h23' }) + ' · yenilemek için ↻ butonunu kullanın');
+        }
+
+        // Sessiz yenileme: veri değişmişse tabloları yeniler
+        async function silentRefresh(manual) {
+            if (refreshing || !panelOpen()) return;
+            refreshing = true;
+            const btn = $('refreshBtn'), icon = $('refreshIcon');
+            if (manual && btn) btn.disabled = true;
+            if (icon) icon.classList.add('fa-spin');
+            try {
+                const [dev, hist] = await Promise.all([fetchSheet('EnvanterYeni'), fetchSheet('ZimmetGecmisi')]);
+                const sig = JSON.stringify([dev, hist]);
+                if (sig !== lastSig) {
+                    globalDevices = dev; globalHistory = hist; lastSig = sig;
+                    renderAll(); renderHistoryTable();
+                }
+                setLastUpdate();
+            } catch (e) {
+                if (e && e.message === 'unauthorized') logoutToPortal();
+                else setLastUpdate('Bağlantı sorunu, ↻ ile yeniden deneyin');
+            }
+            finally { refreshing = false; if (btn) btn.disabled = false; if (icon) icon.classList.remove('fa-spin'); }
+        }
+        function refreshNow() { silentRefresh(true); }
+        // Otomatik güncelleme iptal edildi: veriler yalnızca Yenile (↻) butonuyla yenilenir.
+
+        // ==================== SEKMELER ====================
+        function switchAdminTab(tabId) {
+            const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
+            TAB_IDS.forEach(t => {
+                $(t).classList.toggle('hidden', t !== tabId);
+                $('tab-btn-' + t.replace('-tab', '')).className = 'tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap ' + (t === tabId ? on : off);
+            });
+            sessionStorage.setItem('kdh_tab', tabId);
+            if (tabId === 'zimmet-tab') renderZimmetTable();
+            if (tabId === 'qrprint-tab') { renderQrSelectorList(); refreshLabelPreview(); }
+            if (tabId === 'history-tab') renderHistoryTable();
+        }
+
+        // ==================== VERİ YÜKLEME (yazma işlemlerinden sonra) ====================
+        async function loadDevicesFromSheets() {
+            try {
+                globalDevices = await fetchSheet('EnvanterYeni');
+                lastSig = JSON.stringify([globalDevices, globalHistory]);
+                renderAll();
+            } catch (e) { console.error(e); }
+        }
+        async function loadHistoryFromSheets() {
+            try {
+                globalHistory = await fetchSheet('ZimmetGecmisi');
+                lastSig = JSON.stringify([globalDevices, globalHistory]);
+                renderHistoryTable();
+            } catch (e) { console.error(e); }
+        }
+        function renderAll() {
+            updateDashboardStats();
+            renderDevicesTable();
+            renderZimmetTable();
+            renderQrSelectorList();
+            if (selectedPreviewKunye && findDevice(selectedPreviewKunye)) updateQrPreview(selectedPreviewKunye);
+        }
+
+        function updateDashboardStats() {
+            let zimmetli = 0, zimmetsiz = 0, hurda = 0;
+            globalDevices.forEach(d => {
+                if (isHurda(d)) hurda++;            // hurdalar depoda sayılmaz
+                else if (isZimmetli(d)) zimmetli++;
+                else zimmetsiz++;
+            });
+            $('statTotal').innerText = globalDevices.length;
+            $('statZimmetli').innerText = zimmetli;
+            $('statZimmetsiz').innerText = zimmetsiz;
+            $('statHurda').innerText = hurda;
+        }
+
+        // ==================== SIRALAMA (sütun başlığına tıkla) ====================
+        function devVal(d, key) {
+            switch (key) {
+                case 'kunye': return String(getDevProp(d, 'kunyeNo', 1) || '');
+                case 'malzeme': return String(getDevProp(d, 'malzemeTanimi', 6) || '');
+                case 'marka': return String(getDevProp(d, 'marka', 7) || '') + ' ' + String(getDevProp(d, 'model', 8) || '');
+                case 'demirbas': return String(getDevProp(d, 'demirbasNo', 4) || '');
+                case 'durum': return String(getDevProp(d, 'durum', 10) || 'Aktif');
+                case 'birim': return String(getDevProp(d, 'birim', 11) || '');
+                case 'personel': return String(getDevProp(d, 'personel', 12) || '');
+                case 'tarih': { const v = new Date(getDevProp(d, 'tarih', 16) || 0).getTime(); return isNaN(v) ? 0 : v; }
+            }
+            return '';
+        }
+        function sortDevs(arr, s) {
+            if (!s.key) return arr;
+            const dir = s.dir === 'asc' ? 1 : -1;
+            return arr.sort((a, b) => {
+                const x = devVal(a, s.key), y = devVal(b, s.key);
+                return dir * (typeof x === 'number' ? x - y : String(x).localeCompare(String(y), 'tr', { numeric: true }));
+            });
+        }
+        function sortTable(tbl, key) {
+            const s = SORT[tbl];
+            if (s.key === key) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+            else { s.key = key; s.dir = key === 'tarih' ? 'desc' : 'asc'; }
+            if (tbl === 'dev') renderDevicesTable(); else renderZimmetTable();
+        }
+        function updateSortIcons(tbl) {
+            document.querySelectorAll('[data-sk^="' + tbl + ':"]').forEach(i => {
+                const on = i.dataset.sk === tbl + ':' + SORT[tbl].key;
+                i.className = 'fa-solid ml-1 ' + (on ? (SORT[tbl].dir === 'asc' ? 'fa-sort-up text-slate-800' : 'fa-sort-down text-slate-800') : 'fa-sort text-slate-300');
+            });
+        }
+
+        // ==================== TABLOLAR ====================
+        function renderDevicesTable() {
+            const query = $("deviceSearchInput").value.toLowerCase();
+            const statusFilter = $("deviceStatusFilter").value;
+            const tbody = $("devicesTableBody");
+
+            const filtered = globalDevices.filter(d => {
+                const text = `${getDevProp(d, 'kunyeNo', 1) || ''} ${getDevProp(d, 'malzemeTanimi', 6) || ''} ${getDevProp(d, 'marka', 7) || ''} ${getDevProp(d, 'demirbasNo', 4) || ''}`.toLowerCase();
+                const durum = getDevProp(d, 'durum', 10) || 'Aktif';
+                return text.includes(query) && (statusFilter === "ALL" || durum === statusFilter);
+            });
+            sortDevs(filtered, SORT.dev);
+            updateSortIcons('dev');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">Kayıtlı envanter bulunamadı.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = filtered.map((d, i) => {
+                const id = getDevProp(d, 'id', 0);
+                const kunye = esc(getDevProp(d, 'kunyeNo', 1));
+                const malzeme = esc(getDevProp(d, 'malzemeTanimi', 6) || '-');
+                const marka = esc(getDevProp(d, 'marka', 7) || '-');
+                const model = esc(getDevProp(d, 'model', 8) || '-');
+                const seri = esc(getDevProp(d, 'seriNo', 9) || '-');
+                const demirbas = esc(getDevProp(d, 'demirbasNo', 4) || '-');
+                const sicil = esc(getDevProp(d, 'sicilNo', 5) || '-');
+                const durum = getDevProp(d, 'durum', 10) || 'Aktif';
+
+                let rowStyle = "bg-emerald-50/70 hover:bg-emerald-100 border-l-4 border-l-emerald-500 text-slate-800";
+                let durumBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-200 text-emerald-900">🟢 Aktif</span>`;
+                if (durum === "Bakımda") { rowStyle = "bg-amber-50/80 hover:bg-amber-100 border-l-4 border-l-amber-500 text-slate-900"; durumBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-900">🟡 Bakımda</span>`; }
+                else if (durum === "Hurda") { rowStyle = "bg-rose-50/80 hover:bg-rose-100 border-l-4 border-l-rose-500 text-slate-900"; durumBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-200 text-rose-900">🔴 Hurda</span>`; }
+
+                return `
+                    <tr class="${rowStyle} border-b border-slate-200 font-medium">
+                        <td class="p-2.5 text-slate-400">${i + 1}</td>
+                        <td class="p-2.5"><div class="font-mono font-black text-slate-900">${kunye}</div><div class="font-bold text-slate-800 uppercase">${malzeme}</div></td>
+                        <td class="p-2.5"><div><span class="font-bold">${marka}</span> ${model}</div><div class="font-mono text-[10px] text-slate-500">SN: ${seri}</div></td>
+                        <td class="p-2.5"><div class="font-mono font-bold">${demirbas}</div><div class="font-mono text-[10px] text-slate-500">${sicil}</div></td>
+                        <td class="p-2.5">${durumBadge}</td>
+                        <td class="p-2.5 text-center"><button onclick="openInventoryModal('${esc(id)}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded text-[11px] font-bold shadow-sm transition">Düzenle</button></td>
+                    </tr>`;
+            }).join('');
+        }
+
+        function renderZimmetTable() {
+            const tbody = $("zimmetTableBody");
+            if (!tbody) return;
+            const query = $("zimmetSearchInput").value.toLowerCase();
+            const filterType = $("zimmetFilterSelect").value;
+
+            const filtered = globalDevices.filter(d => {
+                if (isHurda(d)) return false;   // hurdaya ayrılanlar zimmet/depo listesinde görünmez
+                const text = `${getDevProp(d, 'kunyeNo', 1) || ''} ${getDevProp(d, 'malzemeTanimi', 6) || ''} ${getDevProp(d, 'demirbasNo', 4) || ''} ${getDevProp(d, 'personel', 12) || ''} ${getDevProp(d, 'birim', 11) || ''}`.toLowerCase();
+                if (!text.includes(query)) return false;
+                if (filterType === "ZIMMETLI") return isZimmetli(d);
+                if (filterType === "ZIMMETSIZ") return !isZimmetli(d);
+                return true;
+            });
+            sortDevs(filtered, SORT.zim);
+            updateSortIcons('zim');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400 font-semibold">Kayıt bulunamadı.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = filtered.map((d, i) => {
+                const id = getDevProp(d, 'id', 0);
+                const kunye = esc(getDevProp(d, 'kunyeNo', 1));
+                const demirbas = esc(getDevProp(d, 'demirbasNo', 4) || '-');
+                const malzeme = esc(getDevProp(d, 'malzemeTanimi', 6) || '-');
+                const birim = esc(getDevProp(d, 'birim', 11) || 'Depo');
+                const personel = getDevProp(d, 'personel', 12) || 'Zimmetsiz (Depoda)';
+                const rawTarih = getDevProp(d, 'tarih', 16);
+                const zim = isZimmetli(d);
+                const personelDisplay = zim
+                    ? `<span class="px-2.5 py-1 rounded bg-blue-100 text-blue-900 font-bold text-xs"><i class="fa-solid fa-user mr-1"></i>${esc(personel)}</span>`
+                    : `<span class="text-slate-400 font-medium italic">Zimmetsiz (Depoda)</span>`;
+                let tarihDisplay = "-";
+                if (zim && rawTarih && rawTarih !== "-") {
+                    try { tarihDisplay = new Date(rawTarih).toLocaleDateString('tr-TR'); } catch (e) { tarihDisplay = esc(rawTarih); }
+                }
+                return `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="p-2.5 text-slate-400">${i + 1}</td>
+                        <td class="p-2.5 font-mono font-bold text-slate-900">${kunye}</td>
+                        <td class="p-2.5 font-mono font-bold text-slate-700">${demirbas}</td>
+                        <td class="p-2.5 font-bold uppercase text-slate-800">${malzeme}</td>
+                        <td class="p-2.5 font-semibold text-slate-700">${birim}</td>
+                        <td class="p-2.5">${personelDisplay}</td>
+                        <td class="p-2.5 font-mono text-xs font-semibold text-slate-600">${tarihDisplay}</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="openZimmetModal('${esc(id)}')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 shadow-sm transition">
+                                <i class="fa-solid fa-user-pen mr-1"></i> Zimmetle / Değiştir
+                            </button>
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+        // ==================== ETİKET ====================
+        // Etiket 520px genişliğinde tasarlanır; yüksekliği ayarlardaki en-boy oranına göre hesaplanır.
+        // Önizleme, PNG indirme ve yazdırma aynı yapıyı kullanır.
+        const LABEL_DW = 520;
+        function getPrintCfg() {
+            let s = {};
+            try { s = JSON.parse(localStorage.getItem('tag_print_config') || '{}') || {}; } catch (e) { s = {}; }
+            const w = +s.width > 0 ? +s.width : 80, h = +s.height > 0 ? +s.height : 40, m = +s.margin >= 0 && s.margin !== undefined && s.margin !== '' ? +s.margin : 0;
+            return { width: w, height: h, margin: m };
+        }
+        function labelDims(cfg) {
+            cfg = cfg || getPrintCfg();
+            const iw = Math.max(5, cfg.width - 2 * cfg.margin), ih = Math.max(5, cfg.height - 2 * cfg.margin);
+            return { dw: LABEL_DW, dh: Math.round(LABEL_DW * ih / iw), iw, ih };
+        }
+        function labelGeom(dm) {
+            const hh = Math.max(34, Math.min(48, Math.round(dm.dh * 0.17)));
+            const qs = Math.max(70, Math.min(228, dm.dh - hh - 14));
+            return { hh, qs };
+        }
+        function buildLabelHTML(d, dm) {
+            const { hh, qs } = labelGeom(dm);
+            const title = String(getDevProp(d, 'malzemeTanimi', 6) || '-').toLocaleUpperCase('tr');
+            const tf = title.length <= 24 ? 21 : title.length <= 38 ? 17 : title.length <= 56 ? 14 : 12;
+            const g = (p, i) => esc(getDevProp(d, p, i) || '-');
+            const line = 'border-top:2px solid #0f172a;';
+            const cell = (txt, w, extra) => `<div style="width:${w}%;box-sizing:border-box;padding:0 4px;display:flex;align-items:center;justify-content:center;${extra || ''}"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${txt}</span></div>`;
+            const sep = 'border-left:2px solid #0f172a;';
+            return `<div class="lbl" style="width:${dm.dw}px;height:${dm.dh}px;box-sizing:border-box;border:3px solid #0f172a;border-radius:8px;background:#fff;color:#0f172a;display:flex;flex-direction:column;overflow:hidden;font-family:'Inter',Arial,sans-serif;">
+                <div style="height:${hh}px;flex:none;background:#0f172a;color:#fff;display:flex;align-items:center;padding:0 10px;gap:8px;">
+                    <img src="${LABEL_LOGO_URL}" alt="" onerror="this.style.display='none'" style="height:${hh - 8}px;width:${hh - 8}px;object-fit:contain;flex:none;background:transparent;">
+                    <div style="flex:1;text-align:center;line-height:1.15;padding-right:${hh - 8}px;">
+                        <div style="font-size:10px;font-weight:800;letter-spacing:.02em;">T.C. SAĞLIK BAKANLIĞI</div>
+                        <div style="font-size:8px;font-weight:700;color:#e2e8f0;">KONYA KARAPINAR DEVLET HASTANESİ</div>
+                    </div>
+                </div>
+                <div style="flex:1;display:flex;min-height:0;">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                        <div style="flex:2.2;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px 6px;font-size:${tf}px;font-weight:900;line-height:1.1;overflow:hidden;">${esc(title)}</div>
+                        <div style="flex:1;display:flex;${line}font-size:13px;font-weight:700;">${cell(g('marka', 7), 32)}${cell(g('model', 8), 38, sep)}${cell(g('seriNo', 9), 30, sep + 'font-family:ui-monospace,Menlo,Consolas,monospace;')}</div>
+                        <div style="flex:1;display:flex;${line}font-size:13px;font-weight:700;">${cell(g('butceTuru', 2), 25)}${cell(g('sicilNo', 5), 75, sep + 'font-family:ui-monospace,Menlo,Consolas,monospace;')}</div>
+                        <div style="flex:1;display:flex;${line}font-size:15px;font-weight:900;">${cell(g('edinmeYili', 3), 25)}${cell(g('kunyeNo', 1), 75, sep + 'font-size:17px;letter-spacing:.02em;')}</div>
+                    </div>
+                    <div style="flex:none;width:${qs + 10}px;border-left:2px solid #0f172a;display:flex;align-items:center;justify-content:center;background:#fff;">
+                        <div class="lbl-qr" style="--qs:${qs}px;"></div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        // QR: kütüphaneden yalnızca modül matrisi alınır; çıktı keskin kenarlı vektör (SVG) olarak çizilir.
+        // Böylece ekranda, yazıcıda ve PNG'de bulanıklık olmaz; telefon net okur.
+        const MOBILE_BASE = location.origin + location.pathname.replace(/[^\/]*$/, '') + 'mobil.html';
+        const QR_QUIET = 2;                     // QR içindeki sessiz bölge (modül)
+        const _qrCache = new Map();
+        function mobileUrlFor(kunye) { return `${MOBILE_BASE}?kunye=${encodeURIComponent(kunye)}`; }
+        function qrMatrix(text) {
+            if (_qrCache.has(text)) return _qrCache.get(text);
+            const tmp = document.createElement('div');
+            const q = new QRCode(tmp, { text, width: 64, height: 64, correctLevel: QRCode.CorrectLevel.M });
+            const m = q._oQRCode, n = m.getModuleCount(), cells = new Uint8Array(n * n);
+            for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) cells[r * n + c] = m.isDark(r, c) ? 1 : 0;
+            const out = { n, cells };
+            _qrCache.set(text, out);
+            return out;
+        }
+        function qrSvg(text, px) {
+            const { n, cells } = qrMatrix(text), T = n + 2 * QR_QUIET;
+            let d = '';
+            for (let r = 0; r < n; r++) {
+                let c = 0;
+                while (c < n) {
+                    if (cells[r * n + c]) { const st = c; while (c < n && cells[r * n + c]) c++; d += `M${st + QR_QUIET} ${r + QR_QUIET}h${c - st}v1h-${c - st}z`; }
+                    else c++;
+                }
+            }
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${T} ${T}" width="${px}" height="${px}" shape-rendering="crispEdges"><rect width="${T}" height="${T}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+        }
+        function mountLabelQR(root, kunye, dm) {
+            const host = root.querySelector('.lbl-qr');
+            if (!host) return;
+            const { qs } = labelGeom(dm);
+            const url = mobileUrlFor(kunye);
+            host.dataset.url = url;
+            host.innerHTML = qrSvg(url, qs);
+        }
+
+        // ==================== TOPLU SEÇİM / MOBİL ÖNİZLEME ====================
+        function toggleQrSel(k, on) { on ? qrBatchSel.add(String(k)) : qrBatchSel.delete(String(k)); updateQrBatchUi(); }
+        function toggleSelectAllQr(on) {
+            qrFilteredKunyes.forEach(k => on ? qrBatchSel.add(k) : qrBatchSel.delete(k));
+            renderQrSelectorList();
+        }
+        function clearQrSelection() { qrBatchSel.clear(); renderQrSelectorList(); }
+        function updateQrBatchUi() {
+            const cnt = $('qrBatchCount'); if (cnt) cnt.textContent = qrBatchSel.size + ' seçili';
+            const all = $('qrSelectAll');
+            if (all) {
+                const inList = qrFilteredKunyes.filter(k => qrBatchSel.has(k)).length;
+                all.checked = qrFilteredKunyes.length > 0 && inList === qrFilteredKunyes.length;
+                all.indeterminate = inList > 0 && inList < qrFilteredKunyes.length;
+            }
+        }
+        function openMobilePreview(kunye) {
+            // QR okutunca telefonda açılan sayfa, telefon boyutunda ayrı pencerede açılır
+            const w = window.open(mobileUrlFor(kunye), 'mobilOnizleme', 'width=430,height=860,resizable=yes,scrollbars=yes');
+            if (!w) window.open(mobileUrlFor(kunye), '_blank');
+        }
+
+        function updateQrPreview(kunye) {
+            const device = findDevice(kunye);
+            const host = $('labelPreviewHost');
+            if (!device || !host) return;
+            const cfg = getPrintCfg(), dm = labelDims(cfg);
+            host.innerHTML = buildLabelHTML(device, dm);
+            mountLabelQR(host, kunye, dm);
+            $('labelSizeInfo').textContent = `Etiket ölçüsü: ${cfg.width} × ${cfg.height} mm · kenar boşluğu ${cfg.margin} mm`;
+        }
+        function refreshLabelPreview() {
+            const cfg = getPrintCfg();
+            const info = $('labelSizeInfo');
+            if (info) info.textContent = `Etiket ölçüsü: ${cfg.width} × ${cfg.height} mm · kenar boşluğu ${cfg.margin} mm`;
+            if (selectedPreviewKunye && findDevice(selectedPreviewKunye)) updateQrPreview(selectedPreviewKunye);
+        }
+
+        // Logonun kenardaki beyaz zeminini şeffaf yapar (siyah başlıkta beyaz kutu görünmesin).
+        // Logonun içindeki beyaz detaylar korunur: sadece kenarlardan bağlantılı beyaz alan silinir.
+        function initLabelLogo() {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                try {
+                    const sc = Math.min(1, 256 / Math.max(img.naturalWidth, img.naturalHeight));
+                    const w = Math.max(1, Math.round(img.naturalWidth * sc)), h = Math.max(1, Math.round(img.naturalHeight * sc));
+                    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                    const cx = cv.getContext('2d', { willReadFrequently: true });
+                    cx.drawImage(img, 0, 0, w, h);
+                    const id = cx.getImageData(0, 0, w, h), p = id.data;
+                    // Logo zaten şeffaf zeminliyse (köşeler boşsa) olduğu gibi kullan
+                    const cornersClear = p[3] < 10 && p[(w - 1) * 4 + 3] < 10 && p[(h - 1) * w * 4 + 3] < 10 && p[(w * h - 1) * 4 + 3] < 10;
+                    if (cornersClear) { refreshLabelPreview(); return; }
+                    let visBefore = 0; for (let k = 0; k < w * h; k++) if (p[k * 4 + 3] >= 10) visBefore++;
+                    const isBg = k => { const i = k * 4; return p[i + 3] < 10 || (p[i] >= 225 && p[i + 1] >= 225 && p[i + 2] >= 225); };
+                    const seen = new Uint8Array(w * h), stack = [];
+                    const push = (px, py) => { if (px < 0 || py < 0 || px >= w || py >= h) return; const k = py * w + px; if (seen[k] || !isBg(k)) return; seen[k] = 1; stack.push(k); };
+                    for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+                    for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+                    while (stack.length) { const k = stack.pop(), px = k % w, py = (k / w) | 0; push(px + 1, py); push(px - 1, py); push(px, py + 1); push(px, py - 1); }
+                    const removed = seen.slice();
+                    for (let k = 0; k < w * h; k++) {
+                        if (removed[k]) { p[k * 4 + 3] = 0; continue; }
+                        // kenar yumuşatma artığı: şeffaf alana komşu açık renkli pikselleri de sil
+                        const px = k % w, py = (k / w) | 0;
+                        const nb = (px > 0 && removed[k - 1]) || (px < w - 1 && removed[k + 1]) || (py > 0 && removed[k - w]) || (py < h - 1 && removed[k + w]);
+                        if (nb && p[k * 4] >= 190 && p[k * 4 + 1] >= 190 && p[k * 4 + 2] >= 190) p[k * 4 + 3] = 0;
+                    }
+                    let visAfter = 0; for (let k = 0; k < w * h; k++) if (p[k * 4 + 3] >= 10) visAfter++;
+                    if (visAfter < visBefore * 0.08) { refreshLabelPreview(); return; }   // logo silinmişse orijinali kullan
+                    cx.putImageData(id, 0, 0);
+                    LABEL_LOGO_URL = cv.toDataURL('image/png');
+                    refreshLabelPreview();
+                } catch (e) { /* canvas okunamazsa orijinal logo kullanılır */ }
+            };
+            img.src = 'logo.png';
+        }
+
+        function downloadCurrentPreviewDeviceQR() {
+            const host = $('labelPreviewHost');
+            const card = host && host.querySelector('.lbl');
+            if (!card) { alert('Önce soldan bir cihaz seçiniz.'); return; }
+            const qrEl = card.querySelector('.lbl-qr'), url = qrEl && qrEl.dataset.url;
+            const dm = labelDims();
+            const scale = Math.max(4, (dm.iw / 25.4 * 400) / dm.dw);   // ~400 dpi
+            // Etiketin tamamı yazdırmadaki aynı yapıdan alınır; QR ise bulanmaması için sonradan piksel-tam çizilir.
+            html2canvas(card, {
+                scale, useCORS: true, logging: false, backgroundColor: '#ffffff',
+                onclone: doc => { const h = doc.querySelector('#labelPreviewHost .lbl-qr'); if (h) h.style.visibility = 'hidden'; }
+            }).then(canvas => {
+                if (url) {
+                    const cr = card.getBoundingClientRect(), hr = qrEl.getBoundingClientRect();
+                    const sx = canvas.width / cr.width, sy = canvas.height / cr.height;
+                    const rx = Math.round((hr.left - cr.left) * sx), ry = Math.round((hr.top - cr.top) * sy);
+                    const rw = Math.round(hr.width * sx), rh = Math.round(hr.height * sy);
+                    const { n, cells } = qrMatrix(url), T = n + 2 * QR_QUIET;
+                    const pm = Math.max(1, Math.floor(Math.min(rw, rh) / T)), size = pm * T;
+                    const ox = rx + Math.floor((rw - size) / 2), oy = ry + Math.floor((rh - size) / 2);
+                    const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(ox, oy, size, size);
+                    ctx.fillStyle = '#000000';
+                    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (cells[r * n + c]) ctx.fillRect(ox + (c + QR_QUIET) * pm, oy + (r + QR_QUIET) * pm, pm, pm);
+                }
+                const name = `Demirbas_Etiketi_${selectedPreviewKunye || 'Karisik'}.png`;
+                canvas.toBlob(blob => {
+                    const link = document.createElement('a');
+                    link.download = name;
+                    link.href = URL.createObjectURL(blob);
+                    document.body.appendChild(link); link.click(); link.remove();
+                    setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+                }, 'image/png');
+            });
+        }
+
+        // ==================== YAZDIRMA ====================
+        // Yalnızca ilgili alan basılır, sayfa boyutu (@page) yazdırma anında ayarlanır.
+        function runPrint(mode, pageCss) {
+            $('pageRuleStyle').textContent = `@page { ${pageCss} }`;
+            document.body.classList.add('print-' + mode);
+            const cleanup = () => {
+                document.body.classList.remove('print-' + mode);
+                $('pageRuleStyle').textContent = '';
+                window.removeEventListener('afterprint', cleanup);
+            };
+            window.addEventListener('afterprint', cleanup);
+            setTimeout(() => window.print(), 200);
+        }
+
+        // Her etiket ayarlardaki boyutta ayrı bir sayfa olarak basılır (tek veya toplu).
+        function printLabels(devices) {
+            const cfg = getPrintCfg(), dm = labelDims(cfg);
+            const ph = dm.ih - 0.6;                                   // taşma/ikinci sayfa olmasın diye pay
+            const k = Math.min(dm.iw * MM / dm.dw, ph * MM / dm.dh);
+            const area = $('labelPrintArea');
+            area.innerHTML = '';
+            devices.forEach((d, i) => {
+                const kunye = String(getDevProp(d, 'kunyeNo', 1));
+                const last = i === devices.length - 1;
+                const pg = document.createElement('div');
+                pg.style.cssText = `width:${dm.iw}mm;height:${ph}mm;overflow:hidden;position:relative;contain:strict;` + (last ? 'break-after:avoid;page-break-after:avoid;' : 'break-after:page;page-break-after:always;');
+                pg.innerHTML = `<div style="position:absolute;left:0;top:0;width:${dm.dw}px;height:${dm.dh}px;transform-origin:0 0;transform:scale(${k});">${buildLabelHTML(d, dm)}</div>`;
+                mountLabelQR(pg, kunye, dm);
+                area.appendChild(pg);
+            });
+            runPrint('label', `size: ${cfg.width}mm ${cfg.height}mm; margin: ${cfg.margin}mm`);
+        }
+        function printSingleQRCode() {
+            const d = selectedPreviewKunye && findDevice(selectedPreviewKunye);
+            if (!d) { alert('Önce soldan bir cihaz seçiniz.'); return; }
+            printLabels([d]);
+        }
+        function printSelectedLabels() {
+            // liste sırasıyla (en yeni üstte), hurda cihazlar hariç
+            const list = [...globalDevices].reverse().filter(d => qrBatchSel.has(String(getDevProp(d, 'kunyeNo', 1))) && (getDevProp(d, 'durum', 10) || 'Aktif') !== 'Hurda');
+            if (!list.length) { alert('Önce listeden etiketini yazdıracağınız cihazların kutucuğunu işaretleyiniz.'); return; }
+            if (list.length > 30 && !confirm(list.length + ' etiket yazdırılacak (her biri ayrı sayfa). Devam edilsin mi?')) return;
+            printLabels(list);
+        }
+
+        function openPrinterConfigModal() {
+            const c = getPrintCfg();
+            $('cfgWidth').value = c.width; $('cfgHeight').value = c.height; $('cfgMargin').value = c.margin;
+            $('printerConfigModal').classList.remove('hidden');
+        }
+        function savePrinterSettings(e) {
+            e.preventDefault();
+            const w = +$('cfgWidth').value, h = +$('cfgHeight').value, m = +$('cfgMargin').value;
+            if (!(w >= 10) || !(h >= 10) || !(m >= 0) || 2 * m > Math.min(w, h) - 5) { alert('Ölçüler geçersiz. Genişlik/yükseklik en az 10 mm olmalı, kenar boşluğu etikete sığmalı.'); return; }
+            localStorage.setItem('tag_print_config', JSON.stringify({ width: w, height: h, margin: m }));
+            $('printerConfigModal').classList.add('hidden');
+            refreshLabelPreview();
+        }
+
+        // Liste çıktısı: önce zimmetsizler, sonra zimmetliler, en sonda hurdalar (grup içinde sıra no)
+        function printInventoryA4List() {
+            if (!globalDevices.length) { alert('Listelenecek cihaz yok.'); return; }
+            const zs = [], zl = [], hr = [];
+            globalDevices.forEach(d => { if (isHurda(d)) hr.push(d); else if (isZimmetli(d)) zl.push(d); else zs.push(d); });
+            const tr = (a, b) => String(a || '').localeCompare(String(b || ''), 'tr', { numeric: true });
+            const byMalz = (a, b) => tr(devVal(a, 'malzeme'), devVal(b, 'malzeme')) || tr(devVal(a, 'kunye'), devVal(b, 'kunye'));
+            zs.sort(byMalz); hr.sort(byMalz);
+            zl.sort((a, b) => tr(devVal(a, 'birim'), devVal(b, 'birim')) || tr(devVal(a, 'personel'), devVal(b, 'personel')) || byMalz(a, b));
+            const groups = [
+                { title: 'ZİMMETSİZ CİHAZLAR (Ayniyat Taşınır Deposunda)', list: zs, kind: 'zs' },
+                { title: 'ZİMMETLİ CİHAZLAR', list: zl, kind: 'zl' },
+                { title: 'HURDA / İMHA CİHAZLAR', list: hr, kind: 'hr' }
+            ].filter(g => g.list.length);
+
+            const row = (d, i, kind) => {
+                const personel = getDevProp(d, 'personel', 12) || '';
+                const zd = kind === 'zl' ? 'ZİMMETLİ: ' + esc(personel) : kind === 'hr' ? 'HURDA' : 'ZİMMETSİZ (Depoda)';
+                return `<tr>
+                    <td class="c"><b>${i + 1}</b></td>
+                    <td class="m"><b>${esc(getDevProp(d, 'kunyeNo', 1))}</b></td>
+                    <td><b>${esc(String(getDevProp(d, 'malzemeTanimi', 6) || '-').toLocaleUpperCase('tr'))}</b></td>
+                    <td>${esc(getDevProp(d, 'marka', 7) || '-')} / ${esc(getDevProp(d, 'model', 8) || '-')}</td>
+                    <td class="m">${esc(getDevProp(d, 'seriNo', 9) || '-')}</td>
+                    <td class="m">${esc(getDevProp(d, 'demirbasNo', 4) || '-')}</td>
+                    <td class="m">${esc(getDevProp(d, 'sicilNo', 5) || '-')}</td>
+                    <td>${esc(getDevProp(d, 'birim', 11) || '-')}</td>
+                    <td><b>${zd}</b></td>
+                    <td>${esc(getDevProp(d, 'durum', 10) || 'Aktif')}</td></tr>`;
+            };
+            const body = groups.map(g => `<tr class="grp"><td colspan="10">${g.title} — ${g.list.length} adet</td></tr>` + g.list.map((d, i) => row(d, i, g.kind)).join('')).join('');
+            $('listPrintArea').innerHTML = `
+                <div class="lp-head">
+                    <div class="a">T.C. SAĞLIK BAKANLIĞI</div>
+                    <div class="b">KONYA KARAPINAR DEVLET HASTANESİ</div>
+                    <div class="c">ENVANTERE KAYITLI CİHAZ LİSTESİ</div>
+                    <div class="d">Liste tarihi: ${new Date().toLocaleDateString('tr-TR')} · Toplam ${globalDevices.length} cihaz (Zimmetsiz: ${zs.length} · Zimmetli: ${zl.length} · Hurda: ${hr.length})</div>
+                </div>
+                <table>
+                    <thead><tr><th style="width:26px">Sıra</th><th>Künye No</th><th>Malzeme Tanımı</th><th>Marka / Model</th><th>Seri No</th><th>Demirbaş No</th><th>Sicil No</th><th>Birim / Oda</th><th>Zimmet Durumu</th><th>Cihaz Durumu</th></tr></thead>
+                    <tbody>${body}</tbody>
+                </table>`;
+            runPrint('list', 'size: A4 landscape; margin: 8mm');
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+        // Kayıt/düzenleme/zimmet formlarında küçük harf yazılamaz (Türkçe büyük harf: i→İ, ı→I)
+        document.addEventListener('input', e => {
+            const el = e.target;
+            if (e.isComposing || !el.closest || !el.closest('#newDeviceForm, #editInventoryModal, #editZimmetModal, #deleteConfirmModal')) return;
+            if (!(el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type === 'text'))) return;
+            const up = el.value.toLocaleUpperCase('tr');
+            if (up !== el.value) {
+                const a = el.selectionStart, b = el.selectionEnd;
+                el.value = up;
+                try { el.setSelectionRange(a, b); } catch (x) {}
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            setInterval(updateClock, 1000);
+            initLabelLogo();
+            if (ADMIN_KEY()) {
+                try { await preloadAll(); showAdminInterface(); }
+                catch (e) { if (e && e.message === 'unauthorized') sessionStorage.removeItem('kdh_admin_key'); /* giriş ekranı açık kalır */ }
+            }
+        });
+
+        function logoutToPortal() { sessionStorage.removeItem('admin_auth'); sessionStorage.removeItem('kdh_admin_key'); location.reload(); }
+
+        function getDevProp(d, prop, colIdx) {
+            return d[prop] !== undefined ? d[prop] : d['col' + colIdx];
+        }
+
+        async function addNewDevice(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtnDevice');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...`;
+
+            try {
+                const id = Date.now();
+                const kunye = document.getElementById("newKunye").value.trim();
+                if (globalDevices.some(x => String(getDevProp(x, 'kunyeNo', 1)).trim() === kunye)) {
+                    alert('Bu künye numarası (' + kunye + ') envanterde zaten kayıtlı.\nQR kodların karışmaması için aynı künye ikinci kez eklenemez.');
+                    return;
+                }
+                const butceTuru = document.getElementById("newButceTuru").value.trim();
+                const edinmeYili = document.getElementById("newEdinmeYili").value.trim();
+                const demirbasNo = document.getElementById("newDemirbasNo").value.trim();
+                const sicilNo = document.getElementById("newSicilNo").value.trim();
+                const malzemeTanimi = document.getElementById("newMalzemeTanimi").value.trim();
+                const marka = document.getElementById("newMarka").value.trim();
+                const model = document.getElementById("newModel").value.trim();
+                const seriNo = document.getElementById("newSeriNo").value.trim();
+                const durum = document.getElementById("newDurum").value;
+                const tedarikTuru = document.getElementById("newTedarikTuru").value.trim();
+                const tedarikci = document.getElementById("newTedarikci").value.trim();
+                const aciklama = document.getElementById("newAciklama").value.trim();
+                
+                const birim = "Ayniyat Taşınır Deposu";
+                const personel = "Zimmetsiz (Depoda)";
+                const tarih = new Date().toISOString();
+
+                const row = [
+                    id, kunye, butceTuru, edinmeYili, demirbasNo, sicilNo, 
+                    malzemeTanimi, marka, model, seriNo, durum, 
+                    birim, personel, tedarikTuru, tedarikci, aciklama, tarih
+                ];
+
+                await apiPost({ action: "add", sheet: "EnvanterYeni", row: row });
+                await apiPost({ action: "add", sheet: "ZimmetGecmisi", row: [Date.now(), tarih, kunye, malzemeTanimi, "Envantere Yeni Cihaz Eklendi", personel, durum, "İlk Kayıt Oluşturuldu"] });
+
+                document.getElementById("newDeviceForm").reset();
+                loadDevicesFromSheets();
+                loadHistoryFromSheets();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Envantere Kaydet (Depoya Al)`;
+            }
+        }
+
+        function viewHistoryDetail(index) {
+            const h = globalHistory[index];
+            if (!h) return;
+
+            const kunye = h.kunyeNo || h.col2;
+            const device = globalDevices.find(d => String(getDevProp(d, 'kunyeNo', 1)) === String(kunye)) || {};
+
+            document.getElementById('historyDetailContent').innerHTML = `
+                <div class="bg-slate-50 p-3 rounded-xl border space-y-1">
+                    <p class="text-[11px] font-bold text-blue-600 uppercase border-b pb-1">İşlem Bilgileri</p>
+                    <p><strong>İşlem Tarihi:</strong> ${new Date(h.tarih || h.col1).toLocaleString('tr-TR')}</p>
+                    <p><strong>İşlem Türü:</strong> ${h.islem || h.col4}</p>
+                    <p><strong>İlgili Personel:</strong> ${h.personel || h.col5}</p>
+                    <p><strong>İşlem / Silme Nedeni:</strong> <span class="text-rose-600 font-bold">${h.col7 || h.neden || 'Belirtilmedi'}</span></p>
+                </div>
+                <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 space-y-1 mt-2">
+                    <p class="text-[11px] font-bold text-blue-800 uppercase border-b pb-1">Cihazın İlk Kayıt & Güncel Verileri</p>
+                    <p><strong>Künye No:</strong> ${kunye}</p>
+                    <p><strong>Malzeme Tanımı:</strong> ${device.malzemeTanimi || device.col6 || h.malzemeTanimi || '-'}</p>
+                    <p><strong>Marka / Model:</strong> ${device.marka || device.col7 || '-'} / ${device.model || device.col8 || '-'}</p>
+                    <p><strong>Seri No:</strong> ${device.seriNo || device.col9 || '-'}</p>
+                    <p><strong>Demirbaş No:</strong> ${device.demirbasNo || device.col4 || '-'}</p>
+                    <p><strong>Sicil No:</strong> ${device.sicilNo || device.col5 || '-'}</p>
+                    <p><strong>Bütçe Türü:</strong> ${device.butceTuru || device.col2 || '-'}</p>
+                    <p><strong>Edinme Yılı:</strong> ${device.edinmeYili || device.col3 || '-'}</p>
+                    <p><strong>Güncel Durum:</strong> ${device.durum || device.col10 || h.col6 || 'Aktif'}</p>
+                    <p><strong>Bulunduğu Birim:</strong> ${device.birim || device.col11 || '-'}</p>
+                    <p><strong>Tedarikçi:</strong> ${device.tedarikci || device.col14 || '-'}</p>
+                </div>
+            `;
+            document.getElementById('historyDetailModal').classList.remove('hidden');
+        }
+
+        function renderHistoryTable() {
+            const query = document.getElementById("historySearchInput").value.toLowerCase();
+            const tbody = document.getElementById("historyTableBody");
+            if (!globalHistory || globalHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Arşiv boş.</td></tr>`;
+                return;
+            }
+
+            let sortedHistory = [...globalHistory].reverse();
+            let filtered = sortedHistory.filter(h => {
+                const kunye = h.kunyeNo || h.col2 || '';
+                const malzeme = h.malzemeTanimi || h.col3 || '';
+                const islem = h.islem || h.col4 || '';
+                const personel = h.personel || h.col5 || '';
+                const neden = h.col7 || h.neden || '';
+                const text = `${kunye} ${malzeme} ${islem} ${personel} ${neden}`.toLowerCase();
+                return text.includes(query);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Eşleşen arşiv kaydı bulunamadı.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((h) => {
+                const originalIndex = globalHistory.indexOf(h);
+                return `
+                    <tr class="hover:bg-slate-50 border-b">
+                        <td class="p-3 font-mono text-slate-500">${new Date(h.tarih || h.col1).toLocaleString('tr-TR')}</td>
+                        <td class="p-3 font-mono font-bold">${h.kunyeNo || h.col2}</td>
+                        <td class="p-3 font-semibold">${h.malzemeTanimi || h.col3}</td>
+                        <td class="p-3 text-slate-700 font-medium">${h.islem || h.col4}</td>
+                        <td class="p-3 font-bold text-slate-900">${h.personel || h.col5}</td>
+                        <td class="p-3 text-center"><button onclick="viewHistoryDetail(${originalIndex})" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded transition">Detay</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openInventoryModal(id) {
+            const d = globalDevices.find(item => String(getDevProp(item, 'id', 0)) === String(id));
+            if (!d) return;
+
+            document.getElementById('invEditId').value = getDevProp(d, 'id', 0);
+            document.getElementById('invEditKunye').value = getDevProp(d, 'kunyeNo', 1) || '';
+            document.getElementById('invEditMalzeme').value = getDevProp(d, 'malzemeTanimi', 6) || '';
+            document.getElementById('invEditMarka').value = getDevProp(d, 'marka', 7) || '';
+            document.getElementById('invEditModel').value = getDevProp(d, 'model', 8) || '';
+            document.getElementById('invEditSeri').value = getDevProp(d, 'seriNo', 9) || '';
+            document.getElementById('invEditDemirbas').value = getDevProp(d, 'demirbasNo', 4) || '';
+            document.getElementById('invEditSicil').value = getDevProp(d, 'sicilNo', 5) || '';
+            document.getElementById('invEditButce').value = getDevProp(d, 'butceTuru', 2) || '';
+            document.getElementById('invEditEdinme').value = getDevProp(d, 'edinmeYili', 3) || '';
+            document.getElementById('invEditTedarikci').value = getDevProp(d, 'tedarikci', 14) || '';
+            document.getElementById('invEditTedarikTuru').value = getDevProp(d, 'tedarikTuru', 13) || '';
+            document.getElementById('invEditAciklama').value = getDevProp(d, 'aciklama', 15) || '';
+            document.getElementById('invEditDurum').value = getDevProp(d, 'durum', 10) || 'Aktif';
+            document.getElementById('invEditReason').value = "";
+
+            document.getElementById('editInventoryModal').classList.remove('hidden');
+        }
+
+        function openZimmetModal(id) {
+            const d = globalDevices.find(item => String(getDevProp(item, 'id', 0)) === String(id));
+            if (!d) return;
+
+            document.getElementById('zimmetEditId').value = getDevProp(d, 'id', 0);
+            document.getElementById('zimmetEditInfo').value = `${getDevProp(d, 'kunyeNo', 1)} - ${getDevProp(d, 'malzemeTanimi', 6)}`;
+            document.getElementById('zimmetEditBirim').value = getDevProp(d, 'birim', 11) || '';
+            document.getElementById('zimmetEditPersonel').value = hasZs(getDevProp(d, 'personel', 12)) ? '' : getDevProp(d, 'personel', 12);
+            document.getElementById('depoCheckbox').checked = false;
+            document.getElementById('zimmetEditBirim').disabled = false;
+            document.getElementById('zimmetEditPersonel').disabled = false;
+
+            document.getElementById('editZimmetModal').classList.remove('hidden');
+        }
+
+        function toggleDepoMode(checkbox) {
+            const birimInput = document.getElementById('zimmetEditBirim');
+            const personelInput = document.getElementById('zimmetEditPersonel');
+            if (checkbox.checked) {
+                birimInput.value = "Ayniyat Taşınır Deposu";
+                birimInput.disabled = true;
+                personelInput.value = "Zimmetsiz (Depoda)";
+                personelInput.disabled = true;
+            } else {
+                birimInput.value = "";
+                birimInput.disabled = false;
+                personelInput.value = "";
+                personelInput.disabled = false;
+            }
+        }
+
+        function closeModals() {
+            document.getElementById('editInventoryModal').classList.add('hidden');
+            document.getElementById('editZimmetModal').classList.add('hidden');
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+            document.getElementById('hurdaWarningModal').classList.add('hidden');
+            document.getElementById('historyDetailModal').classList.add('hidden');
+            document.getElementById('printerConfigModal').classList.add('hidden');
+        }
+
+        function openDeleteConfirmModal() {
+            document.getElementById('deleteReasonInput').value = "";
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
+
+        async function executeDeviceDelete() {
+            const id = document.getElementById('invEditId').value;
+            const reason = document.getElementById('deleteReasonInput').value.trim();
+
+            if (!reason) {
+                alert("Lütfen silme nedeninizi yazınız!");
+                return;
+            }
+
+            const d = globalDevices.find(item => String(getDevProp(item, 'id', 0)) === String(id));
+            const kunye = d ? getDevProp(d, 'kunyeNo', 1) : "-";
+            const malzeme = d ? getDevProp(d, 'malzemeTanimi', 6) : "-";
+            const tarih = new Date().toISOString();
+
+            await apiPost({ action: "delete", sheet: "EnvanterYeni", id: id });
+            await apiPost({ action: "add", sheet: "ZimmetGecmisi", row: [Date.now(), tarih, kunye, malzeme, "Envanterden Silindi", "Sistem Yöneticisi", "Hurda / Silindi", reason] });
+
+            closeModals();
+            loadDevicesFromSheets();
+            loadHistoryFromSheets();
+        }
+
+        async function saveInventoryDeviceWithReason(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtnEdit');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...`;
+
+            try {
+                const id = document.getElementById('invEditId').value;
+                const d = globalDevices.find(item => String(getDevProp(item, 'id', 0)) === String(id));
+                if(!d) return;
+
+                const yeniDurum = document.getElementById('invEditDurum').value;
+                const mevculPersonel = getDevProp(d, 'personel', 12) || '';
+
+                if (yeniDurum === "Hurda" && mevculPersonel && !hasZs(mevculPersonel)) {
+                    document.getElementById('hurdaWarningText').innerHTML = `Bu cihaz <b>(${mevculPersonel})</b> personeline zimmetlidir!<br><br>Grafiklerde ve kayıtlarda çakışma yaşanmaması için lütfen önce zimmeti kaldırıp Depoya alınız, ardından hurdaya ayırınız.`;
+                    document.getElementById('hurdaWarningModal').classList.remove('hidden');
+                    return;
+                }
+
+                const kunye = getDevProp(d, 'kunyeNo', 1);
+                const malzeme = document.getElementById('invEditMalzeme').value;
+                const reason = document.getElementById('invEditReason').value.trim() || "Bilgiler Güncellendi";
+                const tarih = new Date().toISOString();
+
+                const updatedRow = [
+                    getDevProp(d, 'id', 0), kunye, 
+                    document.getElementById('invEditButce').value,
+                    document.getElementById('invEditEdinme').value,
+                    document.getElementById('invEditDemirbas').value,
+                    document.getElementById('invEditSicil').value,
+                    malzeme,
+                    document.getElementById('invEditMarka').value,
+                    document.getElementById('invEditModel').value,
+                    document.getElementById('invEditSeri').value,
+                    yeniDurum,
+                    getDevProp(d, 'birim', 11), getDevProp(d, 'personel', 12), 
+                    document.getElementById('invEditTedarikTuru').value,
+                    document.getElementById('invEditTedarikci').value,
+                    document.getElementById('invEditAciklama').value, 
+                    getDevProp(d, 'tarih', 16) || tarih
+                ];
+
+                await apiPost({ action: "update", sheet: "EnvanterYeni", id: id, row: updatedRow });
+                await apiPost({ action: "add", sheet: "ZimmetGecmisi", row: [Date.now(), tarih, kunye, malzeme, "Cihaz Bilgileri / Durum Güncellendi", getDevProp(d, 'personel', 12), yeniDurum, reason] });
+
+                closeModals();
+                loadDevicesFromSheets();
+                loadHistoryFromSheets();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `Kaydet ve Arşive İşle`;
+            }
+        }
+
+        async function saveZimmetAssignment(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtnZimmet');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...`;
+
+            try {
+                const id = document.getElementById('zimmetEditId').value;
+                const d = globalDevices.find(item => String(getDevProp(item, 'id', 0)) === String(id));
+                if(!d) return;
+
+                const isDepo = document.getElementById('depoCheckbox').checked;
+                const birim = isDepo ? "Ayniyat Taşınır Deposu" : document.getElementById('zimmetEditBirim').value;
+                let personel = isDepo ? "Zimmetsiz (Depoda)" : document.getElementById('zimmetEditPersonel').value.trim();
+                if (!personel) personel = "Zimmetsiz (Depoda)";
+                const tarih = new Date().toISOString();
+
+                const updatedRow = [
+                    getDevProp(d, 'id', 0), getDevProp(d, 'kunyeNo', 1), getDevProp(d, 'butceTuru', 2), getDevProp(d, 'edinmeYili', 3), getDevProp(d, 'demirbasNo', 4), getDevProp(d, 'sicilNo', 5),
+                    getDevProp(d, 'malzemeTanimi', 6), getDevProp(d, 'marka', 7), getDevProp(d, 'model', 8), getDevProp(d, 'seriNo', 9), getDevProp(d, 'durum', 10),
+                    birim, personel, getDevProp(d, 'tedarikTuru', 13), getDevProp(d, 'tedarikci', 14), getDevProp(d, 'aciklama', 15), tarih
+                ];
+
+                await apiPost({ action: "update", sheet: "EnvanterYeni", id: id, row: updatedRow });
+                await apiPost({ action: "add", sheet: "ZimmetGecmisi", row: [Date.now(), tarih, getDevProp(d, 'kunyeNo', 1), getDevProp(d, 'malzemeTanimi', 6), "Zimmet Atandı / Birim Değişti", personel, getDevProp(d, 'durum', 10), "Zimmet / Birim Güncellemesi"] });
+
+                closeModals();
+                loadDevicesFromSheets();
+                loadHistoryFromSheets();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `Zimmetle / Güncelle`;
+            }
+        }
+
+        function renderQrSelectorList() {
+            const query = document.getElementById('qrDeviceSearchBox').value.toLowerCase();
+            const statusFilter = document.getElementById('qrZimmetStatusFilter').value;
+            const container = document.getElementById('qrDeviceSelectList');
+            if(!container) return;
+
+            let sortedDevices = [...globalDevices].reverse();
+
+            let filtered = sortedDevices.filter(d => {
+                const kunye = getDevProp(d, 'kunyeNo', 1) || '';
+                const malzeme = getDevProp(d, 'malzemeTanimi', 6) || '';
+                const marka = getDevProp(d, 'marka', 7) || '';
+                const durum = getDevProp(d, 'durum', 10) || 'Aktif';
+                const personel = getDevProp(d, 'personel', 12) || '';
+
+                if (durum === "Hurda") return false;
+
+                const text = `${kunye} ${malzeme} ${marka}`.toLowerCase();
+                const matchesQuery = text.includes(query);
+                
+                let matchesStatus = true;
+                if (statusFilter === "ZIMMETLI") matchesStatus = personel && !hasZs(personel);
+                else if (statusFilter === "ZIMMETSIZ") matchesStatus = !personel || hasZs(personel);
+
+                return matchesQuery && matchesStatus;
+            });
+
+            if(filtered.length === 0) {
+                qrFilteredKunyes = [];
+                container.innerHTML = `<div class="p-4 text-slate-400 text-center">Uygun cihaz bulunamadı</div>`;
+                updateQrBatchUi();
+                return;
+            }
+
+            qrFilteredKunyes = filtered.map(d => String(getDevProp(d, 'kunyeNo', 1)));
+            container.innerHTML = filtered.map(d => {
+                const kunye = getDevProp(d, 'kunyeNo', 1);
+                const malzeme = getDevProp(d, 'malzemeTanimi', 6) || '-';
+                const personel = getDevProp(d, 'personel', 12) || 'Zimmetsiz';
+                const isSelected = selectedPreviewKunye === kunye;
+
+                return `
+                    <div class="p-3 hover:bg-slate-50 flex justify-between items-center gap-2 transition ${isSelected ? 'bg-blue-50/80 border-l-4 border-blue-600 font-bold' : 'border-b'}">
+                        <input type="checkbox" data-k="${esc(kunye)}" ${qrBatchSel.has(String(kunye)) ? 'checked' : ''} onchange="toggleQrSel(this.dataset.k, this.checked)" title="Toplu yazdırmaya ekle" class="w-4 h-4 accent-slate-900 shrink-0 cursor-pointer">
+                        <div class="flex-1 min-w-0">
+                            <div class="font-mono font-bold text-slate-900">${kunye}</div>
+                            <div class="uppercase text-slate-700">${malzeme}</div>
+                            <div class="text-[10px] ${hasZs(personel) ? 'text-slate-400' : 'text-blue-600 font-bold'}">${personel}</div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" data-k="${esc(kunye)}" onclick="selectDeviceForPreview(this.dataset.k)" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow transition">
+                                <i class="fa-solid fa-eye mr-1"></i> Göster
+                            </button>
+                            <button type="button" data-k="${esc(kunye)}" onclick="openMobilePreview(this.dataset.k)" title="Mobil ekranı aç (QR okutunca açılan sayfa)" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow transition">
+                                <i class="fa-solid fa-mobile-screen-button mr-1"></i> Mobil
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateQrBatchUi();
+            const selOk = selectedPreviewKunye && globalDevices.some(x => String(getDevProp(x, 'kunyeNo', 1)) === String(selectedPreviewKunye) && (getDevProp(x, 'durum', 10) || 'Aktif') !== 'Hurda');
+            if (!selOk && filtered.length > 0) {
+                selectDeviceForPreview(getDevProp(filtered[0], 'kunyeNo', 1));
+            }
+        }
+
+        function selectDeviceForPreview(kunye) {
+            selectedPreviewKunye = kunye;
+            renderQrSelectorList();
+            updateQrPreview(kunye);
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("live-time").innerText = now.toLocaleTimeString('tr-TR');
+            document.getElementById("live-date").innerText = now.toLocaleDateString('tr-TR');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demirbaş Künye Detayı - Konya Karapınar Devlet Hastanesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>#content { text-transform: uppercase; }</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-3 flex flex-col justify-between antialiased">
+    <div class="max-w-md w-full mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-slate-900 text-white p-4 text-center space-y-1">
+            <div class="w-12 h-12 mx-auto"><img src="logo.png" alt="Logo" class="w-full h-full object-contain"></div>
+            <div class="text-[11px] font-bold text-red-500 uppercase tracking-widest">T.C. Sağlık Bakanlığı</div>
+            <div class="text-xs font-bold">Konya İl Sağlık Müdürlüğü</div>
+            <h1 class="text-sm font-black text-slate-100">Karapınar Devlet Hastanesi</h1>
+            <p class="text-[10px] text-slate-400">Resmi Taşınır / Demirbaş Künye Belgesi</p>
+        </div>
+
+        <div id="loading" class="p-8 text-center text-slate-500">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-blue-600 mb-2"></i>
+            <p class="text-xs font-semibold">Künye Bilgileri Yükleniyor...</p>
+        </div>
+
+        <div id="content" class="hidden p-4 space-y-3 text-xs">
+            <div class="bg-slate-50 p-3 rounded-xl border flex justify-between items-center">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Künye Numarası</p>
+                    <p id="mKunye" class="text-base font-black font-mono text-slate-900">-</p>
+                </div>
+                <div id="mDurumBadge"></div>
+            </div>
+
+            <div class="space-y-1 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                <p class="text-[10px] font-bold text-blue-600 uppercase">Malzeme Tanımı</p>
+                <p id="mMalzeme" class="text-sm font-black text-slate-900 uppercase leading-tight">-</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-50 p-2 rounded-lg border"><p class="text-[9px] text-slate-400 font-bold">Marka</p><p id="mMarka" class="font-bold text-slate-800">-</p></div>
+                <div class="bg-slate-50 p-2 rounded-lg border"><p class="text-[9px] text-slate-400 font-bold">Model</p><p id="mModel" class="font-bold text-slate-800">-</p></div>
+                <div class="bg-slate-50 p-2 rounded-lg border"><p class="text-[9px] text-slate-400 font-bold">Seri No</p><p id="mSeri" class="font-mono font-bold text-slate-800">-</p></div>
+                <div class="bg-slate-50 p-2 rounded-lg border"><p class="text-[9px] text-slate-400 font-bold">Bütçe Türü</p><p id="mButce" class="font-bold text-slate-800">-</p></div>
+                <div class="bg-slate-50 p-2 rounded-lg border"><p class="text-[9px] text-slate-400 font-bold">Demirbaş No</p><p id="mDemirbas" class="font-mono font-bold text-slate-800">-</p></div>
+                <div class="bg-slate-50 p-2 rounded-lg border"><p class="text-[9px] text-slate-400 font-bold">Edinme Yılı</p><p id="mEdinme" class="font-bold text-slate-800">-</p></div>
+            </div>
+
+            <div class="bg-slate-50 p-2.5 rounded-lg border">
+                <p class="text-[9px] text-slate-400 font-bold">Sicil No</p>
+                <p id="mSicil" class="font-mono font-bold text-slate-800 text-[11px]">-</p>
+            </div>
+
+            <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 space-y-2">
+                <div><p class="text-[9px] font-bold text-emerald-700 uppercase">Bulunduğu Birim / Oda</p><p id="mBirim" class="font-bold text-slate-900">-</p></div>
+                <div><p class="text-[9px] font-bold text-emerald-700 uppercase">Zimmet Sahibi Personel</p><p id="mPersonel" class="font-black text-blue-800 text-sm">-</p></div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border space-y-1 text-[10px]">
+                <p><strong>Kurum Kodu:</strong> <span class="font-bold text-slate-900">2318</span></p>
+                <p><strong>Zimmet / İşlem Tarihi:</strong> <span id="mTarih" class="font-semibold text-slate-700">-</span></p>
+                <p><strong>Tedarik Türü:</strong> <span id="mTedarikTuru" class="font-semibold">-</span></p>
+                <p><strong>Tedarikçi:</strong> <span id="mTedarikci" class="font-semibold">-</span></p>
+                <p><strong>Açıklama:</strong> <span id="mAciklama" class="font-semibold">-</span></p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-4 text-center text-[10px] text-slate-400 font-medium">
+        T.C. Sağlık Bakanlığı • Karapınar Devlet Hastanesi <span id="year"></span>
+    </footer>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbygz_tvIoxfziUITJDqzyypreETKUNp2o6ANTW0TVsyEf4j32G_uDXa6Ogu0O0wiwd9/exec";
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        let rawKunye = urlParams.get('kunye') || "";
+        const targetKunye = decodeURIComponent(rawKunye).trim();
+
+        function getProp(obj, propName, colIdx) {
+            let val = obj[propName] !== undefined ? obj[propName] : obj['col' + colIdx];
+            if (val === undefined || val === null || String(val).trim() === "") return "-";
+            return String(val).trim();
+        }
+
+        function maskName(fullName) {
+            if (!fullName || fullName === "-" || fullName.toLocaleLowerCase('tr').includes("zimmetsiz")) {
+                return "Zimmetsiz (Depoda)";
+            }
+            return fullName.split(" ").map(word => {
+                if (word.length <= 2) return word;
+                return word.substring(0, 2) + "***";
+            }).join(" ");
+        }
+
+        async function loadMobileData() {
+            document.getElementById('year').innerText = new Date().getFullYear();
+
+            if (!targetKunye) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+                document.getElementById('content').innerHTML = `<p class="text-rose-600 font-bold text-center p-4">Geçersiz veya Eksik QR Kod!</p>`;
+                return;
+            }
+
+            try {
+                // Şifresiz: sunucu yalnızca bu künyeye ait tek cihazı döndürür (tam liste artık açık değil)
+                const res = await fetch(API_URL + "?kunye=" + encodeURIComponent(targetKunye));
+                const data = await res.json();
+                if (!Array.isArray(data)) throw new Error('Geçersiz yanıt');
+                
+                const device = data.find(d => {
+                    const k = getProp(d, 'kunyeNo', 1);
+                    return String(k) === String(targetKunye);
+                });
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+
+                if (!device) {
+                    document.getElementById('content').innerHTML = `
+                        <div class="text-center p-4 space-y-2">
+                            <i class="fa-solid fa-circle-xmark text-3xl text-rose-500"></i>
+                            <p class="text-rose-600 font-bold">Künye Bulunamadı!</p>
+                            <p class="text-[11px] text-slate-500">Aranan Künye No: <span id="nfKunye" class="font-mono font-bold"></span></p>
+                        </div>
+                    `;
+                    document.getElementById('nfKunye').textContent = targetKunye;
+                    return;
+                }
+
+                document.getElementById('mKunye').innerText = targetKunye;
+                document.getElementById('mMalzeme').innerText = getProp(device, 'malzemeTanimi', 6);
+                document.getElementById('mMarka').innerText = getProp(device, 'marka', 7);
+                document.getElementById('mModel').innerText = getProp(device, 'model', 8);
+                document.getElementById('mSeri').innerText = getProp(device, 'seriNo', 9);
+                document.getElementById('mButce').innerText = getProp(device, 'butceTuru', 2);
+                document.getElementById('mDemirbas').innerText = getProp(device, 'demirbasNo', 4);
+                document.getElementById('mEdinme').innerText = getProp(device, 'edinmeYili', 3);
+                document.getElementById('mSicil').innerText = getProp(device, 'sicilNo', 5);
+                document.getElementById('mBirim').innerText = getProp(device, 'birim', 11);
+                document.getElementById('mTedarikTuru').innerText = getProp(device, 'tedarikTuru', 13);
+                document.getElementById('mTedarikci').innerText = getProp(device, 'tedarikci', 14);
+                document.getElementById('mAciklama').innerText = getProp(device, 'aciklama', 15);
+
+                // Zimmetsiz ise Tarih boş/tire olsun, zimmetliyse tarihi yazdır
+                const rawPersonel = getProp(device, 'personel', 12);
+                const maskedPersonel = maskName(rawPersonel);
+                document.getElementById('mPersonel').innerText = maskedPersonel;
+
+                const rawTarih = getProp(device, 'tarih', 16);
+                if (maskedPersonel.includes("Zimmetsiz") || !rawTarih || rawTarih === "-") {
+                    document.getElementById('mTarih').innerText = "-";
+                } else {
+                    try {
+                        document.getElementById('mTarih').innerText = new Date(rawTarih).toLocaleString('tr-TR');
+                    } catch(err) {
+                        document.getElementById('mTarih').innerText = rawTarih;
+                    }
+                }
+
+                const durum = getProp(device, 'durum', 10);
+                let badge = `<span class="px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 font-bold">🟢 Aktif</span>`;
+                if(durum === "Bakımda") badge = `<span class="px-2.5 py-1 rounded bg-amber-100 text-amber-800 font-bold">🟡 Bakımda</span>`;
+                if(durum === "Hurda") badge = `<span class="px-2.5 py-1 rounded bg-rose-100 text-rose-800 font-bold">🔴 Hurda</span>`;
+                document.getElementById('mDurumBadge').innerHTML = badge;
+
+            } catch(e) { 
+                console.error(e);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+                document.getElementById('content').innerHTML = `<p class="text-rose-600 font-bold text-center p-4">Veri bağlantı hatası oluştu!</p>`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadMobileData);
+    </script>
+</body>
+</html>
