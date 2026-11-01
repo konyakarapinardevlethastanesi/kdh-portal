@@ -8,4 +8,3 @@
 | `/anket/` | Çalışan Memnuniyet Anketi (index.html yönetici, anket.html katılım) |
 | `/anket2/` | Birim & Hizmet Anketi (hazırlanıyor) |
 | `/kdh-theme.js` | Ortak tema: portaldaki `kdh_theme` seçimini giriş ekranlarına uygular |
-| `/_apps_script/` | Apps Script kodlarının yedeği (siteye etkisi yok) |
