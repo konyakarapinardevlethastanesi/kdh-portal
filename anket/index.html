@@ -542,8 +542,13 @@
             const y = document.getElementById("filterYil").value;
             const ws = XLSX.utils.aoa_to_sheet([HEADERS.slice(0, 30), ...getFiltered().map(r => r.slice(0, 30))]);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Anket Yanıtları");
-            XLSX.writeFile(wb, `KDH_Anket_Yanitlari_${y}.xlsx`);
+            // Yıl seçiliyse başlık "2026 Yılı Çalışan Geri Bildirim Anketi"; Excel sayfa adı en çok 31 karakter olabilir
+            const yilli = y && y !== "ALL";
+            const tamBaslik = yilli ? `${y} Yılı Çalışan Geri Bildirim Anketi` : "Çalışan Geri Bildirim Anketi";
+            const sayfaAdi = (yilli ? `${y} Yılı Çalışan Geri Bildirim` : "Çalışan Geri Bildirim Anketi").slice(0, 31);
+            wb.Props = { Title: tamBaslik, Author: "Karapınar Devlet Hastanesi" };
+            XLSX.utils.book_append_sheet(wb, ws, sayfaAdi);
+            XLSX.writeFile(wb, `${tamBaslik}.xlsx`);
         }
 
         function openQrModal() {
