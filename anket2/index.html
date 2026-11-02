@@ -121,6 +121,7 @@
                         <span id="lastUpdate" class="text-[10px] text-slate-400 font-semibold"></span>
                         <button id="refreshBtn" onclick="refreshData()" class="px-3 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow flex items-center gap-2"><i id="refreshIcon" class="fa-solid fa-rotate"></i> Yenile</button>
                         <button onclick="exportReport()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> Excel Raporu İndir</button>
+                        <button onclick="openSekQr()" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow flex items-center gap-2"><i class="fa-solid fa-qrcode"></i> Anket QR / Link Al</button>
                     </div>
                 </div>
             </div>
@@ -204,22 +205,6 @@
             <!-- SEKRETER YÖNETİMİ -->
             <section id="tab-sek" class="tabpane hidden space-y-4">
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                    <div class="text-xs font-extrabold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-qrcode text-emerald-600"></i> Sekreter Giriş Linki ve QR</div>
-                    <div class="flex flex-wrap items-center gap-4">
-                        <div id="sekQr" class="p-2 bg-slate-50 border rounded-xl flex items-center justify-center min-w-[156px] min-h-[156px] text-[10px] text-slate-400"></div>
-                        <div class="flex-1 min-w-[220px] space-y-2">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase">Görüşme Formu Linki (sekreterlere gönderilecek)</label>
-                            <input id="sekUrl" type="text" readonly class="w-full p-2 border rounded-lg text-xs font-mono bg-slate-100 select-all">
-                            <div class="grid grid-cols-3 gap-2">
-                                <button onclick="copySekLink(this)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 border border-slate-200"><i class="fa-solid fa-copy text-sm"></i> Linki Kopyala</button>
-                                <button onclick="saveSekQr(this)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 border border-slate-200"><i class="fa-solid fa-download text-sm"></i> QR Kaydet</button>
-                                <button onclick="shareSekLink()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[11px] flex flex-col items-center gap-1"><i class="fa-solid fa-share-nodes text-sm"></i> Paylaş</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                     <div class="text-xs font-extrabold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-plus text-blue-600"></i> Yeni Sekreter / Görüşmeyi Yapan Personel Ekle <span class="text-[10px] font-semibold text-slate-400">(ad baş harfi büyük, soyad tamamen büyük kaydedilir)</span></div>
                     <form onsubmit="sekEkle(event)" class="flex flex-wrap gap-2 text-xs">
                         <input id="sekAd" type="text" maxlength="40" autocomplete="off" placeholder="Ad" class="flex-1 min-w-[140px] p-2.5 border border-slate-300 rounded-xl font-semibold">
@@ -251,6 +236,31 @@
         </div>
     </div>
 
+
+
+    <!-- ANKET QR / LİNK (sekreter giriş formu) -->
+    <div id="sekQrModal" class="fixed inset-0 bg-slate-900/80 z-[70] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Anket QR Kodu ve Bağlantı Linki</h3>
+            <div class="flex justify-center p-3 bg-slate-50 border rounded-xl min-h-[170px] items-center text-[10px] text-slate-400" id="sekQr"></div>
+            <div class="space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">Sekreter Giriş Linki</label>
+                <input type="text" id="sekUrl" readonly class="w-full p-2 border rounded-lg text-xs font-mono bg-slate-100 text-center select-all">
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="copySekLink(this)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 border border-slate-200">
+                    <i class="fa-solid fa-copy text-sm"></i> Linki Kopyala
+                </button>
+                <button onclick="saveSekQr(this)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 border border-slate-200">
+                    <i class="fa-solid fa-download text-sm"></i> QR Kaydet
+                </button>
+                <button onclick="shareSekLink()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[11px] flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-share-nodes text-sm"></i> Paylaş
+                </button>
+            </div>
+            <button onclick="closeModal('sekQrModal')" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold text-xs">Kapat</button>
+        </div>
+    </div>
 
     <!-- SEKRETER DÜZENLE -->
     <div id="sekEditModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 anim-fade">
@@ -849,6 +859,7 @@
         // Sekreter giriş linki ve QR
         const sekUp = s => String(s ?? "").replace(/i/g, "İ").replace(/ı/g, "I").toUpperCase().trim();
         const sekLink = () => location.origin + location.pathname.replace(/[^\/]*$/, "") + "anket.html";
+        function openSekQr() { buildSekQr(); openModal("sekQrModal"); }
         function buildSekQr() {
             const box = $("sekQr"), url = sekLink(); $("sekUrl").value = url;
             if (box.dataset.done) return;
@@ -886,7 +897,6 @@
         }
         function renderSek() {
             if (!$("sekBody")) return;
-            buildSekQr();
             SEK_VIEW = [...PERSONEL_LIST].sort((a, b) => a.localeCompare(b, "tr"));
             $("sekBody").innerHTML = SEK_VIEW.length ? SEK_VIEW.map((ad, i) => {
                 const st = sekStat(ad);

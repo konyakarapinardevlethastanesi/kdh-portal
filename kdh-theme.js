@@ -44,7 +44,7 @@
   'html[data-kdh-theme="light"] body:has(#loginScreen:not(.hidden)) .text-center .text-slate-400{color:#64748b!important}',
   'html[data-kdh-theme="light"] body:has(#loginScreen:not(.hidden)) footer{color:#64748b!important}',
   /* ---------- Ana portala dön bağlantısı ---------- */
-  '#kdhBackLink{display:none;position:fixed;top:14px;left:14px;z-index:60;display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:14px;font:800 14px Inter,system-ui,sans-serif;text-decoration:none;cursor:pointer;background:rgba(15,23,42,.8);color:#e2e8f0;border:1.5px solid #475569;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.25);transition:background .18s,color .18s,border-color .18s,transform .12s,box-shadow .18s;-webkit-tap-highlight-color:transparent}',
+  '#kdhBackLink{display:none;position:fixed;top:14px;left:14px;z-index:60;align-items:center;gap:8px;padding:11px 18px;border-radius:14px;font:800 14px Inter,system-ui,sans-serif;text-decoration:none;cursor:pointer;background:rgba(15,23,42,.8);color:#e2e8f0;border:1.5px solid #475569;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.25);transition:background .18s,color .18s,border-color .18s,transform .12s,box-shadow .18s;-webkit-tap-highlight-color:transparent}',
   '#kdhBackLink:hover{background:#dc2626;border-color:#dc2626;color:#fff;transform:translateY(-1px);box-shadow:0 8px 20px rgba(220,38,38,.4)}',
   '#kdhBackLink:active{transform:translateY(1px) scale(.95);box-shadow:0 1px 3px rgba(0,0,0,.4);filter:brightness(.9)}',
   'body:has(#mainAuthPortal:not(.hidden)) #kdhBackLink,body:has(#loginScreen:not(.hidden)) #kdhBackLink{display:inline-flex}',
