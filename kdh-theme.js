@@ -55,7 +55,7 @@
   (document.head || document.documentElement).appendChild(st);
 
   document.addEventListener('DOMContentLoaded', function () {
-    if ((document.getElementById('mainAuthPortal') || document.getElementById('loginScreen')) && !document.getElementById('kdhBackLink')) {
+    if (document.querySelector('meta[name="kdh-back"]') && (document.getElementById('mainAuthPortal') || document.getElementById('loginScreen')) && !document.getElementById('kdhBackLink')) {
       var a = document.createElement('a'); a.id = 'kdhBackLink'; a.href = '../';
       a.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Ana Portal';
       document.body.appendChild(a);
