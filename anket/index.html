@@ -36,6 +36,50 @@
         tr.row-flash { animation: rowFlash 1.8s ease; }
         @media (prefers-reduced-motion: reduce) { .anim-pop, .anim-shake, .pulse-ring::before, .pulse-ring::after { animation: none; } }
 
+
+        /* ===== RAPORLAMA (Excel "Seçenek Baz." + "Soru Baz." birebir düzen) ===== */
+        .rp-page { width: 194mm; min-height: 281mm; margin: 0 auto 16px; background: #fff; color: #000; font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; box-shadow: 0 4px 24px rgba(0,0,0,.35); box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .rp-page *, .rp-page *::before, .rp-page *::after { box-sizing: border-box; }
+        .rp-page table { border-collapse: collapse; width: 100%; table-layout: fixed; margin: 0; }
+        .rp-page td, .rp-page th { border: .3mm solid #000; padding: .6mm 1.2mm; font-weight: normal; line-height: 1.12; vertical-align: middle; word-wrap: break-word; }
+        .rp-page .c { text-align: center; } .rp-page .l { text-align: left; } .rp-page .b { font-weight: bold; }
+        .rp-page img { display: block; margin: 0 auto; height: 14.5mm; width: 14.5mm; object-fit: contain; }
+        .rp-hd td { height: 5mm; text-align: center; font-size: 9.5pt; }
+        .rp-hd tr.t1 td { height: 17.6mm; }
+        .rp-hd .title { font-weight: bold; font-size: 10.5pt; line-height: 1.2; }
+        .rp-row { border: .3mm solid #000; border-top: 0; padding: .9mm 1.4mm; line-height: 1.25; }
+        .rp-row.first { border-top: .3mm solid #000; }
+        .rp-row.u { text-decoration: underline; }
+        .rp-row.h6 { min-height: 6.2mm; display: flex; align-items: center; }
+        .rp-tbl th { font-size: 8.5pt; }
+        .rp-tbl thead tr { height: 22mm; }
+        .rp-tbl tbody tr { height: 6.8mm; }
+        .rp-tbl tbody td { padding-top: .3mm; padding-bottom: .3mm; line-height: 1.08; }
+        .rp-tbl tbody td { font-size: 8pt; }
+        .rp-tbl tbody td.num { font-size: 10pt; text-align: center; }
+        .rp-tbl tbody td.no { font-weight: bold; text-align: center; font-size: 9.5pt; }
+        .rp-tbl tfoot td { height: 6.8mm; font-weight: bold; font-size: 9pt; }
+        .rp-tbl tfoot td.num { font-weight: normal; text-align: center; font-size: 10.5pt; }
+        .rp-v { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); height: 20mm; text-align: center; font-size: 8.5pt; line-height: 1.15; }
+        .rp-v.bold { font-weight: bold; }
+        .rp-note { white-space: pre-wrap; }
+        .rp-indent { text-indent: 8mm; }
+        .rp-sig { display: flex; flex-direction: row-reverse; justify-content: space-around; margin-top: 5mm; }
+        .rp-sig > div { flex: 1 1 0; min-width: 0; text-align: center; padding: 0 2mm; min-height: 12mm; }
+        .rp-sig b { display: block; font-size: 9.5pt; line-height: 1.2; }
+        .rp-sig span { display: block; font-size: 9pt; line-height: 1.2; margin-top: 1mm; }
+        #reportModal .rp-scroll { background: #475569; }
+        @media print {
+            @page { size: A4 portrait; margin: 7mm; }
+            html, body { background: #fff !important; }
+            body.rp-printing > *:not(#reportModal) { display: none !important; }
+            body.rp-printing #reportModal { position: static !important; display: block !important; background: none !important; padding: 0 !important; overflow: visible !important; }
+            body.rp-printing #reportModal .rp-shell { max-height: none !important; box-shadow: none !important; background: none !important; display: block !important; }
+            body.rp-printing #reportModal .rp-toolbar { display: none !important; }
+            body.rp-printing #reportModal .rp-scroll { background: none !important; padding: 0 !important; overflow: visible !important; }
+            body.rp-printing .rp-page { box-shadow: none; margin: 0; min-height: 0; width: 194mm; }
+            body.rp-printing .rp-page + .rp-page { break-before: page; page-break-before: always; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
@@ -132,6 +176,8 @@
             <div class="flex gap-2 border-b border-slate-300">
                 <button id="tabBtnDash" onclick="showTab('dash')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-chart-pie"></i> Genel Özet</button>
                 <button id="tabBtnList" onclick="showTab('list')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-list-check"></i> Anket Sonuçları <span id="tabCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+                <button id="tabBtnRapor" onclick="showTab('rapor')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-file-pdf"></i> Raporlama</button>
+                <button id="tabBtnRaporlarim" onclick="showTab('rapl')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-folder-open"></i> Raporlarım <span id="tabRplCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
             </div>
 
             <div id="tabDash" class="space-y-6 anim-fade">
@@ -166,6 +212,61 @@
                     <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
                         <i class="fa-solid fa-hospital-user text-lg"></i>
                     </div>
+                </div>
+            </div>
+
+            <!-- GENEL PUAN: Excel "Soru Baz." / "Seçenek Baz." mantığı -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Genel Memnuniyet Puanı</p>
+                        <h3 id="statRpScore" class="text-2xl font-black text-slate-900">-</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">21 sorunun karşılanma oranı ortalaması</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-gauge-high text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Hedef Durumu (%80)</p>
+                        <h3 id="statRpStatus" class="text-sm font-black text-slate-800 leading-tight">-</h3>
+                        <p id="statRpStatusSub" class="text-[10px] text-slate-400 font-semibold mt-0.5"></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-bullseye text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Olumlu Cevap Oranı</p>
+                        <h3 id="statRpPos" class="text-2xl font-black text-emerald-600">-</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Tamamen Katılıyorum + Katılıyorum</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-thumbs-up text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Hedef Altındaki Soru</p>
+                        <h3 id="statRpBelow" class="text-2xl font-black text-rose-600">-</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Karşılanma oranı %80'in altında</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <div class="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-bullseye text-rose-500"></i> Soru Bazında Karşılanma Oranı (%) — Hedef %80
+                    </h3>
+                    <div class="h-72"><canvas id="rateChart"></canvas></div>
+                    <p class="text-[10px] text-slate-400 font-semibold">Oran = (Tamamen×4 + Katılıyorum×3 + Kararsızım×2 + Katılmıyorum×1) / (cevap sayısı × 4) × 100</p>
+                </div>
+                <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-table-list text-blue-600"></i> Seçenek Bazında Cevap Dağılımı
+                    </h3>
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b"><tr><th class="p-2 text-left">Seçenek</th><th class="p-2 text-center">Adet</th><th class="p-2 text-center">Oran</th></tr></thead>
+                        <tbody id="rpDashOpts" class="divide-y text-slate-700"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -265,11 +366,101 @@
                     </div>
                 </div>
             </div>
+
+            <!-- RAPORLAMA SEKMESİ -->
+            <div id="tabRapor" class="hidden space-y-4 anim-fade">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-file-pdf text-rose-600"></i> Rapor Oluştur — Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div class="md:col-span-1">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Anket Yılı</label>
+                            <select id="rpYear" onchange="rpYearChanged()" class="w-full p-2 border border-slate-300 rounded-lg bg-white text-xs font-bold"></select>
+                            <p id="rpYearInfo" class="text-[10px] text-slate-400 font-semibold mt-1"></p>
+                        </div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doküman Kodu</label><input id="rpKod" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Yayın Tarihi</label><input id="rpYayin" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon No</label><input id="rpRevNo" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
+                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon Tarihi</label><input id="rpRevTar" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-3 flex-wrap">
+                            <div class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-signature text-slate-500 mr-1"></i> İmza Alanı <span class="font-semibold text-slate-400">(kişiler sayfaya eşit aralıkla yayılır; 1. kişi en sağda, sıra sola doğru devam eder)</span></div>
+                            <div class="flex items-center gap-2 text-[11px] font-bold text-slate-600">İmza sayısı:
+                                <select id="rpSigCount" onchange="rpSigRender()" class="p-1.5 border border-slate-300 rounded-lg bg-white text-xs font-bold">
+                                    <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="rpSigFields" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+                        <datalist id="rpNameList"></datalist><datalist id="rpTitleList"></datalist>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Raporda imza yerleşimi</div>
+                            <div id="rpSigLayout" class="flex flex-row-reverse border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-end gap-2 pt-2 border-t">
+                        <button onclick="rpOpenFromForm('view')" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizle</button>
+                        <button onclick="rpOpenFromForm('save')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Raporlarım'a Kaydet</button>
+                        <button onclick="rpOpenFromForm('print')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2"><i class="fa-solid fa-print"></i> PDF / Yazdır</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAPORLARIM SEKMESİ -->
+            <div id="tabRaporlarim" class="hidden space-y-4 anim-fade">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b bg-slate-50">
+                        <div class="text-xs font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-folder-open text-amber-500"></i> Kayıtlı Raporlar <span id="rpSavedInfo" class="text-slate-400 font-semibold"></span></div>
+                        <button onclick="rpFetchList()" class="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-[11px] font-bold flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> Yenile</button>
+                    </div>
+                    <div id="rpServerState" class="hidden"></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b">
+                                <tr>
+                                    <th class="p-2.5 w-10">#</th>
+                                    <th class="p-2.5">Rapor</th>
+                                    <th class="p-2.5">Yıl</th>
+                                    <th class="p-2.5">Çalışan Sayısı</th>
+                                    <th class="p-2.5">Memnuniyet</th>
+                                    <th class="p-2.5">Oluşturma Tarihi</th>
+                                    <th class="p-2.5 text-right">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rpSavedBody" class="divide-y text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800 no-print">
             Konya Karapınar Devlet Hastanesi <span id="footYear">2026</span> &copy; Tüm Hakları Saklıdır.
         </footer>
+    </div>
+
+
+    <!-- RAPOR ÖNİZLEME MODALI -->
+    <div id="reportModal" class="fixed inset-0 bg-slate-900/80 z-[80] hidden flex items-center justify-center p-3 anim-fade">
+        <div class="rp-shell bg-slate-700 rounded-2xl w-full max-w-[230mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="rp-toolbar px-4 py-3 bg-slate-900 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <div id="rpModalTitle" class="text-sm font-extrabold text-white"></div>
+                    <div id="rpModalSub" class="text-[10px] text-slate-400 font-semibold"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="rpSaveBtn" onclick="rpSaveCurrent()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                    <button onclick="rpPrint()" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i> PDF / Yazdır</button>
+                    <button onclick="rpCloseModal()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold">Kapat</button>
+                </div>
+            </div>
+            <div class="rp-scroll p-4 overflow-auto flex-1"><div id="rpPages"></div></div>
+        </div>
     </div>
 
     <!-- QR & LINK MODALI -->
@@ -500,6 +691,7 @@
             renderCharts(birimCounts, f);
             renderFeedbackTable(f);
             renderList();
+            rpRenderDash(f);
         }
 
         function renderCharts(birimCounts, f) {
@@ -640,15 +832,18 @@
         let editId = null, delId = null;
 
         function showTab(t) {
-            const dash = t !== 'list';
-            $('tabDash').classList.toggle('hidden', !dash);
-            $('tabList').classList.toggle('hidden', dash);
+            const tabs = { dash: ['tabDash', 'tabBtnDash'], list: ['tabList', 'tabBtnList'], rapor: ['tabRapor', 'tabBtnRapor'], rapl: ['tabRaporlarim', 'tabBtnRaporlarim'] };
+            if (!tabs[t]) t = 'dash';
             const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
-            [['tabBtnDash', dash], ['tabBtnList', !dash]].forEach(([id, a]) => {
-                $(id).className = 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 ' + (a ? on : off);
+            Object.entries(tabs).forEach(([k, [pid, bid]]) => {
+                $(pid).classList.toggle('hidden', k !== t);
+                $(bid).className = 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 ' + (k === t ? on : off);
             });
-            sessionStorage.setItem('kdh_tab', dash ? 'dash' : 'list');
-            if (!dash) renderList();
+            sessionStorage.setItem('kdh_tab', t);
+            if (!RP.fetched) { RP.fetched = true; rpFetchList(); }
+            if (t === 'list') renderList();
+            if (t === 'rapor') rpInitForm();
+            if (t === 'rapl') rpFetchList();
         }
 
         function parseTs(s) {
@@ -846,6 +1041,336 @@
             } finally { btn.disabled = false; btn.innerHTML = old; }
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDel(); closeEdit(); } });
+
+
+        // ================== RAPORLAMA ==================
+        // Excel karşılığı: "Seçenek Baz." (sayfa 1) + "Soru Baz." (sayfa 2)
+        //  - Seçenek sayıları  : COUNTIF(soru sütunu; seçenek)            (Veri Tablosu)
+        //  - Seçenek oranı     : seçenek toplamı / toplam cevap * 100
+        //  - Soru ağırlıkları  : Tamamen*4, Katılıyorum*3, Kararsızım*2, Katılmıyorum*1, Kesinlikle Katılmıyorum*0
+        //  - Karşılanma oranı  : SUM(ağırlıklı) / (soru cevap sayısı * 4) * 100
+        //  - Genel puan        : 21 sorunun karşılanma oranlarının ortalaması (SUM(L13:L33/21))
+        //  - Karar metni       : puan < 80 ise "ulaşılamamıştır" + iyileştirme metni, değilse "ulaşılmıştır" + devam metni
+        const RP = {
+            KEY: 'kdh_reports_v1', SIG: 'kdh_rep_sig_v1', META: 'kdh_rep_meta_v1',
+            OPTS: ['Tamamen Katılıyorum', 'Katılıyorum', 'Kararsızım', 'Katılmıyorum', 'Kesinlikle Katılmıyorum'],
+            W: [4, 3, 2, 1, 0], TARGET: 80, NQ: 21,
+            cur: null, curSaved: false, list: [], serverOk: null, fetched: false
+        };
+        const RP_MSG_OK = '        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden tüm soruların hedef değer üzerinde olduğu görülmüş ve aynı şekilde uygulamaların yapılmasına karar verilmiştir.';
+        const RP_MSG_BAD = '        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden hedef değer üzerinde uygunsuzluk olduğu görülmüş ve olumsuz konularda gerekli iyileştirme çalışmalarının yapılmasına karar verilmiştir.';
+
+        const rpFmt = (x, d) => Number(x).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d });
+        function rpOptIdx(v) {
+            const t = normTr(String(v || '').trim());
+            if (t === 'tamamen katiliyorum' || t === 'kesinlikle katiliyorum') return 0;
+            if (t === 'katiliyorum') return 1;
+            if (t === 'kararsizim') return 2;
+            if (t === 'katilmiyorum') return 3;
+            if (t === 'kesinlikle katilmiyorum') return 4;
+            return -1;
+        }
+        function rpNow() { return new Date().toISOString(); }
+        function rpDateTxt(iso) {
+            const d = new Date(iso), o = { timeZone: 'Europe/Istanbul', hourCycle: 'h23' };
+            return d.toLocaleDateString('tr-TR', { ...o, day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('tr-TR', { ...o, hour: '2-digit', minute: '2-digit' });
+        }
+        function rpLoad(key, def) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? def; } catch (e) { return def; } }
+        function rpStore(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; } }
+
+        // ---- Hesap: seçilen yıl için sayımlar ----
+        function rpCountRows(rows) {
+            const counts = Array.from({ length: RP.NQ }, () => [0, 0, 0, 0, 0]);
+            rows.forEach(r => { for (let q = 0; q < RP.NQ; q++) { const k = rpOptIdx(r[8 + q]); if (k >= 0) counts[q][k]++; } });
+            return counts;
+        }
+        function rpCompute(year) {
+            const rows = ALL_ROWS.filter(r => String(r[1]) === String(year));
+            const counts = rpCountRows(rows);
+            const questions = Array.from({ length: RP.NQ }, (_, q) => String(HEADERS[8 + q] || ('Soru ' + (q + 1))).trim());
+            return { n: rows.length, counts, questions };
+        }
+        // ---- Türetilen değerler (Excel formülleri) ----
+        function rpDerive(s) {
+            const tot = [0, 0, 0, 0, 0];
+            s.counts.forEach(c => c.forEach((v, k) => tot[k] += v));
+            const grand = tot.reduce((a, b) => a + b, 0);
+            const pct = tot.map(v => grand ? v / grand * 100 : 0);
+            const weighted = s.counts.map(c => c.map((v, k) => v * RP.W[k]));
+            const rate = s.counts.map((c, q) => { const n = c.reduce((a, b) => a + b, 0); return n ? weighted[q].reduce((a, b) => a + b, 0) / (n * 4) * 100 : 0; });
+            const score = rate.reduce((a, b) => a + b, 0) / RP.NQ;
+            return { tot, grand, pct, weighted, rate, score, reached: !(score < RP.TARGET) };
+        }
+
+        // ---- Rapor HTML (2 sayfa) ----
+        function rpHeader(meta, pageNo) {
+            const lg = '<img src="logo.png" alt="">';
+            return `<table class="rp-hd">
+                <colgroup><col style="width:46mm"><col style="width:37mm"><col style="width:37mm"><col style="width:37mm"><col style="width:37mm"></colgroup>
+                <tr class="t1"><td>${lg}</td><td colspan="3" class="title">KARAPINAR DEVLET HASTANESİ<br>ÇALIŞAN GERİ BİLDİRİMİ ANKETİ ANALİZ VE DEĞERLENDİRME TUTANAĞI</td><td>${lg}</td></tr>
+                <tr class="b"><td class="b">Doküman Kodu</td><td class="b">Yayın Tarihi</td><td class="b">Revizyon No</td><td class="b">Revizyon Tarihi</td><td class="b">Sayfa No</td></tr>
+                <tr><td>${esc(meta.kod)}</td><td>${esc(meta.yayin)}</td><td>${esc(meta.revNo)}</td><td>${esc(meta.revTar)}</td><td>${pageNo}</td></tr>
+            </table>`;
+        }
+        function rpSigHtml(sig) {
+            const list = (sig || []).filter(x => (x.name || '').trim() || (x.title || '').trim());
+            if (!list.length) return '';
+            return `<div class="rp-sig">${list.map(x => `<div><b>${esc(x.name)}</b><span>${esc(x.title)}</span></div>`).join('')}</div>`;
+        }
+        function rpRender(s) {
+            const d = rpDerive(s), y = s.year, sc = rpFmt(d.score, 2);
+            const th = (t, cls) => `<th><span class="rp-v ${cls || ''}">${t}</span></th>`;
+            const optHead = RP.OPTS.map(o => th(o)).join('');
+
+            // --- Sayfa 1 : Seçenek Bazında ---
+            const rows1 = s.counts.map((c, q) => `<tr><td class="no">${q + 1}</td><td class="l">${esc(s.questions[q])}</td>${c.map(v => `<td class="num">${v}</td>`).join('')}</tr>`).join('');
+            const p1 = `<div class="rp-page">
+                ${rpHeader(s.meta, '1/2')}
+                <div class="rp-row first" style="min-height:6.2mm;"><b>DEĞERLENDİRME TARİH VE SAATİ: ${esc(rpDateTxt(s.createdAt))}</b></div>
+                <div class="rp-row u">KONU: Çalışan Geri Bildirimi Anketi Anket Sonuçlarının ve İyileştirme Çalışmalarının Görüşülmesi</div>
+                <div class="rp-row b u c">ÇALIŞAN GERİ BİLDİRİMİ ANKETİ ANALİZ SONUÇLARI</div>
+                <div class="rp-row b h6">Anketin Uygulandığı Yıl: ${esc(y)}</div>
+                <div class="rp-row b h6">Anket Uygulanan Çalışan Sayısı: ${s.n}</div>
+                <div class="rp-row b h6">Çalışan Geri Bildirimi Anketi Puanı: %${sc}</div>
+                <div class="rp-row u">ANALİZ SONUÇLARI</div>
+                <div class="rp-row b">${esc(y)} yılı içerisinde çalışan geri bildirimi anketini ${s.n} adet memnuniyet anketi uygulanmıştır.</div>
+                <div class="rp-row b">Anket uygulanan çalışanların seçenek bazında verilen cevap sayış ve oranları incelendiğinde;</div>
+                <table class="rp-tbl" style="margin-top:-.3mm">
+                    <colgroup><col style="width:9mm"><col style="width:85mm"><col span="5" style="width:20mm"></colgroup>
+                    <thead><tr><th>${'<span class="rp-v bold">Sıra No</span>'}</th><th class="b" style="font-size:12pt">Anket Soruları</th>${optHead}</tr></thead>
+                    <tbody>${rows1}</tbody>
+                    <tfoot>
+                        <tr><td colspan="2" class="l">Seçenek Bazında Verilen Toplam Cevap Sayısı</td>${d.tot.map(v => `<td class="num">${v}</td>`).join('')}</tr>
+                        <tr><td colspan="2" class="l">Toplam Cevap Sayısı</td><td colspan="5" class="num">${d.grand} Adet</td></tr>
+                        <tr><td colspan="2" class="l">Seçenek Bazında Verilen Cevap Oranı</td>${d.pct.map(v => `<td class="num" style="font-size:9.5pt">%${rpFmt(v, 2)}</td>`).join('')}</tr>
+                    </tfoot>
+                </table>
+            </div>`;
+
+            // --- Sayfa 2 : Soru Bazında ---
+            const rows2 = s.counts.map((c, q) => `<tr><td class="no">${q + 1}</td><td class="l">${esc(s.questions[q])}</td>${d.weighted[q].map(v => `<td class="num">${v}</td>`).join('')}<td class="num">%${Math.round(d.rate[q])}</td></tr>`).join('');
+            const sumTxt = `Anket genelinde seçenek bazında verilen cevap oranına bakıldığında ankete katılanların %${rpFmt(d.pct[0], 2)} Tamamen katılıyorum, %${rpFmt(d.pct[1], 2)} Katılıyorum, %${rpFmt(d.pct[2], 2)} Kararsızım, %${rpFmt(d.pct[3], 2)} Katılmıyorum, %${rpFmt(d.pct[4], 2)} Kesinlikle katılmıyorum cevabını vermiştir.`;
+            const decision1 = `        ${y} yılı çalışan deneyim anket sonuçları değerlendirilmiş olup, memnuniyet oranı %${sc} olarak analiz edilmiş olup hedef değere ${d.reached ? 'ulaşılmıştır.' : 'ulaşılamamıştır.'}`;
+            const decision2 = d.reached ? RP_MSG_OK : RP_MSG_BAD;
+            const p2 = `<div class="rp-page">
+                ${rpHeader(s.meta, '2/2')}
+                <div class="rp-row first" style="font-size:10.5pt;line-height:1.3;padding-bottom:2mm">${esc(sumTxt)}<div class="b" style="font-size:9.5pt;margin-top:3mm">Anket uygulanan çalışanların soru bazında karşılanma oranları incelendiğinde ;</div></div>
+                <table class="rp-tbl" style="margin-top:-.3mm">
+                    <colgroup><col style="width:9mm"><col style="width:78mm"><col span="5" style="width:17mm"><col style="width:22mm"></colgroup>
+                    <thead><tr><th><span class="rp-v bold">Sıra No</span></th><th class="b" style="font-size:12pt">Anket Soruları</th>${optHead}${th('Soru Bazında Karşılanma Oranı (%)', 'bold')}</tr></thead>
+                    <tbody>${rows2}</tbody>
+                </table>
+                <div class="rp-row b c" style="border-top:0">YAPILACAK İYİLEŞTİRMELER VE ALINAN KARARLAR.</div>
+                <div class="rp-row rp-note" style="font-size:9.5pt;line-height:1.3;padding:2mm 1.4mm"><div class="rp-indent">${esc(decision1.trim())}</div><div class="rp-indent" style="margin-top:3mm">${esc(decision2.trim())}</div></div>
+                ${rpSigHtml(s.signers)}
+            </div>`;
+            return p1 + p2;
+        }
+
+        // ---- Form ----
+        function rpYears() {
+            const set = new Set(ALL_ROWS.map(r => String(r[1] || '')).filter(Boolean));
+            set.add(String(new Date().getFullYear()));
+            return [...set].sort().reverse();
+        }
+        function rpInitForm() {
+            const sel = $('rpYear'), keep = sel.value, years = rpYears();
+            sel.innerHTML = years.map(y => `<option value="${esc(y)}">${esc(y)}</option>`).join('');
+            const f = $('filterYil').value;
+            const withData = years.find(y => ALL_ROWS.some(r => String(r[1]) === y));
+            sel.value = years.includes(keep) ? keep : (f && f !== 'ALL' && years.includes(f) ? f : (withData || years[0]));
+            const m = rpLoad(RP.META, { kod: 'HD.YD.03', yayin: '18.02.2026', revNo: '0', revTar: '0' });
+            if (!$('rpKod').dataset.init) {
+                $('rpKod').value = m.kod; $('rpYayin').value = m.yayin; $('rpRevNo').value = m.revNo; $('rpRevTar').value = m.revTar;
+                $('rpKod').dataset.init = '1';
+                const sg = rpLoad(RP.SIG, { count: 3, list: [] });
+                $('rpSigCount').value = String(sg.count || 3);
+                rpSigRender(sg.list);
+            }
+            rpYearChanged();
+        }
+        function rpYearChanged() {
+            const y = $('rpYear').value, n = ALL_ROWS.filter(r => String(r[1]) === y).length;
+            $('rpYearInfo').textContent = n ? (n + ' anket yanıtı') : 'Bu yıl için yanıt yok';
+            $('rpYearInfo').className = 'text-[10px] font-semibold mt-1 ' + (n ? 'text-slate-400' : 'text-rose-500');
+        }
+        function rpSigRead() {
+            const n = +$('rpSigCount').value;
+            return Array.from({ length: n }, (_, i) => ({ name: ($('rpSigName' + i)?.value || '').trim(), title: ($('rpSigTitle' + i)?.value || '').trim() }));
+        }
+        function rpSigRender(list) {
+            const prev = list || rpSigRead(), n = +$('rpSigCount').value;
+            $('rpSigFields').innerHTML = Array.from({ length: n }, (_, i) => {
+                const p = prev[i] || {};
+                return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center">
+                    <div class="row-span-2 w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-black flex items-center justify-center">${i + 1}</div>
+                    <input id="rpSigName${i}" list="rpNameList" type="text" placeholder="Ad Soyad" value="${esc(p.name || '')}" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white">
+                    <input id="rpSigTitle${i}" list="rpTitleList" type="text" placeholder="Ünvan" value="${esc(p.title || '')}" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white">
+                </div>`;
+            }).join('');
+            $('rpSigLayout').innerHTML = Array.from({ length: n }, (_, i) => `<div class="flex-1 text-center"><span class="inline-flex w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-black items-center justify-center">${i + 1}</span><div class="text-[9px] text-slate-400 font-semibold mt-0.5">Adı soyadı</div></div>`).join('');
+        }
+        function rpSnapshotFromForm() {
+            const year = $('rpYear').value, c = rpCompute(year);
+            if (!c.n) { showToast(year + ' yılı için anket yanıtı yok, rapor oluşturulamadı'); return null; }
+            const meta = { kod: $('rpKod').value.trim(), yayin: $('rpYayin').value.trim(), revNo: $('rpRevNo').value.trim(), revTar: $('rpRevTar').value.trim() };
+            const signers = rpSigRead();
+            rpStore(RP.META, meta); rpStore(RP.SIG, { count: signers.length, list: signers });
+            return { v: 1, id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), year, createdAt: rpNow(), n: c.n, counts: c.counts, questions: c.questions, meta, signers };
+        }
+
+        // ---- Modal / kaydet / yazdır ----
+        function rpOpenModal(s, saved) {
+            RP.cur = s; RP.curSaved = !!saved;
+            const d = rpDerive(s);
+            $('rpPages').innerHTML = rpRender(s);
+            $('rpModalTitle').textContent = s.year + ' Yılı Çalışan Geri Bildirimi Anketi — Analiz ve Değerlendirme Tutanağı';
+            $('rpModalSub').textContent = s.n + ' çalışan · Memnuniyet %' + rpFmt(d.score, 2) + ' · ' + rpDateTxt(s.createdAt) + (saved ? ' · Kayıtlı rapor' : '');
+            $('rpSaveBtn').classList.toggle('hidden', !!saved);
+            $('reportModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        function rpCloseModal() { $('reportModal').classList.add('hidden'); document.body.style.overflow = ''; }
+        async function rpOpenFromForm(mode) {
+            const s = rpSnapshotFromForm(); if (!s) return;
+            if (mode === 'save') { const ok = await rpSaveSnapshot(s); rpOpenModal(s, ok); }
+            else { rpOpenModal(s, false); if (mode === 'print') rpPrint(); }
+        }
+        // Önce sunucuya (tüm yöneticiler görür); sunucu eski sürümse bu tarayıcıya yerel kaydeder
+        async function rpSaveSnapshot(s) {
+            try {
+                const out = await adminPost({ action: 'raporKaydet', rapor: s });
+                if (out.status !== 'success') throw new Error(out.message || 'Hata');
+                RP.serverOk = true;
+                showToast('Rapor kaydedildi, diğer yöneticiler de görebilir');
+                await rpFetchList();
+                return true;
+            } catch (e) {
+                const list = rpLoad(RP.KEY, []); list.push(s);
+                if (!rpStore(RP.KEY, list)) { showToast('Rapor kaydedilemedi: ' + (e.message || e)); return false; }
+                RP.serverOk = false;
+                showToast('Sunucuya kaydedilemedi, yalnızca bu tarayıcıya kaydedildi');
+                await rpFetchList();
+                return true;
+            }
+        }
+        async function rpSaveCurrent() {
+            if (!RP.cur || RP.curSaved) return;
+            const btn = $('rpSaveBtn'); btn.disabled = true;
+            const ok = await rpSaveSnapshot(RP.cur);
+            btn.disabled = false;
+            if (ok) { RP.curSaved = true; btn.classList.add('hidden'); }
+        }
+        async function rpPrint() {
+            if (!RP.cur) return;
+            const imgs = [...document.querySelectorAll('#rpPages img')];
+            await Promise.all(imgs.map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; })));
+            const oldTitle = document.title;
+            document.title = RP.cur.year + ' Yılı Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı';
+            document.body.classList.add('rp-printing');
+            const done = () => { document.body.classList.remove('rp-printing'); document.title = oldTitle; window.removeEventListener('afterprint', done); };
+            window.addEventListener('afterprint', done);
+            setTimeout(() => window.print(), 60);
+        }
+
+        // ---- Raporlarım ----
+        async function rpFetchList() {
+            const key = sessionStorage.getItem('kdh_admin_key');
+            let ok = false;
+            try {
+                const res = await fetch(API_URL + '?islem=raporlar&key=' + encodeURIComponent(key || ''));
+                const out = JSON.parse(await res.text());
+                if (out.status === 'success' && Array.isArray(out.raporlar)) { RP.list = out.raporlar; ok = true; }
+            } catch (e) { /* aşağıda yerel listeye düşer */ }
+            RP.serverOk = ok;
+            if (!ok) RP.list = rpLoad(RP.KEY, []);
+            rpRenderSaved(); rpFillSuggest();
+        }
+        function rpFillSuggest() {
+            const names = new Set(), titles = new Set();
+            RP.list.forEach(s => (s.signers || []).forEach(x => { if (x.name) names.add(x.name); if (x.title) titles.add(x.title); }));
+            rpLoad(RP.SIG, { list: [] }).list.forEach(x => { if (x.name) names.add(x.name); if (x.title) titles.add(x.title); });
+            $('rpNameList').innerHTML = [...names].map(v => `<option value="${esc(v)}">`).join('');
+            $('rpTitleList').innerHTML = [...titles].map(v => `<option value="${esc(v)}">`).join('');
+        }
+        function rpRenderSaved() {
+            const list = RP.list.slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+            $('rpSavedInfo').textContent = list.length ? '(' + list.length + ')' : '';
+            const st = $('rpServerState');
+            if (RP.serverOk === false) {
+                st.className = 'px-4 py-2 text-[11px] font-semibold bg-amber-50 border-b border-amber-200 text-amber-800';
+                st.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Sunucu bağlantısı yok ya da Apps Script güncel değil: raporlar yalnızca bu tarayıcıda görünür. Güncel <b>anket_Code.gs</b> kodunu yayınlayınca tüm yöneticiler görür.';
+            } else if (RP.serverOk) {
+                st.className = 'px-4 py-2 text-[11px] font-semibold bg-emerald-50 border-b border-emerald-200 text-emerald-800';
+                st.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Raporlar sunucuda saklanıyor; tüm yöneticiler görebilir.';
+            } else { st.className = 'hidden'; }
+            $('rpSavedBody').innerHTML = list.length ? list.map((s, i) => {
+                const d = rpDerive(s), c = d.reached ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
+                return `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 text-slate-400">${i + 1}</td>
+                    <td class="p-2.5 font-semibold text-blue-900">Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı</td>
+                    <td class="p-2.5 font-bold">${esc(s.year)}</td>
+                    <td class="p-2.5">${s.n}</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded-full font-extrabold ${c}">%${rpFmt(d.score, 2)}</span></td>
+                    <td class="p-2.5 whitespace-nowrap">${esc(rpDateTxt(s.createdAt))}</td>
+                    <td class="p-2.5 whitespace-nowrap text-right">
+                        <button onclick="rpShowSaved('${esc(s.id)}')" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold"><i class="fa-solid fa-eye mr-1"></i> Göster</button>
+                        <button onclick="rpShowSaved('${esc(s.id)}', true)" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold ml-1"><i class="fa-solid fa-print mr-1"></i> Çıktı Al</button>
+                        <button onclick="rpDeleteSaved('${esc(s.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 ml-1"><i class="fa-solid fa-trash"></i></button>
+                    </td></tr>`;
+            }).join('') : '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">Henüz kayıtlı rapor yok. Raporlama sekmesinden rapor oluşturup kaydedebilirsiniz.</td></tr>';
+            $('tabRplCount').textContent = list.length;
+        }
+        function rpShowSaved(id, print) {
+            const s = RP.list.find(x => x.id === id); if (!s) return;
+            rpOpenModal(s, true); if (print) rpPrint();
+        }
+        async function rpDeleteSaved(id) {
+            if (!confirm('Bu kayıtlı rapor tüm yöneticiler için silinsin mi?')) return;
+            const local = rpLoad(RP.KEY, []);
+            if (local.some(x => x.id === id)) rpStore(RP.KEY, local.filter(x => x.id !== id));
+            if (RP.serverOk) {
+                try {
+                    const out = await adminPost({ action: 'raporSil', id });
+                    if (out.status !== 'success') throw new Error(out.message || 'Hata');
+                } catch (e) { alert('Silinemedi: ' + (e.message || e)); return; }
+            }
+            await rpFetchList(); showToast('Rapor silindi');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('reportModal').classList.contains('hidden')) rpCloseModal(); });
+
+
+        // ---- Genel Özet: Excel puanları ----
+        let rateChartInstance = null;
+        function rpRenderDash(f) {
+            const s = { counts: rpCountRows(f) }, d = rpDerive(s), has = d.grand > 0;
+            $('statRpScore').textContent = has ? '%' + rpFmt(d.score, 2) : '-';
+            $('statRpScore').className = 'text-2xl font-black ' + (!has ? 'text-slate-900' : d.reached ? 'text-emerald-600' : 'text-rose-600');
+            $('statRpStatus').textContent = !has ? '-' : d.reached ? 'Hedefe ulaşılmıştır' : 'Hedefe ulaşılamamıştır';
+            $('statRpStatusSub').textContent = has ? 'Puan %' + rpFmt(d.score, 2) + ' / hedef %' + RP.TARGET : '';
+            $('statRpPos').textContent = has ? '%' + rpFmt(d.pct[0] + d.pct[1], 2) : '-';
+            const below = d.rate.filter(v => v < RP.TARGET).length;
+            $('statRpBelow').textContent = has ? below + ' / ' + RP.NQ : '-';
+            $('rpDashOpts').innerHTML = RP.OPTS.map((o, k) => `<tr><td class="p-2 font-semibold">${esc(o)}</td><td class="p-2 text-center">${d.tot[k]}</td><td class="p-2 text-center font-bold">%${rpFmt(d.pct[k], 2)}</td></tr>`).join('')
+                + `<tr class="bg-slate-50 font-extrabold"><td class="p-2">Toplam Cevap</td><td class="p-2 text-center">${d.grand}</td><td class="p-2 text-center">%${has ? '100,00' : '0,00'}</td></tr>`;
+            const rates = d.rate.map(v => +v.toFixed(1));
+            if (rateChartInstance) rateChartInstance.destroy();
+            rateChartInstance = new Chart($('rateChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: rates.map((_, i) => 'S' + (i + 1)),
+                    datasets: [
+                        { type: 'bar', label: 'Karşılanma Oranı (%)', data: rates, backgroundColor: rates.map(v => v >= RP.TARGET ? '#10b981' : '#f43f5e'), order: 2 },
+                        { type: 'line', label: 'Hedef (%' + RP.TARGET + ')', data: rates.map(() => RP.TARGET), borderColor: '#0f172a', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { min: 0, max: 100 } },
+                    plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } }, tooltip: { callbacks: { title: items => HEADERS[8 + items[0].dataIndex] || items[0].label } } }
+                }
+            });
+        }
 
         // Background Animation
         (function initPortalAnimation() {
