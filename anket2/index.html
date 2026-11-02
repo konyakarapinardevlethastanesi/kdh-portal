@@ -131,6 +131,7 @@
                 <button data-tab="demo" onclick="showTab('demo')" class="tabbtn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-users"></i> Demografi</button>
                 <button data-tab="geri" onclick="showTab('geri')" class="tabbtn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-comments"></i> Şikayet / Görüşler <span id="geriCount" class="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px]">0</span></button>
                 <button data-tab="liste" onclick="showTab('liste')" class="tabbtn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-table-list"></i> Kayıtlar <span id="listCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+                <button data-tab="sek" onclick="showTab('sek')" class="tabbtn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-user-gear"></i> Sekreter Yönetimi</button>
             </div>
 
             <!-- GENEL ÖZET -->
@@ -196,6 +197,28 @@
                     <div id="listMore" class="p-3 text-center border-t hidden"><button onclick="listLimit+=200;renderList()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700">Daha fazla göster</button></div>
                 </div>
             </section>
+
+            <!-- SEKRETER YÖNETİMİ -->
+            <section id="tab-sek" class="tabpane hidden space-y-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="text-xs font-extrabold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-plus text-blue-600"></i> Yeni Sekreter / Görüşmeyi Yapan Personel Ekle</div>
+                    <form onsubmit="sekEkle(event)" class="flex flex-wrap gap-2 text-xs">
+                        <input id="sekYeni" type="text" maxlength="60" autocomplete="off" placeholder="Ad Soyad" class="flex-1 min-w-[220px] p-2.5 border border-slate-300 rounded-xl font-semibold">
+                        <button type="submit" id="sekEkleBtn" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2"><i class="fa-solid fa-plus"></i> Listeye Ekle</button>
+                    </form>
+                    <p id="sekErr" class="hidden text-xs font-semibold text-rose-600"></p>
+                    <p class="text-[10px] text-slate-400 font-semibold">Eklenen isim, görüşme formunun giriş ekranındaki ad listesinde hemen görünür. Giriş şifresi hepsi için ortaktır (Apps Script: SEKRETER_SIFRE).</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-auto max-h-[560px]">
+                        <table class="tbl w-full text-xs text-left">
+                            <thead><tr class="text-[10px] uppercase text-slate-500 font-extrabold"><th class="p-2.5">Ad Soyad</th><th class="p-2.5 text-right">Kayıt sayısı</th><th class="p-2.5">Son kayıt</th><th class="p-2.5 text-right">İşlem</th></tr></thead>
+                            <tbody id="sekBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <p id="sekNot" class="text-[11px] text-slate-500 font-semibold"></p>
+            </section>
         </main>
         <footer class="text-center text-[11px] text-slate-400 font-medium pb-4">Konya Karapınar Devlet Hastanesi <span id="currentYear">2026</span> &copy; Tüm Hakları Saklıdır.</footer>
     </div>
@@ -205,6 +228,34 @@
         <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl anim-pop">
             <div class="px-5 py-3 border-b flex items-center justify-between"><h3 class="text-sm font-extrabold text-slate-900"><i class="fa-solid fa-file-lines text-blue-600 mr-1"></i> Görüşme Detayı</h3><button onclick="closeModal('detModal')" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-xmark"></i></button></div>
             <div id="detBody" class="p-5 overflow-y-auto text-xs space-y-1.5"></div>
+        </div>
+    </div>
+
+
+    <!-- SEKRETER DÜZENLE -->
+    <div id="sekEditModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl anim-pop space-y-4">
+            <h3 class="text-sm font-extrabold text-slate-900"><i class="fa-solid fa-pen text-blue-600 mr-1"></i> Personel Adını Düzenle</h3>
+            <input id="sekEditAd" type="text" maxlength="60" autocomplete="off" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold">
+            <p id="sekEditInfo" class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3 leading-relaxed"></p>
+            <p id="sekEditErr" class="hidden text-xs font-semibold text-rose-600"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeModal('sekEditModal')" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button id="sekEditBtn" onclick="saveSekEdit()" class="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEKRETER SİL -->
+    <div id="sekDelModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl anim-pop space-y-4">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-base font-extrabold text-slate-900">Bu personel listeden silinsin mi?</h3>
+            <div id="sekDelSummary" class="text-left text-[11px] bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1 leading-relaxed"></div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeModal('sekDelModal')" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button id="sekDelBtn" onclick="confirmSekDel()" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-trash"></i> Evet, Sil</button>
+            </div>
         </div>
     </div>
 
@@ -585,7 +636,7 @@
         }
         function renderAll() {
             $("listCount").textContent = FILTERED.length;
-            renderKpis(); renderCharts(); renderAnalysisTables(); renderGeri(); renderList();
+            renderKpis(); renderCharts(); renderAnalysisTables(); renderGeri(); renderList(); renderSek();
         }
 
         // ====== KAYIT LİSTESİ ======
@@ -772,6 +823,73 @@
             finally { btn.disabled = false; btn.innerHTML = old; }
         }
 
+        // ====== SEKRETER (PERSONEL) YÖNETİMİ ======
+        let SEK_VIEW = [], sekCur = null;
+        function sekStat(ad) {
+            const rs = ROWS.filter(r => r.personel === ad), ds = rs.map(r => r.kayit).filter(Boolean).sort((a, b) => a - b);
+            return { n: rs.length, last: ds.length ? ds[ds.length - 1] : null };
+        }
+        function renderSek() {
+            if (!$("sekBody")) return;
+            SEK_VIEW = [...PERSONEL_LIST].sort((a, b) => a.localeCompare(b, "tr"));
+            $("sekBody").innerHTML = SEK_VIEW.length ? SEK_VIEW.map((ad, i) => {
+                const st = sekStat(ad);
+                return `<tr class="hover:bg-slate-50"><td class="p-2.5 font-bold text-slate-800">${esc(ad)}</td><td class="p-2.5 text-right tabular-nums">${st.n.toLocaleString("tr-TR")}</td><td class="p-2.5">${st.last ? esc(fmtDate(st.last)) : "-"}</td>
+                    <td class="p-2.5 text-right whitespace-nowrap">
+                        <button onclick="openSekEdit(${i})" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="openSekDel(${i})" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 ml-1"><i class="fa-solid fa-trash"></i></button>
+                    </td></tr>`;
+            }).join("") : '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-semibold">Henüz personel eklenmemiş. Yukarıdan ilk ismi ekleyin.</td></tr>';
+            const yok = [...new Set(ROWS.map(r => r.personel).filter(Boolean))].filter(n => !PERSONEL_LIST.includes(n));
+            $("sekNot").textContent = yok.length ? "Kayıtlarda geçen ama listede olmayan isimler (giriş yapamazlar): " + yok.join(", ") : "";
+        }
+        function sekErr(id, msg) { const e = $(id); e.textContent = msg || ""; e.classList.toggle("hidden", !msg); }
+        async function sekEkle(e) {
+            e.preventDefault(); sekErr("sekErr", "");
+            const btn = $("sekEkleBtn"), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ekleniyor...';
+            try {
+                const out = await post({ action: "personelEkle", ad: $("sekYeni").value });
+                if (out.status !== "success") throw new Error(String(out.message || "Hata").replace(/^Error:\s*/, ""));
+                PERSONEL_LIST = out.personel; $("sekYeni").value = ""; renderSek(); populateFilterLists(); toast("Personel eklendi");
+            } catch (x) { sekErr("sekErr", x.message || String(x)); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+        function openSekEdit(i) {
+            sekCur = SEK_VIEW[i]; if (!sekCur) return;
+            const st = sekStat(sekCur);
+            $("sekEditAd").value = sekCur; sekErr("sekEditErr", "");
+            $("sekEditInfo").innerHTML = st.n ? `Bu personele ait <b>${st.n}</b> görüşme kaydı var. Ad değişirse bu kayıtlardaki personel adı da yeni ada çevrilir.` : "Bu personele ait kayıt yok, yalnızca giriş listesindeki ad değişir.";
+            openModal("sekEditModal"); setTimeout(() => $("sekEditAd").focus(), 50);
+        }
+        async function saveSekEdit() {
+            const btn = $("sekEditBtn"), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...'; sekErr("sekEditErr", "");
+            try {
+                const out = await post({ action: "personelDuzenle", eski: sekCur, yeni: $("sekEditAd").value });
+                if (out.status !== "success") throw new Error(String(out.message || "Hata").replace(/^Error:\s*/, ""));
+                PERSONEL_LIST = out.personel; closeModal("sekEditModal");
+                if (out.guncellenen) await refreshData(); else { renderSek(); populateFilterLists(); }
+                toast("Personel güncellendi" + (out.guncellenen ? ` (${out.guncellenen} kayıt)` : ""));
+            } catch (x) { sekErr("sekEditErr", x.message || String(x)); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+        function openSekDel(i) {
+            sekCur = SEK_VIEW[i]; if (!sekCur) return;
+            const st = sekStat(sekCur);
+            $("sekDelSummary").innerHTML = `<div><b>Personel:</b> ${esc(sekCur)}</div>`
+                + `<div>• Giriş listesinden kaldırılır; artık görüşme formuna giriş yapamaz, açık oturumu da sona erer.</div>`
+                + `<div>• Görüşme kayıtları <b>silinmez</b>${st.n ? ` (${st.n} kayıt bu isimle kalır)` : ""}, raporlarda görünmeye devam eder.</div>`;
+            openModal("sekDelModal");
+        }
+        async function confirmSekDel() {
+            const btn = $("sekDelBtn"), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Siliniyor...';
+            try {
+                const out = await post({ action: "personelSil", ad: sekCur });
+                if (out.status !== "success") throw new Error(String(out.message || "Hata").replace(/^Error:\s*/, ""));
+                PERSONEL_LIST = out.personel; closeModal("sekDelModal"); renderSek(); populateFilterLists(); toast("Personel listeden silindi");
+            } catch (x) { closeModal("sekDelModal"); alert("Silinemedi: " + (x.message || x)); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+
         function toast(msg) {
             const t = document.createElement("div");
             t.className = "fixed bottom-4 right-4 z-[80] bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2";
@@ -848,7 +966,7 @@
         async function loadPersonel() {
             try {
                 const res = await fetch(API_URL + "?anket=hasta&islem=personel"); const out = JSON.parse(await res.text());
-                if (out.status === "success") { PERSONEL_LIST = out.personel; populateFilterLists(); }
+                if (out.status === "success") { PERSONEL_LIST = out.personel; populateFilterLists(); renderSek(); }
             } catch (e) { /* liste verideki adlardan türetilir */ }
         }
 
