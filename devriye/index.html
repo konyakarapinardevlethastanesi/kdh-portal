@@ -494,7 +494,7 @@
             const t = sessionStorage.getItem('kdh_tab');
             showTab(TABS.includes(t) ? t : 'reports');
         }
-        function logoutToPortal() { sessionStorage.removeItem('kdh_admin_key'); location.reload(); }
+        function logoutToPortal() { sessionStorage.removeItem('kdh_admin_key'); sessionStorage.removeItem('kdh_tab'); location.href = '../'; }
         const adminKey = () => sessionStorage.getItem('kdh_admin_key') || '';
 
         // ==================== YENİLEME ====================

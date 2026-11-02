@@ -145,7 +145,6 @@
                         <span id="live-date" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</span>
                         <span id="live-time" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</span>
                     </div>
-                    <button id="refreshBtn" onclick="refreshNow()" title="Yenile" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"><i id="refreshIcon" class="fa-solid fa-rotate"></i> Yenile</button>
                     <button onclick="logoutToPortal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-right-from-bracket"></i> Çıkış
                     </button>
@@ -160,7 +159,10 @@
                 <button onclick="switchAdminTab('zimmet-tab')" id="tab-btn-zimmet" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-user-check"></i> Zimmet İşlemleri &amp; Atama</button>
                 <button onclick="switchAdminTab('qrprint-tab')" id="tab-btn-qrprint" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-qrcode"></i> QR Etiket Üretici</button>
                 <button onclick="switchAdminTab('history-tab')" id="tab-btn-history" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> Zimmet Geçmişi / Arşiv</button>
-                <span id="lastUpdate" class="ml-auto self-center text-[10px] text-slate-400 font-semibold whitespace-nowrap pr-1"></span>
+                <div class="ml-auto self-center flex items-center gap-2 pb-1">
+                    <span id="lastUpdate" class="text-[10px] text-slate-400 font-semibold whitespace-nowrap"></span>
+                    <button id="refreshBtn" onclick="refreshNow()" title="Yenile" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg text-xs flex items-center gap-1.5"><i id="refreshIcon" class="fa-solid fa-rotate"></i> Yenile</button>
+                </div>
             </div>
 
             <!-- İSTATİSTİKLER -->
@@ -370,7 +372,6 @@
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                                 <input type="text" id="historySearchInput" oninput="renderHistoryTable()" placeholder="Geçmişte ara (künye, personel)..." class="w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs bg-white">
                             </div>
-                            <button onclick="loadHistoryFromSheets()" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-arrows-rotate"></i> Yenile</button>
                         </div>
                     </div>
                     <div class="overflow-x-auto max-h-[500px]">
@@ -627,7 +628,7 @@
 
         function setLastUpdate(msg) {
             const el = $('lastUpdate'); if (!el) return;
-            el.textContent = msg || ('Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR', { hourCycle: 'h23' }) + ' · yenilemek için ↻ butonunu kullanın');
+            el.textContent = msg || ('Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR', { hourCycle: 'h23' }));
         }
 
         // Sessiz yenileme: veri değişmişse tabloları yeniler
@@ -647,7 +648,7 @@
                 setLastUpdate();
             } catch (e) {
                 if (e && e.message === 'unauthorized') logoutToPortal();
-                else setLastUpdate('Bağlantı sorunu, ↻ ile yeniden deneyin');
+                else setLastUpdate('Bağlantı sorunu, Yenile ile yeniden deneyin');
             }
             finally { refreshing = false; if (btn) btn.disabled = false; if (icon) icon.classList.remove('fa-spin'); }
         }
@@ -1262,7 +1263,7 @@
             }
         });
 
-        function logoutToPortal() { sessionStorage.removeItem('admin_auth'); sessionStorage.removeItem('kdh_admin_key'); location.reload(); }
+        function logoutToPortal() { sessionStorage.removeItem('admin_auth'); sessionStorage.removeItem('kdh_admin_key'); sessionStorage.removeItem('kdh_tab'); location.href = '../'; }
 
         function getDevProp(d, prop, colIdx) {
             return d[prop] !== undefined ? d[prop] : d['col' + colIdx];

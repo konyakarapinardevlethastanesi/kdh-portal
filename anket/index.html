@@ -459,8 +459,9 @@
 
         function logoutToPortal() {
             sessionStorage.removeItem('kdh_admin_key');
+            sessionStorage.removeItem('kdh_tab');
             localStorage.removeItem('kdh_admin_bypass');
-            location.reload();
+            location.href = '../';
         }
 
         function getFiltered() {
