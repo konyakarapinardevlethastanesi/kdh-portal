@@ -3,6 +3,7 @@
 <head>
     <meta name="kdh-back" content="1">
     <script src="../kdh-theme.js"></script>
+    <script src="../kdh-auth.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demirbaş & Cihaz Zimmet Takip Sistemi - Konya Karapınar Devlet Hastanesi</title>
@@ -257,6 +258,7 @@
 <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('dev','demirbas')">Demirbaş / Sicil <i data-sk="dev:demirbas" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
 <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('dev','durum')">Durum <i data-sk="dev:durum" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
 <th class="p-2.5 text-center">İşlem</th>
+<th class="p-2.5 whitespace-nowrap">İşlemi Yapan</th>
 </tr>
 </thead>
                                 <tbody id="devicesTableBody" class="divide-y text-slate-700"></tbody>
@@ -301,6 +303,7 @@
 <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','personel')">Zimmetli Personel <i data-sk="zim:personel" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
 <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900 " onclick="sortTable('zim','tarih')">Zimmet Tarihi <i data-sk="zim:tarih" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
 <th class="p-2.5 text-center">Zimmet İşlemi</th>
+<th class="p-2.5 whitespace-nowrap">İşlemi Yapan</th>
 </tr>
 </thead>
                             <tbody id="zimmetTableBody" class="divide-y divide-slate-100"></tbody>
@@ -385,6 +388,7 @@
                                     <th class="p-3">Durum / İşlem Türü</th>
                                     <th class="p-3">İlgili Personel</th>
                                     <th class="p-3 text-center">Detay</th>
+                                    <th class="p-3 whitespace-nowrap">İşlemi Yapan</th>
                                 </tr>
                             </thead>
                             <tbody id="historyTableBody" class="divide-y"></tbody>
@@ -613,6 +617,7 @@
         }
 
         function showAdminInterface() {
+            KDHAuth.init({ api: API_URL, key: function () { return sessionStorage.getItem('kdh_admin_key') || ''; }, title: 'Zimmet' });
             $('mainAuthPortal').classList.add('hidden');
             $('adminInterface').classList.remove('hidden');
             $('adminInterface').classList.add('flex');
@@ -755,7 +760,7 @@
             updateSortIcons('dev');
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">Kayıtlı envanter bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">Kayıtlı envanter bulunamadı.</td></tr>`;
                 return;
             }
             tbody.innerHTML = filtered.map((d, i) => {
@@ -782,6 +787,7 @@
                         <td class="p-2.5"><div class="font-mono font-bold">${demirbas}</div><div class="font-mono text-[10px] text-slate-500">${sicil}</div></td>
                         <td class="p-2.5">${durumBadge}</td>
                         <td class="p-2.5 text-center"><button onclick="openInventoryModal('${esc(id)}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded text-[11px] font-bold shadow-sm transition">Düzenle</button></td>
+                        <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(d['İşlemi Yapan'] || '-')}</td>
                     </tr>`;
             }).join('');
         }
@@ -804,7 +810,7 @@
             updateSortIcons('zim');
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400 font-semibold">Kayıt bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-semibold">Kayıt bulunamadı.</td></tr>`;
                 return;
             }
             tbody.innerHTML = filtered.map((d, i) => {
@@ -837,6 +843,7 @@
                                 <i class="fa-solid fa-user-pen mr-1"></i> Zimmetle / Değiştir
                             </button>
                         </td>
+                        <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(d['İşlemi Yapan'] || '-')}</td>
                     </tr>`;
             }).join('');
         }
@@ -1355,7 +1362,7 @@
             const query = document.getElementById("historySearchInput").value.toLowerCase();
             const tbody = document.getElementById("historyTableBody");
             if (!globalHistory || globalHistory.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Arşiv boş.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">Arşiv boş.</td></tr>`;
                 return;
             }
 
@@ -1366,12 +1373,12 @@
                 const islem = h.islem || h.col4 || '';
                 const personel = h.personel || h.col5 || '';
                 const neden = h.col7 || h.neden || '';
-                const text = `${kunye} ${malzeme} ${islem} ${personel} ${neden}`.toLowerCase();
+                const text = `${kunye} ${malzeme} ${islem} ${personel} ${neden} ${h['İşlemi Yapan'] || ''}`.toLowerCase();
                 return text.includes(query);
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Eşleşen arşiv kaydı bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">Eşleşen arşiv kaydı bulunamadı.</td></tr>`;
                 return;
             }
 
@@ -1385,6 +1392,7 @@
                         <td class="p-3 text-slate-700 font-medium">${h.islem || h.col4}</td>
                         <td class="p-3 font-bold text-slate-900">${h.personel || h.col5}</td>
                         <td class="p-3 text-center"><button onclick="viewHistoryDetail(${originalIndex})" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded transition">Detay</button></td>
+                        <td class="p-3 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(h['İşlemi Yapan'] || '-')}</td>
                     </tr>
                 `;
             }).join('');

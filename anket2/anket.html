@@ -107,7 +107,7 @@
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Hasta Telefon Numarası <span class="text-rose-500">*</span></label>
-                            <input type="tel" id="fTel" required inputmode="tel" placeholder="05XXXXXXXXX" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                            <input type="tel" id="fTel" required inputmode="tel" value="0" maxlength="11" placeholder="05XX XXX XX XX" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Eğitim Durumu <span class="text-rose-500">*</span></label>
@@ -340,7 +340,12 @@
         // Telefon: yalnızca rakam, en çok 11 hane
         function setupTel() {
             const tel = $("fTel");
-            tel.addEventListener("input", () => { const d = tel.value.replace(/\D/g, "").slice(0, 11); if (tel.value !== d) tel.value = d; });
+            tel.addEventListener("input", () => {
+                let d = tel.value.replace(/\D/g, "");
+                if (d.charAt(0) !== "0") d = "0" + d;      // baştaki 0 her zaman hücrede kalır
+                d = d.slice(0, 11);
+                if (tel.value !== d) tel.value = d;
+            });
         }
 
         // ====== OTURUM ======

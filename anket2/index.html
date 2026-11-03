@@ -6,6 +6,7 @@
     <title>Hasta Memnuniyeti Raporlama - Konya Karapınar Devlet Hastanesi</title>
     <meta name="kdh-back" content="1">
     <script src="../kdh-theme.js"></script>
+    <script src="../kdh-auth.js"></script>
     <script src="../kdh-cal.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1044,13 +1045,14 @@
             try {
                 const out = await fetchData(key);
                 if (out.status !== "success") { err.textContent = out.message === "unauthorized" ? "Hatalı şifre!" : "Hata: " + out.message; err.classList.remove("hidden"); return; }
-                sessionStorage.setItem(KEY, key); loadPayload(out); showPanel();
+                sessionStorage.setItem(KEY, key); sessionStorage.removeItem("kdh_hasta_tab"); loadPayload(out); showPanel();
             } catch (x) {
                 err.textContent = x.bad ? "Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir." : "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.";
                 err.classList.remove("hidden");
             } finally { btn.disabled = false; btn.innerHTML = old; }
         }
         function showPanel() {
+            KDHAuth.init({ api: API_URL, key: function () { return sessionStorage.getItem(KEY) || ''; }, get: 'anket=hasta&', post: { anket: 'hasta' }, title: 'Hasta Memnuniyeti' });
             $("mainAuthPortal").classList.add("hidden");
             $("adminInterface").classList.remove("hidden"); $("adminInterface").classList.add("flex");
             $("currentYear").textContent = new Date().getFullYear();

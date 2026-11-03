@@ -3,6 +3,7 @@
 <head>
     <meta name="kdh-back" content="1">
     <script src="../kdh-theme.js"></script>
+    <script src="../kdh-auth.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Devriye Yönetici Paneli - Konya Karapınar Devlet Hastanesi</title>
@@ -221,8 +222,8 @@
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                                 <input type="text" id="logSearch" oninput="logsChanged()" placeholder="Personel, alan, kod veya not ara..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900">
                             </div>
-                            <select id="logYear" onchange="logsChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                            <select id="logMonth" onchange="logsChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
+                            <select id="logYear" onchange="ymChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
+                            <select id="logMonth" onchange="ymChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
                             <select id="logOfficer" onchange="logsChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white text-slate-700"></select>
                             <select id="logStatus" onchange="logsChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white text-slate-700">
                                 <option value="">Tüm Durumlar</option>
@@ -233,6 +234,26 @@
                         <div class="flex items-center gap-2">
                             <span id="logInfo" class="text-[11px] text-slate-500 font-semibold"></span>
                             <button onclick="exportExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-file-excel"></i> Excele Aktar</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-end gap-x-4 gap-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tarih (Başlangıç)</label>
+                            <input type="date" id="logFrom" onchange="dateChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bitiş</label>
+                            <input type="date" id="logTo" onchange="dateChanged()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700">
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-[11px] font-bold text-slate-500 mr-1">Hızlı aralık:</span>
+                            <button type="button" data-q="today" onclick="quickRange('today')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Bugün</button>
+                            <button type="button" data-q="7" onclick="quickRange('7')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Son 7 gün</button>
+                            <button type="button" data-q="30" onclick="quickRange('30')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Son 30 gün</button>
+                            <button type="button" data-q="month" onclick="quickRange('month')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Bu ay</button>
+                            <button type="button" data-q="prev" onclick="quickRange('prev')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Geçen ay</button>
+                            <button type="button" data-q="year" onclick="quickRange('year')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Bu yıl</button>
+                            <button type="button" data-q="all" onclick="quickRange('all')" class="qbtn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Tümü</button>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -320,6 +341,7 @@
                                     <th class="p-2.5">QR Kod</th>
                                     <th class="p-2.5">Kaydet</th>
                                     <th class="p-2.5 text-right">İşlem</th>
+                                    <th class="p-2.5 whitespace-nowrap">İşlemi Yapan</th>
                                 </tr>
                             </thead>
                             <tbody id="qrBody" class="divide-y"></tbody>
@@ -355,6 +377,7 @@
                                         <th class="p-2.5 cursor-pointer select-none hover:text-slate-900" onclick="sortBy('staff','name')">Adı Soyadı <i data-sk="staff:name" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
                                         <th class="p-2.5 cursor-pointer select-none hover:text-slate-900" onclick="sortBy('staff','role')">Ünvan <i data-sk="staff:role" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
                                         <th class="p-2.5 text-right">İşlem</th>
+                                        <th class="p-2.5 whitespace-nowrap">İşlemi Yapan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="staffBody" class="divide-y"></tbody>
@@ -459,8 +482,8 @@
         }
         function applyData(data) {
             LOGS = data.l.map(normLog);
-            STAFF = data.s.map(r => ({ id: String(r.col0 ?? ''), name: String(r.col1 ?? '').trim(), role: String(r.col2 ?? '').trim() }));
-            QRS = data.q.map(r => ({ id: String(r.col0 ?? ''), code: String(r.col1 ?? '').trim(), name: String(r.col2 ?? '').trim() }));
+            STAFF = data.s.map(r => ({ id: String(r.col0 ?? ''), name: String(r.col1 ?? '').trim(), role: String(r.col2 ?? '').trim(), by: String(r['İşlemi Yapan'] ?? '').trim() }));
+            QRS = data.q.map(r => ({ id: String(r.col0 ?? ''), code: String(r.col1 ?? '').trim(), name: String(r.col2 ?? '').trim(), by: String(r['İşlemi Yapan'] ?? '').trim() }));
             lastSig = JSON.stringify(data);
             populateFilters();
         }
@@ -479,6 +502,7 @@
             try {
                 applyData(await fetchAll(key));            // şifre sunucuda doğrulanır, veriler girişte hazırlanır
                 sessionStorage.setItem('kdh_admin_key', key);
+                sessionStorage.removeItem('kdh_tab');      // her girişte 1. sekme
                 showAdminInterface();
             } catch (x) {
                 err.textContent = x.message === 'unauthorized' ? 'Hatalı şifre!'
@@ -488,6 +512,7 @@
             } finally { btn.disabled = false; btn.innerHTML = old; }
         }
         function showAdminInterface() {
+            KDHAuth.init({ api: API_URL, key: function () { return sessionStorage.getItem('kdh_admin_key') || ''; }, title: 'Devriye' });
             $('mainAuthPortal').classList.add('hidden');
             $('adminInterface').classList.remove('hidden'); $('adminInterface').classList.add('flex');
             $('currentYearSpan').textContent = new Date().getFullYear();
@@ -543,7 +568,10 @@
             renderCurrent();
         }
         // Sekmedeki sayı: Olay Kayıtları sekmesinde seçili yıl/aya göre
-        function updateTabCount() { $('tabCount').textContent = logsIn($('logYear').value, $('logMonth').value).length; }
+        function updateTabCount() {
+            const df = $('logFrom').value, dt = $('logTo').value;
+            $('tabCount').textContent = logsIn($('logYear').value, $('logMonth').value).filter(l => (!df || (l.day && l.day >= df)) && (!dt || (l.day && l.day <= dt))).length;
+        }
         function renderCurrent() {
             updateTabCount();
             if (curTab === 'reports') renderReports();
@@ -593,9 +621,12 @@
         // ==================== OLAY KAYITLARI ====================
         function logsFiltered() {
             const q = $('logSearch').value.toLowerCase().trim(), y = $('logYear').value, m = $('logMonth').value, st = $('logStatus').value, of = $('logOfficer').value, lm = locMap();
+            const df = $('logFrom').value, dt = $('logTo').value;
             return LOGS.filter(l => {
                 if (y && l.year !== y) return false;
                 if (m && l.month !== m) return false;
+                if (df && (!l.day || l.day < df)) return false;
+                if (dt && (!l.day || l.day > dt)) return false;
                 if (of && l.officer !== of) return false;
                 if (st === 'ok' && !isOk(l)) return false;
                 if (st === 'warn' && isOk(l)) return false;
@@ -609,6 +640,40 @@
             return l[k] || '';
         }
         function logsChanged() { ST.logs.page = 1; updateTabCount(); renderLogs(); }
+        // ---- Tarih aralığı / hızlı aralık ----
+        const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        function markQuick(q) {
+            document.querySelectorAll('.qbtn').forEach(b => {
+                const on = b.dataset.q === q;
+                b.classList.toggle('bg-slate-800', on); b.classList.toggle('text-white', on); b.classList.toggle('border-slate-800', on);
+                b.classList.toggle('bg-white', !on); b.classList.toggle('text-slate-700', !on); b.classList.toggle('border-slate-300', !on);
+            });
+        }
+        function ymChanged() {            // yıl/ay seçilince tarih aralığı temizlenir
+            $('logFrom').value = ''; $('logTo').value = ''; markQuick('');
+            logsChanged();
+        }
+        function dateChanged() {          // tarih girilince yıl/ay "Tümü" olur
+            if ($('logFrom').value || $('logTo').value) { $('logYear').value = ''; $('logMonth').value = ''; }
+            markQuick('');
+            logsChanged();
+        }
+        function quickRange(k) {
+            const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            let from = '', to = '', yy = '', mm = '';
+            if (k === 'today') { from = to = ymd(today); }
+            else if (k === '7') { const d = new Date(today); d.setDate(d.getDate() - 6); from = ymd(d); to = ymd(today); }
+            else if (k === '30') { const d = new Date(today); d.setDate(d.getDate() - 29); from = ymd(d); to = ymd(today); }
+            else if (k === 'month') { yy = String(now.getFullYear()); mm = String(now.getMonth() + 1).padStart(2, '0'); }
+            else if (k === 'prev') { from = ymd(new Date(now.getFullYear(), now.getMonth() - 1, 1)); to = ymd(new Date(now.getFullYear(), now.getMonth(), 0)); }
+            else if (k === 'year') { from = now.getFullYear() + '-01-01'; to = now.getFullYear() + '-12-31'; }
+            // 'all' -> hepsi boş
+            $('logFrom').value = from; $('logTo').value = to;
+            if ([...$('logYear').options].some(o => o.value === yy)) $('logYear').value = yy; else $('logYear').value = '';
+            $('logMonth').value = mm;
+            markQuick(k);
+            logsChanged();
+        }
         function goPage(d) { ST.logs.page += d; renderLogs(); }
         function renderLogs() {
             const s = ST.logs, lm = locMap();
@@ -830,9 +895,9 @@
             try {
                 const out = await adminPost({ action: 'update', sheet, id, row });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
-                if (isStaff) { const s = STAFF.find(x => x.id === id); s.name = v1; s.role = v2; }
+                if (isStaff) { const s = STAFF.find(x => x.id === id); s.name = v1; s.role = v2; s.by = (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : ''); }
                 else {
-                    const q = QRS.find(x => x.id === id); q.code = v2; q.name = v1;
+                    const q = QRS.find(x => x.id === id); q.code = v2; q.name = v1; q.by = (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : '');
                     if (old.code !== v2) { if (selQR.delete(old.code)) selQR.add(v2); }
                     if (prevCode === old.code) previewQR(v2, v1);
                 }
@@ -850,8 +915,9 @@
                 <td class="p-2.5 text-slate-400">${i + 1}</td>
                 <td class="p-2.5 font-semibold text-slate-800">${esc(p.name) || '-'}</td>
                 <td class="p-2.5 text-slate-600">${esc(p.role) || '-'}</td>
-                <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Staff','${esc(p.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Staff','${esc(p.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')
-                : '<tr><td colspan="4" class="p-6 text-center text-slate-400 font-semibold">Personel bulunamadı.</td></tr>';
+                <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Staff','${esc(p.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Staff','${esc(p.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
+                <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(p.by) || '-'}</td></tr>`).join('')
+                : '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-semibold">Personel bulunamadı.</td></tr>';
             updateSortIcons('staff');
         }
         async function addNewStaff(e) {
@@ -865,7 +931,7 @@
                 const id = String(Date.now());
                 const out = await adminPost({ action: 'add', sheet: 'Staff', row: [id, name, role] });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
-                STAFF.push({ id, name, role }); lastSig = '';
+                STAFF.push({ id, name, role, by: (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : '') }); lastSig = '';
                 $('newStaffName').value = ''; $('newStaffRole').value = '';
                 renderStaff(); showToast('Personel kaydedildi');
             } catch (x) { showToast('Kaydedilemedi: ' + x.message, true); }
@@ -886,8 +952,9 @@
                 <td class="p-2.5 font-semibold text-slate-700">${esc(q.name)}</td>
                 <td class="p-2.5"><button data-code="${esc(q.code)}" data-name="${esc(q.name)}" onclick="previewQR(this.dataset.code, this.dataset.name)" class="text-blue-600 hover:underline font-semibold"><i class="fa-solid fa-qrcode"></i> QR Kod Göster</button></td>
                 <td class="p-2.5"><button data-code="${esc(q.code)}" data-name="${esc(q.name)}" onclick="downloadSpecificQR(this.dataset.code, this.dataset.name)" class="text-emerald-600 hover:underline font-semibold"><i class="fa-solid fa-download"></i> Resim Kaydet</button></td>
-                <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Locations','${esc(q.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Locations','${esc(q.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')
-                : '<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">QR kodu bulunamadı.</td></tr>';
+                <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Locations','${esc(q.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Locations','${esc(q.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
+                <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(q.by) || '-'}</td></tr>`).join('')
+                : '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">QR kodu bulunamadı.</td></tr>';
             updateSortIcons('qr'); updateSelInfo();
             if (!prevCode && list.length) previewQR(list[0].code, list[0].name);
         }
@@ -920,7 +987,7 @@
                 const id = String(Date.now());
                 const out = await adminPost({ action: 'add', sheet: 'Locations', row: [id, code, name] });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
-                QRS.push({ id, code, name }); lastSig = '';
+                QRS.push({ id, code, name, by: (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : '') }); lastSig = '';
                 $('newQrName').value = ''; $('newQrCode').value = '';
                 renderQrTable(); previewQR(code, name); showToast('QR kod kaydedildi');
             } catch (x) { showToast('Kaydedilemedi: ' + x.message, true); }
