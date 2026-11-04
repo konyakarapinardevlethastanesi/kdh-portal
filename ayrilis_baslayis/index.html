@@ -42,30 +42,47 @@
         .th { padding: .55rem .5rem; text-align: left; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; color: #475569; background: #f1f5f9; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
         .td { padding: .35rem .4rem; vertical-align: top; }
 
+        /* ====================================================================
+           RAPOR AYARLARI (Önizleme ve Yazdırma) — SADECE BURADAN DEĞİŞTİRİN
+             --rapor-yazi-tipi : yazı tipi          (örnek: Arial, 'Times New Roman', Calibri)
+             --rapor-punto     : yazı boyutu        (örnek: 10pt, 11pt, 12pt)
+             --rapor-cizgi     : tablo çizgi rengi  (koyu lacivert)
+             --rapor-cizgi-kalinlik : çizgi kalınlığı (örnek: .25mm, .3mm, .4mm)
+           SAYFA KENAR BOŞLUKLARI: aşağıdaki "margin" satırı; sıra = ÜST SAĞ ALT SOL (mm)
+             Şu an: üst 8mm, sağ 5mm, alt 12mm (sayfa numarası için), sol 5mm
+             Yazıcı kenarı keserse sağ ve sol değerini biraz artırın (örnek: 6mm).
+           ==================================================================== */
+        :root { --rapor-yazi-tipi: Times New Roman, Helvetica, sans-serif; --rapor-punto: 10pt; --rapor-cizgi: #0b1f4d; --rapor-cizgi-kalinlik: .3mm; }
+        @page { size: A4 portrait; margin: 8mm 5mm 12mm 5mm; /* ÜST SAĞ ALT SOL */
+            @bottom-center { content: "Sayfa " counter(page) "/" counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #475569; } }
+
         /* ---------- RAPOR (ekranda önizleme + yazdırma aynı görünüm; A4 dikey) ---------- */
         #printArea { display: none; }
-        .rp { font-family: 'Segoe UI', 'Inter', Arial, sans-serif; color: #0f172a; background: #fff; width: 100%; font-size: 8.3pt; line-height: 1.25; }
+        .rp { font-family: var(--rapor-yazi-tipi); color: #111827; background: #fff; width: 100%; box-sizing: border-box; padding: 0 1mm; font-size: var(--rapor-punto); line-height: 1.2; }
         .rp table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
         .rp table + table { margin-top: 2.2mm; }
-        .rp td, .rp th { border: .25mm solid #94a3b8; padding: .9mm 1.4mm; text-align: center; vertical-align: middle; overflow-wrap: anywhere; white-space: pre-line; }
+        /* Dış tablo: <thead> içindeki başlık (logo + T.C. + kırmızı çizgi) yazdırmada 2., 3., 4. ... her sayfada tekrar eder */
+        .rp table.rpw { border-collapse: separate; border-spacing: 0; }
+        .rp table.rpw > thead > tr > td, .rp table.rpw > tbody > tr > td { border: none; padding: 0; text-align: left; vertical-align: top; white-space: normal; }
+        .rp table.rpw > thead > tr > td { padding-bottom: 2.2mm; }
+        .rp td, .rp th { border: var(--rapor-cizgi-kalinlik) solid var(--rapor-cizgi); padding: 1mm 1.3mm; text-align: center; vertical-align: middle; overflow-wrap: break-word; white-space: pre-line; }
         .rp .t-gec { --c: #1d4ed8; --t: #dbeafe; } .rp .t-bas { --c: #15803d; --t: #dcfce7; } .rp .t-ayr { --c: #b91c1c; --t: #fee2e2; }
         .rp .t-ist { --c: #b45309; --t: #fef3c7; } .rp .t-sut { --c: #0f766e; --t: #ccfbf1; }
-        .rp .ttl { background: var(--c); color: #fff; border-color: var(--c); font-weight: 700; font-size: 9pt; letter-spacing: .2pt; padding: 1.5mm; }
+        .rp .ttl { background: var(--c); color: #fff; font-weight: 700; font-size: var(--rapor-punto); padding: 1.4mm; }
         .rp .ttl.none { background: var(--t); color: var(--c); }
-        .rp th { background: var(--t); color: var(--c); font-weight: 700; font-size: 7.3pt; text-transform: uppercase; }
+        .rp th { background: var(--t); color: var(--c); font-weight: 700; font-size: var(--rapor-punto); text-transform: uppercase; }
         .rp .z tr.r:nth-child(even) td { background: #f8fafc; }
-        .rp .r td { height: 6.4mm; }
-        .rp .rg td { height: 9mm; }
+        .rp .r td { height: 7mm; }
+        .rp .rg td { height: 10mm; }
         .rp .tl { text-align: left; }
-        .rp .calc { background: var(--t); color: var(--c); font-weight: 700; font-size: 7.6pt; text-align: center; height: auto !important; }
+        .rp .calc { background: var(--t); color: var(--c); font-weight: 700; font-size: var(--rapor-punto); text-align: center; height: auto !important; }
         .rp .head td { border: none; border-bottom: 1.2mm solid #dc2626; height: 25mm; padding: 0 2mm; }
         .rp .head .hl { text-align: left; } .rp .head .hl img { height: 20mm; width: auto; }
-        .rp .head .ho { font-weight: 800; line-height: 1.35; color: #0f172a; }
-        .rp .head .c1 { font-size: 8pt; color: #dc2626; letter-spacing: 1pt; } .rp .head .c2 { font-size: 9pt; } .rp .head .c3 { font-size: 9pt; } .rp .head .c4 { font-size: 11.5pt; }
-        .rp .head .hr { text-align: right; } .rp .head .pl { font-size: 6.8pt; font-weight: 700; color: #64748b; letter-spacing: .6pt; } .rp .head .pv { font-size: 11pt; font-weight: 800; color: #dc2626; }
-        #pvPage { width: 756px; background: #fff; padding: 0; box-shadow: 0 6px 30px rgba(0,0,0,.35); transform-origin: top center; }
+        .rp .head .ho { font-weight: 700; line-height: 1.4; color: #111827; }
+        .rp .head .c1, .rp .head .c2, .rp .head .c3, .rp .head .c4 { font-size: var(--rapor-punto); color: #111827; }
+        .rp .head .hr { text-align: right; } .rp .head .pl { font-size: var(--rapor-punto); font-weight: 700; color: #475569; } .rp .head .pv { font-size: var(--rapor-punto); font-weight: 700; color: #dc2626; }
+        #pvPage { width: 794px; box-sizing: border-box; background: #fff; padding: 8mm 10mm; box-shadow: 0 6px 30px rgba(0,0,0,.35); transform-origin: top center; }
         @media print {
-            @page { size: A4 portrait; margin: 7mm 4mm 12mm 6mm; @bottom-center { content: "Sayfa " counter(page) "/" counter(pages); font-family: 'Segoe UI', Arial, sans-serif; font-size: 8pt; color: #475569; } }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             html, body { margin: 0 !important; padding: 0 !important; }
             body.print-report { display: block !important; min-height: 0 !important; height: auto !important; background: #fff !important; }
@@ -77,6 +94,7 @@
             .rp thead tr { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
             .rp tbody.g { break-inside: avoid; page-break-inside: avoid; }
             .rp tr { break-inside: avoid; page-break-inside: avoid; }
+            .rp tr.wrow { break-inside: auto !important; page-break-inside: auto !important; }   /* içerik sayfalara bölünebilsin */
         }
     </style>
 </head>
@@ -285,7 +303,7 @@
             <p id="lvWho" class="text-[11px] text-slate-500 font-semibold"></p>
             <div id="lvList" class="space-y-2"></div>
             <button onclick="lvAdd()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> İzin Satırı Ekle</button>
-            <p class="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-2.5 leading-relaxed">Gün sayısı; hafta sonları ve "Durum Başlıkları ve Tatiller" sekmesindeki resmî tatiller çıkarılarak otomatik hesaplanır, gerekirse elle değiştirebilirsiniz.</p>
+            <p class="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-2.5 leading-relaxed">Gün sayısı takvim gününe göre hesaplanır: hafta sonları dahildir, hafta içine denk gelen resmî tatiller sayılmaz. Gerekirse elle değiştirebilirsiniz.</p>
             <div class="grid grid-cols-2 gap-2">
                 <button onclick="lvClose()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
                 <button onclick="lvSave()" class="py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-check"></i> Tamam</button>
@@ -422,6 +440,7 @@
             STATUSES = data.d.map(x => ({ id: String(x.col0 ?? ''), ad: String(x.col1 ?? '').trim(), by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => x.ad);
             HOLIDAYS = data.t.map(x => ({ id: String(x.col0 ?? ''), d: String(x.col1 ?? '').trim().slice(0, 10), ac: String(x.col2 ?? '').trim(), tur: /arife/i.test(String(x.col3 ?? '')) ? 'Arife' : 'Tam', by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.d));
             IZINTUR = data.z ? data.z.map(x => ({ id: String(x.col0 ?? ''), ad: String(x.col1 ?? '').trim() })).filter(x => x.ad) : IZIN_DEF.map((ad, i) => ({ id: 'def' + i, ad }));
+            { const k = IZINTUR.findIndex(isLockedIzin); if (k > 0) IZINTUR.unshift(IZINTUR.splice(k, 1)[0]); else if (k < 0) IZINTUR.unshift({ id: 'sabit', ad: 'Yıllık İzin' }); }   // Yıllık İzin her zaman en başta
             rebuildH();
             lastSig = JSON.stringify(data);
         }
@@ -547,6 +566,13 @@
         const dIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         const isoDate = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
         function isWork(d) { const w = d.getDay(); return w !== 0 && w !== 6 && !HFULL.has(dIso(d)); }   // arife günü yarım gün: çalışma günü sayılır
+        // Geçici görev "eksik gün": hafta sonu DAHİL sayılır; sadece hafta içine denk gelen resmî tatil sayılmaz
+        function calDays(a, b) {
+            const s = isoDate(a), e = isoDate(b); if (!s || !e || s > e) return 0;
+            let n = 0;
+            for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) { const w = d.getDay(); if (!(w !== 0 && w !== 6 && HFULL.has(dIso(d)))) n++; }
+            return n;
+        }
         function workdays(a, b) {                       // a ve b dahil; hafta sonu + resmî tatil hariç
             const s = isoDate(a), e = isoDate(b); if (!s || !e || s > e) return 0;
             let n = 0; for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) if (isWork(d)) n++;
@@ -670,6 +696,7 @@
             const list = STATUSES.map(x => x.ad); if (v && !list.includes(v)) list.unshift(v);
             return `<select data-s="${s}" data-i="${i}" data-f="${f}" class="ed"><option value="">— Seçiniz —</option>${list.map(x => `<option value="${esc(x)}" ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
         };
+        const isLockedIzin = s => String(s.ad || '').trim().toLocaleLowerCase('tr') === 'yıllık izin';   // sabit: silinmez, taşınmaz, değiştirilmez
         const izinSel = (js, v) => { const list = IZINTUR.map(x => x.ad); if (v && !list.includes(v)) list.unshift(v); return `<select class="ed" onchange="${js}">${list.map(x => `<option value="${esc(x)}" ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`; };
         const delBtn = (s, i) => `<button onclick="delRow('${s}',${i})" title="Satırı sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>`;
         function leaveSummary(e) { const n = (e || []).length, g = (e || []).reduce((a, x) => a + (+x.gun || 0), 0); return n ? `${n} izin · ${g} gün` : 'İzin ekle'; }
@@ -753,7 +780,7 @@
                 <input type="number" min="0" id="lvg-${n}" class="ed" value="${esc(x.gun)}" placeholder="Gün" oninput="lvCtx.list[${n}].gun=this.value===''?'':+this.value">
                 <button onclick="lvDel(${n})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></div>`).join('');
         }
-        function lvDate(n, f, v) { const x = lvCtx.list[n]; x[f] = v; if (x.bas && x.bit) { x.gun = workdays(x.bas, x.bit); const g = $('lvg-' + n); if (g) g.value = x.gun; } }
+        function lvDate(n, f, v) { const x = lvCtx.list[n]; x[f] = v; if (x.bas && x.bit) { x.gun = calDays(x.bas, x.bit); const g = $('lvg-' + n); if (g) g.value = x.gun; } }
         function lvAdd() { lvCtx.list.push({ tur: 'Yıllık İzin', bas: '', bit: '', gun: '' }); lvRender(); }
         function lvDel(n) { lvCtx.list.splice(n, 1); lvRender(); }
         function lvClose() { $('lvModal').classList.add('hidden'); lvCtx = null; }
@@ -835,26 +862,25 @@
             const ttl = (what, n) => `<tr><td class="ttl" colspan="${n}">${esc(`${y} YILI ${mon} AYI ${what} PERSONEL LİSTESİ`)}</td></tr>`;
             // Başlık (thead): yazdırmada sayfa sonuna yalnız kalmaz, tablo sayfa değiştirirse yeni sayfada tekrar eder
             const tbl = (cls, w, what, head, body) => `<table class="${cls}">${cg(w)}<thead>${ttl(what, w.length)}<tr>${head.map(x => `<th>${x}</th>`).join('')}</tr></thead>${body}</table>`;
-            const gecici = !data.gecici1.length ? none('t-gec', 'GEÇİCİ GÖREVLE GELEN') : tbl('t-gec z', [6, 20, 16, 18, 20, 20], 'GEÇİCİ GÖREVLE GELEN', ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', 'KADRO KURUMU', 'GÖREV BAŞLANGIÇ/BİTİŞ TARİHİ', 'İZİN DETAYI'],
+            const gecici = !data.gecici1.length ? none('t-gec', 'GEÇİCİ GÖREVLE GELEN') : tbl('t-gec z', [8, 16, 15, 17, 20, 24], 'GEÇİCİ GÖREVLE GELEN', ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', 'KADRO KURUMU', 'GÖREV BAŞLANGIÇ/BİTİŞ TARİHİ', 'İZİN DETAYI'],
                 `<tbody>${data.gecici1.map((r, i) => `<tr class="r rg">${td(i + 1)}${td(r.ad)}${td(r.unvan)}${td(r.kurum)}${td(r.tarih)}${td(izinLines(r.eksik), 'tl')}</tr>`).join('')}</tbody>`);
             const dt = r => r.tarih ? fmtD(r.tarih) + (r.mesai ? ' (Mesai Bitimi)' : '') : '';
-            const simple = (cls, what, h4, rows, cells) => !rows.length ? none(cls, what) : tbl(cls + ' z', [6, 24, 20, 22, 28], what, ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', h4[0], h4[1]],
+            const simple = (cls, what, h4, rows, cells) => !rows.length ? none(cls, what) : tbl(cls + ' z', [8, 24, 20, 22, 26], what, ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', h4[0], h4[1]],
                 `<tbody>${rows.map((r, i) => `<tr class="r">${td(i + 1)}${cells(r)}</tr>`).join('')}</tbody>`);
-            const ist = !data.istihdam.length ? none('t-ist', 'İSTİHDAM DEĞİŞİKLİĞİ YAPAN') : tbl('t-ist z', [6, 22, 18, 17, 17, 20], 'İSTİHDAM DEĞİŞİKLİĞİ YAPAN', ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', 'AYRILIŞ TARİHİ', 'BAŞLAYIŞ TARİHİ', 'İSTİHDAM DURUMU'],
+            const ist = !data.istihdam.length ? none('t-ist', 'İSTİHDAM DEĞİŞİKLİĞİ YAPAN') : tbl('t-ist z', [8, 21, 17, 17, 17, 20], 'İSTİHDAM DEĞİŞİKLİĞİ YAPAN', ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', 'AYRILIŞ TARİHİ', 'BAŞLAYIŞ TARİHİ', 'İSTİHDAM DURUMU'],
                 `<tbody>${data.istihdam.map((r, i) => `<tr class="r">${td(i + 1)}${td(r.ad)}${td(r.unvan)}${td(fmtD(r.ayr))}${td(fmtD(r.bas))}${td(r.durum)}</tr>`).join('')}</tbody>`);
             // Süt izni: her kişi bir grup (kişi satırı + ortalı hesap cümlesi); sayfa sonunda ikiye bölünmez
-            const sut = !data.sut.length ? none('t-sut', 'SÜT İZNİ KULLANAN') : tbl('t-sut', [6, 22, 14, 14, 14, 30], 'SÜT İZNİ KULLANAN', ['SIRA NO', 'ADI SOYADI', 'BAŞLANGIÇ TARİHİ', '2.İNCİ 6 AY BAŞLANGIÇ TARİHİ', 'BİTİŞ TARİHİ', 'İZİN DETAYI'],
+            const sut = !data.sut.length ? none('t-sut', 'SÜT İZNİ KULLANAN') : tbl('t-sut', [8, 18, 16, 17, 13, 28], 'SÜT İZNİ KULLANAN', ['SIRA NO', 'ADI SOYADI', 'BAŞLANGIÇ TARİHİ', '2.İNCİ 6 AY BAŞLANGIÇ TARİHİ', 'BİTİŞ TARİHİ', 'İZİN DETAYI'],
                 data.sut.map((r, i) => {
                     const c = sutCalc(r, y, m), lines = izinLines((r.izinler || []).filter(x => x.bas).map(x => ({ ...x, gun: workdays(x.bas, x.bit || x.bas) })));
                     const txt = `${y} yılı ${MONTHS[m - 1]} ayı mesai ${c.mesai} gündür. İlk 6 ay: ${c.h} gün × 3 + Son 6 ay: ${c.j} gün × 1,5 = Aylık toplam: ${fmtN(c.l)} saat süt izni kullanmıştır.`;
                     return `<tbody class="g"><tr class="r"><td rowspan="2">${i + 1}</td>${td(r.ad)}${td(fmtD(r.s1))}${td(fmtD(c.s2))}${td(fmtD(c.bit))}${td(lines, 'tl')}</tr><tr class="r"><td colspan="5" class="calc">${esc(txt)}</td></tr></tbody>`;
                 }).join(''));
-            return `<div class="rp">
-                <table class="head">${cg([20, 60, 20])}<tr><td class="hl"><img src="logo.png" alt=""></td><td class="ho"><div class="c1">T.C.</div><div class="c2">KONYA VALİLİĞİ</div><div class="c3">İL SAĞLIK MÜDÜRLÜĞÜ</div><div class="c4">KARAPINAR DEVLET HASTANESİ</div></td><td class="hr"><div class="pl">RAPOR DÖNEMİ</div><div class="pv">${esc(mon)} ${y}</div></td></tr></table>
+            return `<div class="rp"><table class="rpw"><thead><tr><td><table class="head">${cg([20, 60, 20])}<tr><td class="hl"><img src="logo.png" alt=""></td><td class="ho"><div class="c1">T.C.</div><div class="c2">KONYA VALİLİĞİ</div><div class="c3">İL SAĞLIK MÜDÜRLÜĞÜ</div><div class="c4">KARAPINAR DEVLET HASTANESİ</div></td><td class="hr"><div class="pl">RAPOR DÖNEMİ</div><div class="pv">${esc(mon)} ${y}</div></td></tr></table></td></tr></thead><tbody><tr class="wrow"><td>
                 ${gecici}
                 ${simple('t-bas', 'BAŞLAYIŞ YAPAN', ['BAŞLAYIŞ TARİHİ', 'BAŞLAYIŞ DURUMU'], data.baslayis, r => td(r.ad) + td(r.unvan) + td(fmtD(r.tarih)) + td(r.durum))}
                 ${simple('t-ayr', 'AYRILIŞ YAPAN', ['AYRILIŞ TARİHİ', 'AYRILIŞ DURUMU'], data.ayrilis, r => td(r.ad) + td(r.unvan) + td(dt(r)) + td(r.durum))}
-                ${ist}${sut}</div>`;
+                ${ist}${sut}</td></tr></tbody></table></div>`;
         }
         let pvCtx = null;
         function openPreview(data, y, m) {
@@ -862,7 +888,7 @@
             $('pvTitle').textContent = 'Önizleme · ' + reportName(y, m);
             $('pvPage').innerHTML = reportHTML(data, y, m);
             $('pvModal').classList.remove('hidden'); $('pvModal').classList.add('flex');
-            const z = Math.min(1, (window.innerWidth - 32) / 756); $('pvPage').style.zoom = z;
+            const z = Math.min(1, (window.innerWidth - 32) / 794); $('pvPage').style.zoom = z;
         }
         function closePreview() { $('pvModal').classList.add('hidden'); $('pvModal').classList.remove('flex'); pvCtx = null; }
         function printReport(data, y, m) {
@@ -925,7 +951,7 @@
             try {
                 const out = await fetchSheet('IslemGecmisi', sessionStorage.getItem('kdh_ab_key') || '');
                 LOG = (out.rows || []).map(x => ({ t: String(x.col1 ?? ''), u: String(x.col2 ?? ''), r: String(x.col3 ?? ''), i: String(x.col4 ?? ''), k: String(x.col6 ?? ''), a: String(x.col7 ?? '') })).sort((a, b) => b.t.localeCompare(a.t));
-                LOG = LOG.filter(x => !/giriş/i.test(x.i)); logLoaded = true;
+                LOG = LOG.filter(x => !/giriş/i.test(x.i) && !/^durum başlığı/i.test(x.i)); logLoaded = true;
             } catch (e) {
                 $('lgBody').innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-600 font-semibold">İşlem geçmişi okunamadı. Apps Script\'te "kurulum" fonksiyonunu çalıştırıp yeni sürüm olarak yayınlayın.</td></tr>'; return;
             }
@@ -947,15 +973,15 @@
 
         // ==================== DURUM BAŞLIKLARI / TATİLLER ====================
         const DEF_MSG = 'İzin türleri sayfası sunucuda yok. Apps Script\'e yeni Kod.gs yapıştırıp "kurulum" fonksiyonunu çalıştırın, sonra yeni sürüm olarak yayınlayın.';
-        const rowBtns = (kind, s, i, n) => {
-            const up = i === 0 ? 'style="opacity:.3;cursor:not-allowed" disabled' : '', dn = i === n - 1 ? 'style="opacity:.3;cursor:not-allowed" disabled' : '';
+        const rowBtns = (kind, s, i, n, minI = 0) => {
+            const up = i <= minI ? 'style="opacity:.3;cursor:not-allowed" disabled' : '', dn = i === n - 1 ? 'style="opacity:.3;cursor:not-allowed" disabled' : '';
             return `<button onclick="moveItem('${kind}','${esc(s.id)}',-1)" ${up} title="Yukarı taşı" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 mr-1"><i class="fa-solid fa-arrow-up"></i></button><button onclick="moveItem('${kind}','${esc(s.id)}',1)" ${dn} title="Aşağı taşı" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 mr-2"><i class="fa-solid fa-arrow-down"></i></button><button onclick="${kind === 'durum' ? 'editStatus' : 'editIzin'}('${esc(s.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="${kind === 'durum' ? 'delStatus' : 'delIzin'}('${esc(s.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>`;
         };
         function renderIzin() {
             const adm = isAdmin(), def = IZINTUR.length && IZINTUR[0].id.startsWith('def');
             const note = def ? `<tr><td colspan="3" class="p-2.5 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg">${esc(DEF_MSG)}</td></tr>` : '';
             $('izinBody').innerHTML = IZINTUR.length ? note + IZINTUR.map((s, i) => `<tr class="hover:bg-slate-50"><td class="p-2 text-slate-400 w-8">${i + 1}</td><td class="p-2 font-semibold text-slate-800">${esc(s.ad)}</td>
-                <td class="p-2 text-right whitespace-nowrap">${adm ? rowBtns('izin', s, i, IZINTUR.length) : ''}</td></tr>`).join('')
+                <td class="p-2 text-right whitespace-nowrap">${adm ? (isLockedIzin(s) ? '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold"><i class="fa-solid fa-lock"></i> Sabit</span>' : rowBtns('izin', s, i, IZINTUR.length, 1)) : ''}</td></tr>`).join('')
                 : '<tr><td class="p-5 text-center text-slate-400 font-semibold">İzin türü yok.</td></tr>';
         }
         let moving = false;
@@ -963,6 +989,7 @@
             if (moving) return;
             const L = kind === 'durum' ? STATUSES : IZINTUR, sheet = kind === 'durum' ? 'DurumBasliklari' : 'IzinTurleri';
             const i = L.findIndex(x => x.id === id), j = i + dir; if (i < 0 || j < 0 || j >= L.length) return;
+            if (kind === 'izin' && (isLockedIzin(L[i]) || isLockedIzin(L[j]))) return;       // Yıllık İzin taşınmaz, üstüne de çıkılamaz
             if (String(id).startsWith('def')) return showToast(DEF_MSG, true);
             moving = true; [L[i], L[j]] = [L[j], L[i]]; renderLists();
             try { await post({ action: 'move', sheet, id, dir: dir < 0 ? 'up' : 'down' }); lastSig = ''; if (kind === 'durum') renderEditor(); }
@@ -982,6 +1009,7 @@
         }
         function editIzin(id) {
             const s = IZINTUR.find(x => x.id === id); if (!s) return;
+            if (isLockedIzin(s)) return showToast('Yıllık İzin sabittir; değiştirilemez, silinemez ve taşınamaz.', true);
             if (String(id).startsWith('def')) return showToast(DEF_MSG, true);
             openEditModal({ title: 'İzin Türünü Düzenle', l1: 'İzin Türü', v1: s.ad, save: async v1 => {
                 const ad = v1.trim().replace(/\s+/g, ' '); if (!ad) throw new Error('İzin türü boş olamaz.');
@@ -991,6 +1019,7 @@
         }
         async function delIzin(id) {
             const s = IZINTUR.find(x => x.id === id); if (!s) return;
+            if (isLockedIzin(s)) return showToast('Yıllık İzin sabittir; değiştirilemez, silinemez ve taşınamaz.', true);
             if (String(id).startsWith('def')) return showToast(DEF_MSG, true);
             const ok = await askConfirm({ title: 'İzin türü silinsin mi?', text: 'Listeden kalkar. Eski raporlarda bu türle yazılmış izinler aynen kalır.', ok: 'Evet, Sil', icon: 'fa-triangle-exclamation', color: 'rose', summary: `<div><b>İzin türü:</b> ${esc(s.ad)}</div>`, action: () => post({ action: 'delete', sheet: 'IzinTurleri', id }) });
             if (!ok) return; IZINTUR = IZINTUR.filter(x => x.id !== id); lastSig = ''; renderIzin(); showToast('Silindi');
