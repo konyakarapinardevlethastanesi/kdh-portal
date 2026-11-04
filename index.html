@@ -224,17 +224,14 @@
                 </div>
             </div>
 
-            <!-- 5. MODÜL: YAPIM AŞAMASINDA (BURAYA YENİ MODÜL ADI, AÇIKLAMA VE DOSYA ADINI YAZABİLİRSİNİZ) -->
-            <!-- Örnek Kullanım: onclick="window.location.href='DOSYA_ADI.html'" ekleyerek aktif hale getirebilirsiniz -->
+            <!-- 5. MODÜL: YAPIM AŞAMASINDA -->
             <div class="portal-card rounded-2xl p-5 opacity-75 flex flex-col justify-between relative overflow-hidden min-h-[170px]">
                 <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-slate-400/10 rounded-full blur-xl"></div>
                 <div>
                     <div class="w-11 h-11 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 bg-slate-200 border-slate-300 text-slate-500 rounded-xl flex items-center justify-center text-xl mb-3 shadow-sm">
                         <i class="fa-solid fa-helmet-safety"></i>
                     </div>
-                    <!-- [BURAYA YENİ MODÜL ADINI YAZIN] -->
                     <h2 class="text-base font-bold dark:text-white text-slate-900 transition">Yapım Aşamasında</h2>
-                    <!-- [BURAYA YENİ MODÜL AÇIKLAMASINI YAZIN] -->
                     <p class="text-[11px] dark:text-slate-400 text-slate-500 mt-1.5 leading-relaxed font-medium">Gelecekte eklenecek yeni idari modüller ve entegre sistemler alanı.</p>
                 </div>
                 <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-slate-400 text-slate-500">
@@ -243,17 +240,14 @@
                 </div>
             </div>
 
-            <!-- 6. MODÜL: YAPIM AŞAMASINDA (BURAYA YENİ MODÜL ADI, AÇIKLAMA VE DOSYA ADINI YAZABİLİRSİNİZ) -->
-            <!-- Örnek Kullanım: onclick="window.location.href='DOSYA_ADI.html'" ekleyerek aktif hale getirebilirsiniz -->
+            <!-- 6. MODÜL: YAPIM AŞAMASINDA -->
             <div class="portal-card rounded-2xl p-5 opacity-75 flex flex-col justify-between relative overflow-hidden min-h-[170px]">
                 <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-slate-400/10 rounded-full blur-xl"></div>
                 <div>
                     <div class="w-11 h-11 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 bg-slate-200 border-slate-300 text-slate-500 rounded-xl flex items-center justify-center text-xl mb-3 shadow-sm">
                         <i class="fa-solid fa-helmet-safety"></i>
                     </div>
-                    <!-- [BURAYA YENİ MODÜL ADINI YAZIN] -->
                     <h2 class="text-base font-bold dark:text-white text-slate-900 transition">Yapım Aşamasında</h2>
-                    <!-- [BURAYA YENİ MODÜL AÇIKLAMASINI YAZIN] -->
                     <p class="text-[11px] dark:text-slate-400 text-slate-500 mt-1.5 leading-relaxed font-medium">Yeni hastane hizmet ve entegrasyon uygulamaları için hazırlık alanı.</p>
                 </div>
                 <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-slate-400 text-slate-500">
@@ -270,7 +264,7 @@
         </footer>
     </div>
 
-    <!-- ANKET UYGULAMASI SEÇİM MODALI -->
+    <!-- ANKET UYGULAMASI SEÇİM MODALI (GÜNCELLENMİŞ SIRALAMA) -->
     <div id="anketSelectModal" class="fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="modal-card max-w-md w-full p-5 sm:p-6 rounded-2xl space-y-5 relative">
             <div class="text-center space-y-2">
@@ -280,15 +274,16 @@
                 <h3 class="text-base font-extrabold dark:text-white text-slate-900 leading-snug">Giriş Yapmak İstediğiniz Anket Uygulamasını Seçiniz</h3>
             </div>
 
-            <div class="space-y-2.5">
-                <div onclick="window.location.href='anketler/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-emerald-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
+            <div class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
+                <!-- 1. HASTA DENEYİM ANKETİ -->
+                <div onclick="window.location.href='hastadeneyimanket/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-emerald-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
                     <div class="flex items-center space-x-3.5">
                         <div class="w-10 h-10 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-300 bg-emerald-50 border-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-lg shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-user-check"></i>
+                            <i class="fa-solid fa-hospital-user"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-emerald-300 group-hover:text-emerald-600 transition">Çalışan Memnuniyet Anketi</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Personel durum ve ortam değerlendirme uygulaması</p>
+                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-emerald-300 group-hover:text-emerald-600 transition">Hasta Deneyim Anketi</h4>
+                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Poliklinik ve hizmet kalitesi değerlendirme uygulaması</p>
                         </div>
                     </div>
                     <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[10px] font-bold dark:text-emerald-300 text-emerald-600 gap-1.5 group-hover:translate-x-1 transition">
@@ -297,17 +292,35 @@
                     </div>
                 </div>
 
-                <div onclick="window.location.href='ankethasta/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
+                <!-- 2. ÇALIŞAN MEMNUNİYET ANKETİ -->
+                <div onclick="window.location.href='calisananket/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
                     <div class="flex items-center space-x-3.5">
                         <div class="w-10 h-10 dark:bg-blue-500/20 dark:border-blue-400/30 dark:text-blue-300 bg-blue-50 border-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-hospital-user"></i>
+                            <i class="fa-solid fa-user-check"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">Telefonla Hasta Memnuniyet Anketi</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Poliklinik ve hizmet kalitesi bildirimi uygulaması</p>
+                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">Çalışan Memnuniyet Anketi</h4>
+                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Personel durum ve ortam değerlendirme uygulaması</p>
                         </div>
                     </div>
                     <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[10px] font-bold dark:text-blue-300 text-blue-600 gap-1.5 group-hover:translate-x-1 transition">
+                        <span>Uygulamaya Git</span>
+                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </div>
+                </div>
+
+                <!-- 3. TELEFONLA HASTA MEMNUNİYET ANKETİ -->
+                <div onclick="window.location.href='tel_hasta_anket/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-purple-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="w-10 h-10 dark:bg-purple-500/20 dark:border-purple-400/30 dark:text-purple-300 bg-purple-50 border-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-lg shrink-0 group-hover:bg-purple-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-phone-volume"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-purple-300 group-hover:text-purple-600 transition">Telefonla Hasta Memnuniyet Anketi</h4>
+                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Telefon üzerinden hasta geri bildirim uygulaması</p>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[10px] font-bold dark:text-purple-300 text-purple-600 gap-1.5 group-hover:translate-x-1 transition">
                         <span>Uygulamaya Git</span>
                         <i class="fa-solid fa-arrow-right text-[9px]"></i>
                     </div>
@@ -331,7 +344,6 @@
             </div>
 
             <div class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-                <!-- 1. SEÇENEK: AYRILIŞ & BAŞLAYIŞ (Metin ve Renk Düzeltmesi Yapıldı) -->
                 <div onclick="window.location.href='ayrilis_baslayis/'" class="p-3 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-purple-400 hover:dark:bg-slate-700 transition duration-200 group flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-9 h-9 dark:bg-purple-500/20 dark:text-purple-300 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center text-sm shrink-0 group-hover:bg-purple-600 group-hover:text-white transition">
@@ -345,7 +357,6 @@
                     <i class="fa-solid fa-arrow-right text-xs dark:text-purple-400 text-purple-600 group-hover:translate-x-1 transition"></i>
                 </div>
 
-                <!-- 2. SEÇENEK: YAPIM AŞAMASINDA (BURAYA YENİ MODÜL ADI, AÇIKLAMA VE DOSYA YOLU YAZABİLİRSİNİZ) -->
                 <div class="p-3 dark:bg-slate-800/50 bg-slate-50 dark:border-slate-700 border-slate-200 rounded-xl opacity-70 flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-9 h-9 dark:bg-slate-700 dark:text-slate-400 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-sm shrink-0">
@@ -359,7 +370,6 @@
                     <span class="text-[9px] font-semibold text-slate-400">Pek Yakında</span>
                 </div>
 
-                <!-- 3. SEÇENEK: YAPIM AŞAMASINDA (BURAYA YENİ MODÜL ADI, AÇIKLAMA VE DOSYA YOLU YAZABİLİRSİNİZ) -->
                 <div class="p-3 dark:bg-slate-800/50 bg-slate-50 dark:border-slate-700 border-slate-200 rounded-xl opacity-70 flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-9 h-9 dark:bg-slate-700 dark:text-slate-400 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-sm shrink-0">
@@ -373,7 +383,6 @@
                     <span class="text-[9px] font-semibold text-slate-400">Pek Yakında</span>
                 </div>
 
-                <!-- 4. SEÇENEK: YAPIM AŞAMASINDA (BURAYA YENİ MODÜL ADI, AÇIKLAMA VE DOSYA YOLU YAZABİLİRSİNİZ) -->
                 <div class="p-3 dark:bg-slate-800/50 bg-slate-50 dark:border-slate-700 border-slate-200 rounded-xl opacity-70 flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-9 h-9 dark:bg-slate-700 dark:text-slate-400 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-sm shrink-0">
