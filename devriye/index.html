@@ -127,6 +127,7 @@
                 <button id="btn-logs" onclick="showTab('logs')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-list-check"></i> Devriye Olay Kayıtları <span id="tabCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
                 <button id="btn-qrdb" onclick="showTab('qrdb')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-qrcode"></i> QR Kod Veri Tabanı</button>
                 <button id="btn-staff" onclick="showTab('staff')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-users-gear"></i> Personel Yönetimi</button>
+                <button id="btn-audit" onclick="showTab('audit')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</button>
                 <div class="ml-auto self-center flex items-center gap-2 pb-1">
                     <span id="lastUpdate" class="text-[10px] text-slate-400 font-semibold whitespace-nowrap"></span>
                     <button id="refreshBtn" onclick="refreshData(true)" title="Yenile" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg text-xs flex items-center gap-1.5"><i id="refreshIcon" class="fa-solid fa-rotate"></i> Yenile</button>
@@ -341,7 +342,7 @@
                                     <th class="p-2.5">QR Kod</th>
                                     <th class="p-2.5">Kaydet</th>
                                     <th class="p-2.5 text-right">İşlem</th>
-                                    <th class="p-2.5 whitespace-nowrap">İşlemi Yapan</th>
+                                    <th class="p-2.5 whitespace-nowrap col-yapan">İşlemi Yapan</th>
                                 </tr>
                             </thead>
                             <tbody id="qrBody" class="divide-y"></tbody>
@@ -351,6 +352,8 @@
             </section>
 
             <!-- ==================== TAB 4: PERSONEL ==================== -->
+            <section id="sec-audit" class="admin-only hidden space-y-4 anim-fade"><div id="auditBox"></div></section>
+
             <section id="sec-staff" class="hidden space-y-6 anim-fade">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -377,7 +380,7 @@
                                         <th class="p-2.5 cursor-pointer select-none hover:text-slate-900" onclick="sortBy('staff','name')">Adı Soyadı <i data-sk="staff:name" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
                                         <th class="p-2.5 cursor-pointer select-none hover:text-slate-900" onclick="sortBy('staff','role')">Ünvan <i data-sk="staff:role" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
                                         <th class="p-2.5 text-right">İşlem</th>
-                                        <th class="p-2.5 whitespace-nowrap">İşlemi Yapan</th>
+                                        <th class="p-2.5 whitespace-nowrap col-yapan">İşlemi Yapan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="staffBody" class="divide-y"></tbody>
@@ -442,7 +445,7 @@
         const sleep = ms => new Promise(r => setTimeout(r, ms));
         const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
         const MONTHS_S = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-        const TABS = ['reports', 'logs', 'qrdb', 'staff'];
+        const TABS = ['reports', 'logs', 'qrdb', 'staff', 'audit'];
 
         let LOGS = [], STAFF = [], QRS = [];
         let lastSig = "", refreshing = false, initDone = false;
@@ -558,11 +561,12 @@
         // ==================== SEKMELER ====================
         let curTab = 'reports';
         function showTab(t) {
+            if (t === 'audit' && !(window.KDHAuth && KDHAuth.who() && KDHAuth.who().rol === 'admin')) t = 'reports';
             curTab = t;
             const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
             TABS.forEach(x => {
                 $('sec-' + x).classList.toggle('hidden', x !== t);
-                $('btn-' + x).className = 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap ' + (x === t ? on : off);
+                $('btn-' + x).className = (x === 'audit' ? 'admin-only ' : '') + 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap ' + (x === t ? on : off);
             });
             sessionStorage.setItem('kdh_tab', t);
             renderCurrent();
@@ -577,6 +581,7 @@
             if (curTab === 'reports') renderReports();
             else if (curTab === 'logs') renderLogs();
             else if (curTab === 'qrdb') renderQrTable();
+            else if (curTab === 'audit') KDHAuth.history('auditBox');
             else renderStaff();
         }
 
@@ -916,7 +921,7 @@
                 <td class="p-2.5 font-semibold text-slate-800">${esc(p.name) || '-'}</td>
                 <td class="p-2.5 text-slate-600">${esc(p.role) || '-'}</td>
                 <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Staff','${esc(p.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Staff','${esc(p.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
-                <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(p.by) || '-'}</td></tr>`).join('')
+                <td class="col-yapan p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(p.by) || '-'}</td></tr>`).join('')
                 : '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-semibold">Personel bulunamadı.</td></tr>';
             updateSortIcons('staff');
         }
@@ -953,7 +958,7 @@
                 <td class="p-2.5"><button data-code="${esc(q.code)}" data-name="${esc(q.name)}" onclick="previewQR(this.dataset.code, this.dataset.name)" class="text-blue-600 hover:underline font-semibold"><i class="fa-solid fa-qrcode"></i> QR Kod Göster</button></td>
                 <td class="p-2.5"><button data-code="${esc(q.code)}" data-name="${esc(q.name)}" onclick="downloadSpecificQR(this.dataset.code, this.dataset.name)" class="text-emerald-600 hover:underline font-semibold"><i class="fa-solid fa-download"></i> Resim Kaydet</button></td>
                 <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Locations','${esc(q.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Locations','${esc(q.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
-                <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(q.by) || '-'}</td></tr>`).join('')
+                <td class="col-yapan p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(q.by) || '-'}</td></tr>`).join('')
                 : '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">QR kodu bulunamadı.</td></tr>';
             updateSortIcons('qr'); updateSelInfo();
             if (!prevCode && list.length) previewQR(list[0].code, list[0].name);

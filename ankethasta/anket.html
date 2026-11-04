@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telefonla Hasta Memnuniyeti - Konya Karapınar Devlet Hastanesi</title>
+    <script src="../kdh-theme.js"></script>
+    <script src="../kdh-cal.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
+        button { cursor: pointer; transition: transform .12s ease, filter .12s ease, background-color .15s ease, box-shadow .15s ease; -webkit-tap-highlight-color: transparent; }
+        button:hover:not(:disabled) { filter: brightness(1.12); }
+        button:active:not(:disabled) { transform: scale(0.97); filter: brightness(0.92); }
+        button:disabled { opacity: .75; cursor: wait; }
+        button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+        select { cursor: pointer; }
+        fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+        .pill input:checked + div { background-color: #0f172a; border-color: #0f172a; color: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); }
+        .pill div { transition: all .15s ease; }
+        .pill:hover div { border-color: #94a3b8; }
+        .opt input:checked + div { background-color: #0f172a; border-color: #0f172a; color: #fff; }
+        .opt input:checked + div .dot { background: #fff; border-color: #fff; box-shadow: inset 0 0 0 3px #0f172a; }
+        .opt:hover div { border-color: #94a3b8; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .anim-fade { animation: fadeIn .22s ease both; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-800 min-h-screen flex flex-col justify-between antialiased relative overflow-x-hidden">
+
+    <canvas id="animatedPortalBg" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+    <div class="relative z-10 max-w-2xl w-full mx-auto p-4 space-y-4 my-auto">
+
+        <!-- KURUMSAL BAŞLIK -->
+        <div class="text-center space-y-2">
+            <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto drop-shadow-2xl">
+                <img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-lg">
+            </div>
+            <div class="text-[12px] font-bold tracking-widest text-red-500 uppercase">T.C. Sağlık Bakanlığı</div>
+            <div class="text-[12px] font-semibold text-slate-200">Konya İl Sağlık Müdürlüğü</div>
+            <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
+            <p class="text-base font-extrabold text-slate-200 mt-1">Telefonla Hasta Memnuniyeti Değerlendirmesi</p>
+        </div>
+
+        <!-- 1. GİRİŞ -->
+        <div id="loginScreen" class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
+                    <i class="fa-solid fa-headset text-slate-900"></i> Görüşmeyi Yapan Personel Girişi
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Adınız Soyadınız <span class="text-rose-500">*</span></label>
+                    <select id="loginAd" required class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800">
+                        <option value="">Yükleniyor...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
+                    <input type="password" id="loginSifre" required autocomplete="current-password" placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold">
+                </div>
+                <button type="submit" id="loginBtn" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
+                </button>
+                <p id="loginError" class="text-xs text-rose-600 hidden font-semibold text-center"></p>
+                <p class="text-[10px] text-slate-400 text-center leading-snug">Giriş 4 saat açık kalır. Kayıtlar giriş yapan personelin adıyla saklanır.</p>
+            </form>
+        </div>
+
+        <!-- 2. UYGULAMA -->
+        <div id="appScreen" class="hidden space-y-4">
+
+            <div class="bg-white/95 rounded-2xl px-4 py-3 shadow-xl border border-slate-200/80 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-user"></i></div>
+                    <div class="leading-tight min-w-0">
+                        <div id="whoName" class="text-xs font-extrabold text-slate-900 truncate">-</div>
+                        <div class="text-[10px] font-semibold text-slate-500">Bugün: <b id="todayCount" class="text-emerald-600">-</b> görüşme kaydı</div>
+                    </div>
+                </div>
+                <button onclick="logout()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-rose-600 rounded-lg text-xs font-bold flex items-center gap-1.5 shrink-0"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
+            </div>
+
+            <form id="gForm" onsubmit="handleSubmit(event)" class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-2xl border border-slate-200/80 space-y-6" novalidate>
+
+                <!-- HASTA BİLGİLERİ -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-id-card text-blue-600"></i><span>Hasta Bilgileri</span></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="sm:col-span-2">
+                            <label class="block font-bold text-slate-700 mb-1">Hasta Adı Soyadı <span class="text-rose-500">*</span></label>
+                            <input type="text" id="fHasta" required autocomplete="off" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800 uppercase">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Yaşı <span class="text-rose-500">*</span></label>
+                            <input type="number" id="fYas" required min="0" max="120" inputmode="numeric" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Cinsiyet <span class="text-rose-500">*</span></label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="pill cursor-pointer"><input type="radio" name="fCins" value="Kadın" required class="sr-only"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Kadın</div></label>
+                                <label class="pill cursor-pointer"><input type="radio" name="fCins" value="Erkek" required class="sr-only"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Erkek</div></label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Hasta Telefon Numarası <span class="text-rose-500">*</span></label>
+                            <input type="tel" id="fTel" required inputmode="tel" value="0" maxlength="11" placeholder="05XX XXX XX XX" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Eğitim Durumu <span class="text-rose-500">*</span></label>
+                            <select id="fEgitim" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                                <option value="">Seçiniz...</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-bold text-slate-700 mb-1">Telefon ile Görüşme Tarihi <span class="text-rose-500">*</span></label>
+                            <input type="date" id="fGorTarih" required class="w-full sm:w-1/2 p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GÖRÜŞÜLEN KİŞİ -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-phone-volume text-blue-600"></i><span>Telefon ile Görüşülen Kişi</span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="pill cursor-pointer"><input type="radio" name="fKisi" value="Hasta" required class="sr-only" onchange="applyBranching()"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Hasta</div></label>
+                        <label class="pill cursor-pointer"><input type="radio" name="fKisi" value="Hasta Yakını" required class="sr-only" onchange="applyBranching()"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Hasta Yakını</div></label>
+                    </div>
+                    <fieldset id="secYakin" class="hidden anim-fade">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-50 border border-slate-200 rounded-xl p-3">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Hasta Yakını Adı Soyadı <span class="text-rose-500">*</span></label>
+                                <input type="text" id="fYakinAd" required autocomplete="off" class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800 uppercase">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Hasta Yakınlık Derecesi <span class="text-rose-500">*</span></label>
+                                <select id="fYakinlik" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                                    <option value="">Seçiniz...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- BÖLÜM SEÇİMİ -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-hospital text-blue-600"></i><span>Sağlık Hizmeti Alınan Bölüm</span></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <label class="pill cursor-pointer"><input type="radio" name="fBolum" value="Poliklinik" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-stethoscope mr-1.5"></i>Poliklinik</div></label>
+                        <label class="pill cursor-pointer"><input type="radio" name="fBolum" value="Servis" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-bed-pulse mr-1.5"></i>Servis</div></label>
+                        <label class="pill cursor-pointer"><input type="radio" name="fBolum" value="Yoğun Bakım" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-heart-pulse mr-1.5"></i>Yoğun Bakım</div></label>
+                    </div>
+                </div>
+
+                <!-- POLİKLİNİK -->
+                <fieldset id="secPoliklinik" class="hidden anim-fade space-y-4">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-stethoscope text-emerald-600"></i><span>Poliklinik Değerlendirmesi</span></div>
+                    <div class="text-xs">
+                        <label class="block font-bold text-slate-700 mb-1">Muayene Olduğu Branş <span class="text-rose-500">*</span></label>
+                        <select id="fBrans" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800"><option value="">Seçiniz...</option></select>
+                    </div>
+                    <div id="qPoliklinik" class="space-y-3"></div>
+                </fieldset>
+
+                <!-- SERVİS -->
+                <fieldset id="secServis" class="hidden anim-fade space-y-4">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-bed-pulse text-emerald-600"></i><span>Servis Değerlendirmesi</span></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Yatış Yapılan Servis <span class="text-rose-500">*</span></label>
+                            <select id="fServis" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800"><option value="">Seçiniz...</option></select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Yatış Tarihi <span class="text-rose-500">*</span></label>
+                            <input type="date" id="fYatisS" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Taburcu Tarihi <span class="text-rose-500">*</span></label>
+                            <input type="date" id="fTaburcuS" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                    </div>
+                    <div id="qServis" class="space-y-3"></div>
+                </fieldset>
+
+                <!-- YOĞUN BAKIM -->
+                <fieldset id="secYB" class="hidden anim-fade space-y-4">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-heart-pulse text-emerald-600"></i><span>Yoğun Bakım Değerlendirmesi</span></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Yatış Tarihi <span class="text-rose-500">*</span></label>
+                            <input type="date" id="fYatisY" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Taburcu Tarihi <span class="text-rose-500">*</span></label>
+                            <input type="date" id="fTaburcuY" required class="w-full p-2.5 border rounded-xl bg-white font-semibold text-slate-800">
+                        </div>
+                    </div>
+                    <div id="qYB" class="space-y-3"></div>
+                </fieldset>
+
+                <!-- EK GÖRÜŞ -->
+                <div class="space-y-2 pt-2 border-t">
+                    <label class="block font-bold text-slate-800 text-xs">Ek Görüş / Öneriler / Şikayetler</label>
+                    <textarea id="fEk" rows="3" maxlength="1500" placeholder="Hasta veya yakınının eklemek istediği görüş, öneri ya da şikayet..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-slate-900"></textarea>
+                </div>
+
+                <p id="formError" class="hidden text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl p-3"></p>
+
+                <button type="submit" id="submitBtn" class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Görüşmeyi Kaydet
+                </button>
+            </form>
+
+            <!-- KAYIT BAŞARILI -->
+            <div id="doneScreen" class="hidden bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-slate-200/80 text-center space-y-4">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner"><i class="fa-solid fa-check"></i></div>
+                <h2 class="text-lg font-black text-slate-900">Görüşme Kaydedildi</h2>
+                <p class="text-xs text-slate-600 font-medium">Bugün toplam <b id="doneCount" class="text-emerald-600">-</b> görüşme kaydettiniz.</p>
+                <button onclick="newInterview()" class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-phone"></i> Yeni Görüşme</button>
+            </div>
+        </div>
+
+        <footer class="text-center text-[11px] text-slate-300 font-medium pt-2">
+            Konya Karapınar Devlet Hastanesi <span id="currentYear">2026</span> &copy; Tüm Hakları Saklıdır.
+        </footer>
+    </div>
+
+    <!-- MÜKERRER KAYIT UYARISI -->
+    <div id="dupModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
+            <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-base font-extrabold text-slate-900">Mükerrer kayıt olabilir</h3>
+            <p id="dupMsg" class="text-xs text-slate-600 leading-relaxed"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeDup()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button onclick="confirmDup()" class="py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs">Yine de Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyauQGetCiuldmCdkbY7naE8RqQnctJKOqnxRQxHQIfRVbwDq3-rNsz41qWYM_LMXjp/exec";
+        const SES_KEY = "kdh_hasta_oturum", LAST_NAME_KEY = "kdh_hasta_son_ad";
+
+        // ====== SABİT LİSTELER (Apps Script ile aynı) ======
+        const EGITIM = ["İlkokul", "Ortaokul", "Lise", "Önlisans", "Lisans", "Lisansüstü", "Okur Yazar Değil"];
+        const YAKINLIK = ["Eşi", "Çocuğu", "Kardeş", "Anne", "Baba"];
+        const SERVISLER = ["Dahili", "Cerrahi"];
+        const BRANSLAR = ["Dahiliye", "Genel Cerrahi", "Göz Hastalıkları", "Psikiyatri", "Nöroloji", "Çocuk Sağlığı ve Hastalıkları", "Kadın Hastalıkları ve Doğum", "Ortopedi", "Kardiyoloji", "Göğüs Hastalıkları", "Üroloji", "Radyoloji", "Kulak Burun Boğaz Hastalıkları", "Diş Hastalıkları", "Cildiye", "Fiziksel Tıp ve Rehabilitasyon"];
+
+        // ====== SORULAR ======
+        // opts: hazır yanıtlar (p:1 olumlu, p:0 olumsuz). Her soruda ayrıca "Diğer" (elle yazılan) seçeneği otomatik eklenir.
+        // Yeni hazır yanıt eklemek için ilgili sorunun opts listesine { t: "Yanıt metni", p: 0 } eklemeniz yeterli.
+        // (Aynı SORULAR listesi hasta-rapor.html içinde de bulunur; ikisini aynı tutun.)
+        const SORULAR = {
+            ulasim:     { q: "Hastaneye ulaşım kolay oldu mu?", opts: [{ t: "Kolay oldu.", p: 1 }] },
+            zorluk:     { q: "Hastanemizden hizmet alırken ne tür zorluklar yaşadınız?", opts: [{ t: "Zorluk yaşamadım.", p: 1 }] },
+            karsilama:  { q: "Karşılama ve kayıt işlemleri nasıldı?", opts: [{ t: "Güzeldi.", p: 1 }] },
+            iletisim:   { q: "Hekim/hasta iletişimi yeterli miydi?", opts: [{ t: "Yeterlidir.", p: 1 }] },
+            hemsire:    { q: "Hemşirelik hizmetlerinden memnun musunuz?", opts: [{ t: "Memnunum.", p: 1 }] },
+            temizlik:   { q: "Temizlik-hijyen konusunda memnun musunuz?", opts: [{ t: "Memnunum.", p: 1 }] },
+            yemek:      { q: "Yemek hizmetlerinden memnun musunuz?", opts: [{ t: "Memnunum.", p: 1 }] },
+            taburculuk: { q: "Taburculuk işlemleri bilgilendirici miydi?", opts: [{ t: "Evet, bilgilendiriciydi.", p: 1 }] },
+            ilac:       { q: "İlaçlarınızı düzenli kullanıyor musunuz?", opts: [{ t: "Düzenli kullanıyorum.", p: 1 }] },
+            genel:      { q: "Genel olarak hastanemizden memnun musunuz?", opts: [{ t: "Memnunum.", p: 1 }] }
+        };
+        const ALL_KEYS = ["ulasim", "zorluk", "karsilama", "iletisim", "hemsire", "temizlik", "yemek", "taburculuk", "ilac", "genel"];
+        const BOLUM_SORU = {
+            "Poliklinik": ["ulasim", "zorluk", "karsilama", "iletisim", "ilac", "genel"],
+            "Servis": ALL_KEYS,
+            "Yoğun Bakım": ALL_KEYS
+        };
+        const SECTION = { "Poliklinik": "secPoliklinik", "Servis": "secServis", "Yoğun Bakım": "secYB" };
+        const HOLDER = { "Poliklinik": "qPoliklinik", "Servis": "qServis", "Yoğun Bakım": "qYB" };
+
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const trUpper = s => String(s || "").trim().replace(/\s+/g, " ").toLocaleUpperCase("tr");
+
+        function fillSelect(id, list) { $(id).innerHTML = '<option value="">Seçiniz...</option>' + list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join(""); }
+
+        function renderQuestions() {
+            Object.keys(BOLUM_SORU).forEach(bolum => {
+                $(HOLDER[bolum]).innerHTML = BOLUM_SORU[bolum].map((k, i) => {
+                    const s = SORULAR[k], name = `q_${bolum}_${k}`;
+                    const opts = s.opts.map(o => `
+                        <label class="opt cursor-pointer block"><input type="radio" name="${name}" value="${esc(o.t)}" required class="sr-only" onchange="onOptChange(this)">
+                            <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white font-semibold text-slate-700 text-xs"><span class="dot w-4 h-4 rounded-full border-2 border-slate-400 shrink-0"></span>${esc(o.t)}</div></label>`).join("");
+                    return `
+                    <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2" data-k="${k}" data-b="${esc(bolum)}">
+                        <p class="text-xs font-bold text-slate-800 leading-snug"><span class="text-blue-600 font-black mr-1">${i + 1}.</span> ${esc(s.q)} <span class="text-rose-500">*</span></p>
+                        <div class="space-y-1.5">
+                            ${opts}
+                            <label class="opt cursor-pointer block"><input type="radio" name="${name}" value="__diger" required class="sr-only" onchange="onOptChange(this)">
+                                <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white font-semibold text-slate-700 text-xs"><span class="dot w-4 h-4 rounded-full border-2 border-slate-400 shrink-0"></span>Diğer (hastanın yanıtını yazınız)</div></label>
+                            <input type="text" maxlength="400" data-diger="1" placeholder="Hastanın yanıtını yazınız..." class="hidden w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold bg-white">
+                        </div>
+                    </div>`;
+                }).join("");
+            });
+        }
+
+        function onOptChange(radio) {
+            const card = radio.closest("[data-k]"), tx = card.querySelector("[data-diger]");
+            const diger = radio.value === "__diger";
+            tx.classList.toggle("hidden", !diger);
+            tx.required = diger;
+            if (diger) tx.focus(); else tx.value = "";
+        }
+
+        // ====== DALLANMA ======
+        function checkedVal(name) { const r = document.querySelector(`input[name="${name}"]:checked`); return r ? r.value : ""; }
+        function setSection(id, show) {
+            const el = $(id);
+            el.classList.toggle("hidden", !show);
+            el.disabled = !show;
+        }
+        function applyBranching() {
+            setSection("secYakin", checkedVal("fKisi") === "Hasta Yakını");
+            const b = checkedVal("fBolum");
+            Object.keys(SECTION).forEach(k => setSection(SECTION[k], k === b));
+        }
+
+        // ====== TARİH ======
+        const todayIso = () => { const d = new Date(), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
+        const isoToTr = v => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? `${m[3]}.${m[2]}.${m[1]}` : ""; };
+
+        function setupDates() {
+            const t = todayIso();
+            $("fGorTarih").value = t; $("fGorTarih").max = t;
+            ["fYatisS", "fTaburcuS", "fYatisY", "fTaburcuY"].forEach(id => { $(id).value = ""; $(id).max = t; });
+            [["fYatisS", "fTaburcuS"], ["fYatisY", "fTaburcuY"]].forEach(([a, b]) => {
+                $(a).onchange = () => { $(b).min = $(a).value || ""; if ($(b).value && $(a).value && $(b).value < $(a).value) $(b).value = ""; };
+            });
+        }
+
+        // Telefon: yalnızca rakam, en çok 11 hane
+        function setupTel() {
+            const tel = $("fTel");
+            tel.addEventListener("input", () => {
+                let d = tel.value.replace(/\D/g, "");
+                if (d.charAt(0) !== "0") d = "0" + d;      // baştaki 0 her zaman hücrede kalır
+                d = d.slice(0, 11);
+                if (tel.value !== d) tel.value = d;
+            });
+        }
+
+        // ====== OTURUM ======
+        function getSession() {
+            try {
+                const s = JSON.parse(localStorage.getItem(SES_KEY) || "null");
+                if (s && s.token && s.exp > Date.now()) return s;
+            } catch (e) {}
+            localStorage.removeItem(SES_KEY);
+            return null;
+        }
+
+        async function api(method, payload) {
+            const res = method === "GET"
+                ? await fetch(API_URL + "?" + new URLSearchParams(payload).toString())
+                : await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+            const txt = await res.text();
+            try { return JSON.parse(txt); } catch (e) { const er = new Error("bad_json"); er.bad = true; throw er; }
+        }
+
+        async function loadPersonel() {
+            const sel = $("loginAd"), err = $("loginError");
+            try {
+                const out = await api("GET", { anket: "hasta", islem: "personel" });
+                if (out.status !== "success") throw new Error(out.message || "hata");
+                const last = localStorage.getItem(LAST_NAME_KEY) || "";
+                sel.innerHTML = '<option value="">Adınızı seçiniz...</option>' + out.personel.map(n => `<option value="${esc(n)}"${n === last ? " selected" : ""}>${esc(n)}</option>`).join("");
+            } catch (e) {
+                sel.innerHTML = '<option value="">Liste alınamadı</option>';
+                err.textContent = e.bad ? "Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir." : "Personel listesi alınamadı. Bağlantınızı kontrol edip sayfayı yenileyin.";
+                err.classList.remove("hidden");
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const err = $("loginError"), btn = $("loginBtn"), old = btn.innerHTML;
+            const ad = $("loginAd").value, sifre = $("loginSifre").value;
+            err.classList.add("hidden");
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
+            try {
+                const out = await api("POST", { anket: "hasta", action: "giris", ad, sifre });
+                if (out.status !== "success") {
+                    err.textContent = out.message === "unauthorized" ? "Hatalı şifre!" : String(out.message || "Giriş yapılamadı").replace(/^Error:\s*/, "");
+                    err.classList.remove("hidden");
+                    return;
+                }
+                localStorage.setItem(SES_KEY, JSON.stringify({ ad: out.ad, token: out.token, exp: Date.now() + (out.saat || 4) * 3600 * 1000 }));
+                localStorage.setItem(LAST_NAME_KEY, out.ad);
+                $("loginSifre").value = "";
+                showApp();
+            } catch (x) {
+                err.textContent = x.bad ? "Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir." : "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.";
+                err.classList.remove("hidden");
+            } finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+
+        function logout(msg) {
+            localStorage.removeItem(SES_KEY);
+            $("appScreen").classList.add("hidden");
+            $("loginScreen").classList.remove("hidden");
+            $("loginError").classList.add("hidden");
+            if (msg) { $("loginError").textContent = msg; $("loginError").classList.remove("hidden"); }
+            loadPersonel();
+            window.scrollTo({ top: 0 });
+        }
+
+        async function showApp() {
+            const s = getSession(); if (!s) return;
+            $("loginScreen").classList.add("hidden");
+            $("appScreen").classList.remove("hidden");
+            $("whoName").textContent = s.ad;
+            $("todayCount").textContent = "-";
+            try {
+                const out = await api("GET", { anket: "hasta", islem: "bugun", token: s.token });
+                if (out.status === "success") $("todayCount").textContent = out.bugun;
+                else if (out.message === "unauthorized") logout("Oturum süresi doldu, lütfen tekrar giriş yapın.");
+            } catch (e) { /* sayaç alınamazsa sessiz geç */ }
+        }
+
+        // ====== KAYIT ======
+        let pendingPayload = null;
+
+        function showFormError(msg) {
+            const el = $("formError");
+            el.textContent = msg; el.classList.remove("hidden");
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function buildPayload() {
+            const bolum = checkedVal("fBolum");
+            const p = {
+                anket: "hasta", action: "kaydet", token: (getSession() || {}).token,
+                hasta: trUpper($("fHasta").value), yas: $("fYas").value.trim(), cinsiyet: checkedVal("fCins"),
+                telefon: $("fTel").value.trim(), egitim: $("fEgitim").value, gorusmeTarihi: isoToTr($("fGorTarih").value),
+                kisi: checkedVal("fKisi"), bolum, ek: $("fEk").value.trim()
+            };
+            if (p.kisi === "Hasta Yakını") { p.yakinAd = trUpper($("fYakinAd").value); p.yakinlik = $("fYakinlik").value; }
+            if (bolum === "Poliklinik") p.brans = $("fBrans").value;
+            if (bolum === "Servis") { p.servis = $("fServis").value; p.yatis = isoToTr($("fYatisS").value); p.taburcu = isoToTr($("fTaburcuS").value); }
+            if (bolum === "Yoğun Bakım") { p.yatis = isoToTr($("fYatisY").value); p.taburcu = isoToTr($("fTaburcuY").value); }
+            p.cevaplar = {};
+            BOLUM_SORU[bolum].forEach(k => {
+                const v = checkedVal(`q_${bolum}_${k}`);
+                if (v === "__diger") {
+                    const card = document.querySelector(`#${HOLDER[bolum]} [data-k="${k}"]`);
+                    p.cevaplar[k] = card.querySelector("[data-diger]").value.trim();
+                } else p.cevaplar[k] = v;
+            });
+            return p;
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            $("formError").classList.add("hidden");
+            const tel = $("fTel"), digits = tel.value.replace(/\D/g, "");
+            tel.setCustomValidity(/^0?\d{10}$/.test(digits) ? "" : "Telefon numarası 10 veya 11 haneli olmalıdır.");
+            const form = $("gForm");
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            // "Diğer" seçilip boş bırakılan yanıtlar
+            const bos = [...document.querySelectorAll("[data-diger]:not(:disabled)")].find(t => !t.classList.contains("hidden") && !t.value.trim());
+            if (bos) { bos.focus(); showFormError("\"Diğer\" seçilen yanıtın metni boş bırakılamaz."); return; }
+            send(buildPayload());
+        }
+
+        async function send(payload) {
+            const btn = $("submitBtn"), old = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+            try {
+                const out = await api("POST", payload);
+                if (out.status === "success") {
+                    $("gForm").classList.add("hidden");
+                    $("doneCount").textContent = out.bugun;
+                    $("todayCount").textContent = out.bugun;
+                    $("doneScreen").classList.remove("hidden");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                } else if (out.status === "duplicate") {
+                    pendingPayload = payload;
+                    $("dupMsg").textContent = out.message + " Yine de kaydetmek istiyor musunuz?";
+                    $("dupModal").classList.remove("hidden"); $("dupModal").classList.add("flex");
+                } else if (out.message === "unauthorized") {
+                    logout("Oturum süresi doldu, lütfen tekrar giriş yapın. (Form bilgileri korunmadı)");
+                } else {
+                    showFormError(String(out.message || "Kayıt yapılamadı").replace(/^Error:\s*/, ""));
+                }
+            } catch (x) {
+                showFormError(x.bad ? "Sunucudan geçersiz yanıt geldi, kayıt doğrulanamadı. Yöneticiye bildiriniz." : "Kayıt gönderilemedi. İnternet bağlantınızı kontrol edip tekrar deneyin (form bilgileri korundu).");
+            } finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+
+        function closeDup() { $("dupModal").classList.add("hidden"); $("dupModal").classList.remove("flex"); pendingPayload = null; }
+        function confirmDup() {
+            const p = pendingPayload; closeDup();
+            if (p) { p.zorla = true; send(p); }
+        }
+
+        function newInterview() {
+            $("gForm").reset();
+            document.querySelectorAll("[data-diger]").forEach(t => { t.classList.add("hidden"); t.required = false; });
+            setupDates(); applyBranching();
+            $("formError").classList.add("hidden");
+            $("doneScreen").classList.add("hidden");
+            $("gForm").classList.remove("hidden");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // Parçacık animasyonu
+        (function initPortalAnimation() {
+            const canvas = $('animatedPortalBg'); if (!canvas) return;
+            const ctx = canvas.getContext('2d'); let width, height;
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize); resize();
+            const particles = [];
+            for (let i = 0; i < 40; i++) particles.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 3 + 1, speedX: (Math.random() - 0.5) * 0.3, speedY: -Math.random() * 0.5 - 0.2, opacity: Math.random() * 0.5 + 0.2 });
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.x += p.speedX; p.y += p.speedY;
+                    if (p.y < -10) p.y = height + 10;
+                    ctx.save(); ctx.globalAlpha = p.opacity; ctx.fillStyle = '#94a3b8';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        window.addEventListener("DOMContentLoaded", () => {
+            $("currentYear").textContent = new Date().getFullYear();
+            fillSelect("fEgitim", EGITIM); fillSelect("fYakinlik", YAKINLIK); fillSelect("fServis", SERVISLER); fillSelect("fBrans", [...BRANSLAR].sort((a, b) => a.localeCompare(b, "tr")));
+            renderQuestions(); setupDates(); applyBranching(); setupTel();
+            if (getSession()) showApp(); else loadPersonel();
+        });
+    </script>
+</body>
+</html>

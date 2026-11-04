@@ -36,7 +36,17 @@
       '#kdhUsrBox .kd-ok{background:#059669;color:#fff;border:0;border-radius:10px;padding:8px 14px;font:700 12px Inter,system-ui,sans-serif;cursor:pointer}',
       '#kdhUsrBox .kd-close{float:right;background:#f1f5f9;border:0;border-radius:8px;padding:5px 10px;cursor:pointer;font:700 12px Inter,system-ui,sans-serif}',
       '#kdhUsrBox .kd-msg{margin-top:8px;font-size:12px;font-weight:700}',
-      '@media(max-width:520px){#kdhUsrBox .kd-add{grid-template-columns:1fr}}'
+      '@media(max-width:520px){#kdhUsrBox .kd-add{grid-template-columns:1fr}}',
+      'body.kdh-user .admin-only,body.kdh-user .col-yapan{display:none!important}',
+      '.kdh-hist .hh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:10px;margin-bottom:10px;font:600 12px Inter,system-ui,sans-serif}',
+      '.kdh-hist input,.kdh-hist select{border:1px solid #cbd5e1;border-radius:10px;padding:7px 10px;font:600 12px Inter,system-ui,sans-serif;background:#f8fafc}',
+      '.kdh-hist input[type=search]{flex:1;min-width:180px}',
+      '.kdh-hist .hw{background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:auto;max-height:640px}',
+      '.kdh-hist table{width:100%;border-collapse:collapse;font:500 12px Inter,system-ui,sans-serif;text-align:left}',
+      '.kdh-hist th{position:sticky;top:0;background:#f1f5f9;color:#475569;text-transform:uppercase;font-size:10px;font-weight:800;padding:9px 10px;white-space:nowrap}',
+      '.kdh-hist td{padding:8px 10px;border-top:1px solid #f1f5f9;vertical-align:top}',
+      '.kdh-hist .tg{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:800;font-size:10px;white-space:nowrap}',
+      '.kdh-hist .t-e{background:#d1fae5;color:#047857}.kdh-hist .t-d{background:#dbeafe;color:#1d4ed8}.kdh-hist .t-s{background:#fee2e2;color:#b91c1c}.kdh-hist .t-o{background:#e2e8f0;color:#475569}'
     ].join('\n');
     document.head.appendChild(st);
   }
@@ -122,13 +132,60 @@
   }
   function openModal() { ensureModal(); msg(''); document.getElementById('kdhUsrBack').classList.add('on'); load(); }
 
+  // ---- İşlem geçmişi (sadece yönetici) ----
+  var HIST = [];
+  function tagCls(i) { i = String(i).toLowerCase(); return /silin/.test(i) ? 't-s' : /ekle|kaydedil/.test(i) ? 't-e' : /düzenle|değiştir|güncelle/.test(i) ? 't-d' : 't-o'; }
+  function histRender(box) {
+    var q = (box.querySelector('.h-q').value || '').toLocaleLowerCase('tr'), u = box.querySelector('.h-u').value, op = box.querySelector('.h-i').value;
+    var lim = +(box.dataset.lim || 300);
+    var rows = HIST.filter(function (r) {
+      if (u && r[1] !== u) return false;
+      if (op && r[4] !== op) return false;
+      if (q && r.join(' ').toLocaleLowerCase('tr').indexOf(q) < 0) return false;
+      return true;
+    });
+    box.querySelector('.h-c').textContent = rows.length + ' kayıt';
+    var shown = rows.slice(0, lim);
+    box.querySelector('tbody').innerHTML = shown.length ? shown.map(function (r) {
+      return '<tr><td style="white-space:nowrap">' + esc(r[0]) + '</td><td style="font-weight:800">' + esc(r[1]) + '<div style="font-size:10px;color:#94a3b8;font-weight:600">' + esc(r[2]) + '</div></td><td>' + esc(r[3]) + '</td><td><span class="tg ' + tagCls(r[4]) + '">' + esc(r[4]) + '</span></td><td style="font-family:ui-monospace,monospace;color:#64748b">' + esc(r[5]) + '</td><td>' + esc(r[6]) + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px">Kayıt yok.</td></tr>';
+    var more = box.querySelector('.h-m'); more.style.display = rows.length > lim ? '' : 'none';
+  }
+  async function histLoad(id) {
+    var box = document.getElementById(id); if (!box) return;
+    if (!box.dataset.built) {
+      box.dataset.built = '1'; box.classList.add('kdh-hist');
+      box.innerHTML = '<div class="hh"><input class="h-q" type="search" placeholder="Ara: kullanıcı, işlem, kayıt…"><select class="h-u"><option value="">Tüm kullanıcılar</option></select><select class="h-i"><option value="">Tüm işlemler</option></select><span class="h-c" style="color:#64748b"></span><button type="button" class="h-r" style="margin-left:auto;background:#334155;color:#fff;border:0;border-radius:10px;padding:7px 12px;font:700 12px Inter,system-ui,sans-serif;cursor:pointer">Yenile</button></div>' +
+        '<div class="hw"><table><thead><tr><th>Zaman</th><th>İşlemi yapan</th><th>Sayfa</th><th>İşlem</th><th>Kayıt</th><th>Özet</th></tr></thead><tbody></tbody></table><div class="h-m" style="display:none;text-align:center;padding:10px"><button type="button" style="background:#f1f5f9;border:0;border-radius:10px;padding:8px 14px;font:700 12px Inter,system-ui,sans-serif;cursor:pointer">Daha fazla göster</button></div></div>';
+      var re = function () { histRender(box); };
+      box.querySelector('.h-q').oninput = function () { box.dataset.lim = 300; re(); };
+      box.querySelector('.h-u').onchange = function () { box.dataset.lim = 300; re(); };
+      box.querySelector('.h-i').onchange = function () { box.dataset.lim = 300; re(); };
+      box.querySelector('.h-m button').onclick = function () { box.dataset.lim = (+box.dataset.lim || 300) + 500; re(); };
+      box.querySelector('.h-r').onclick = function () { histLoad(id); };
+    }
+    box.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px">Yükleniyor…</td></tr>';
+    try {
+      var out = await getJSON(cfg.api + '?' + (cfg.get || '') + 'action=gecmis&islem=gecmis&key=' + encodeURIComponent(key()));
+      if (out.status !== 'success') throw new Error(out.message || 'Geçmiş alınamadı');
+      HIST = out.gecmis || [];
+      var uniq = function (i) { var m = {}; HIST.forEach(function (r) { if (r[i]) m[r[i]] = 1; }); return Object.keys(m).sort(function (a, b) { return a.localeCompare(b, 'tr'); }); };
+      var fill = function (sel, first, list) { var cur = sel.value; sel.innerHTML = '<option value="">' + first + '</option>' + list.map(function (v) { return '<option>' + esc(v) + '</option>'; }).join(''); sel.value = list.indexOf(cur) >= 0 ? cur : ''; };
+      fill(box.querySelector('.h-u'), 'Tüm kullanıcılar', uniq(1)); fill(box.querySelector('.h-i'), 'Tüm işlemler', uniq(4));
+      box.dataset.lim = 300; histRender(box);
+    } catch (e) { box.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="color:#b91c1c;padding:16px">Geçmiş alınamadı: ' + esc(e.message) + '</td></tr>'; }
+  }
+
   window.KDHAuth = {
+    history: histLoad,
     init: async function (o) {
       cfg = o; css();
+      document.body.classList.add('kdh-user');   // yönetici olduğu doğrulanana kadar yönetici-özel öğeler gizli
       try {
         var out = await getJSON(cfg.api + '?' + (cfg.get || '') + 'action=kimlik&islem=kimlik&key=' + encodeURIComponent(key()));
         if (out && out.status === 'success') {
           who = { ad: out.ad, rol: out.rol };
+          document.body.classList.toggle('kdh-user', who.rol !== 'admin');
           try { sessionStorage.setItem('kdh_who', JSON.stringify(who)); } catch (e) {}
           badge();
         }
