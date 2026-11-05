@@ -135,7 +135,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <div id="printArea"></div>
 
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbxzqCq3mzRaMnGhgKcoZTv6T1GKX7XXcu2VD0sRWs02GmDXEn0PLplIUlWVj7CGOZ-0/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
 const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Hizmet','Birim','Surekli'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not'],Ayarlar:['Anahtar','Deger']};
 const S={pw:'',ad:'',rol:'',db:{}};let LS='Personel',ER=0,LOAD=0;
 const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -144,12 +144,12 @@ const pd=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d)},nx=d=>new Dat
 async function api(o){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({...o,pw:S.pw})});return r.json()}
 
 async function handleLogin(e){e.preventDefault();S.pw=$('passwordInput').value;$('loginBtn').disabled=true;$('loginError').classList.add('hidden');
- try{const r=await api({a:'get'});if(!r.ok)throw 0;S.ad=r.ad;S.rol=r.rol;S.db=r.db;
+ try{const r=await api({a:'get'});if(!r.ok)throw r.err||'Hatalı şifre!';S.ad=r.ad;S.rol=r.rol;S.db=r.db;
   $('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.remove('hidden');$('adminInterface').classList.add('flex');
   $('roleChip').innerHTML='<i class="fa-solid fa-user"></i> '+E(S.ad)+(S.rol=='admin'?' (Yönetici)':'');
   if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
   $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();tabClick('editor');
- }catch(x){$('loginError').classList.remove('hidden');S.pw=''}$('loginBtn').disabled=false}
+ }catch(x){$('loginError').textContent=typeof x=='string'?x:'Sunucuya ulaşılamadı: API_URL adresini ve dağıtım erişimini (Herkes) kontrol edin.';$('loginError').classList.remove('hidden');S.pw=''}$('loginBtn').disabled=false}
 function clock(){const n=new Date();$('clockDate').textContent=tr(iso(n));$('clockTime').textContent=p2(n.getHours())+':'+p2(n.getMinutes())+':'+p2(n.getSeconds())}
 async function reload(m){const r=await api({a:'get'});if(r.ok){S.db=r.db;fillSel();tabClick(window.cur||'editor')}}
 function tabClick(n){window.cur=n;['editor','saved','lists'].forEach(k=>{const b=$('btn-'+k),s=$('sec-'+k);if(b){b.className=b.className.replace(/tab-(on|off)/g,'')+' '+(k==n?'tab-on':'tab-off');s.classList.toggle('hidden',k!=n)}});
