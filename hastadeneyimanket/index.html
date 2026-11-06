@@ -176,7 +176,7 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
   <button id="tb-gecmis" onclick="showTab('gecmis')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</button></div>
  <div id="tab-dash" class="space-y-6 anim-fade">
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-[10px] font-bold text-slate-400 uppercase">Toplam Katılım</p><h3 id="stTotal" class="text-2xl font-black text-slate-900">0</h3></div><div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-users text-lg"></i></div></div>
+   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-[10px] font-bold text-slate-400 uppercase">Toplam Katılım / Hedef</p><h3 id="stTotal" class="text-2xl font-black text-slate-900">0</h3><p id="stTotalSub" class="text-[10px] text-slate-400 font-semibold mt-0.5"></p></div><div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-users text-lg"></i></div></div>
    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-[10px] font-bold text-slate-400 uppercase">Genel Memnuniyet Ortalaması</p><h3 id="stAvg" class="text-2xl font-black text-emerald-600">0 / 5</h3></div><div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-chart-line text-lg"></i></div></div>
    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p id="stTopLbl" class="text-[10px] font-bold text-slate-400 uppercase">En Yüksek Memnuniyetli Klinik</p><h3 id="stTop" class="text-sm font-black text-slate-800 leading-tight max-w-[190px]">-</h3><p id="stTopSub" class="text-[10px] text-slate-400 font-semibold mt-0.5"></p></div><div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600"><i class="fa-solid fa-hospital-user text-lg"></i></div></div>
   </div>
@@ -416,11 +416,12 @@ function derive(counts){const tot=[0,0,0,0,0];counts.forEach(c=>c.forEach((v,k)=
 let dashK='yatan';
 const TCOL={yatan:'#2563eb',ayaktan:'#0d9488',acil:'#ea580c'},TICO={yatan:'fa-bed-pulse',ayaktan:'fa-stethoscope',acil:'fa-truck-medical'};
 let chEk=null,chRate=null,chScore=null;
+const HEDEF_N={yatan:24,ayaktan:32,acil:32};   // anket türüne göre en az katılım sayısı
 function renderAll(){if($('adminInterface').classList.contains('hidden'))return;renderTur();renderDash();renderList();renderSaved();}
 function renderTur(){$('turSecici').innerHTML=Object.keys(TURLER).map(k=>{const on=k===dashK,c=TCOL[k],n=filt(k).length;
  return `<button onclick="setTur('${k}')" style="${on?`background:${c};border-color:${c};color:#fff`:`border-color:${c};color:${c};background:${c}14`}" class="flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border-2 shadow-sm font-extrabold text-sm"><span class="flex items-center gap-3"><i class="fa-solid ${TICO[k]} text-lg"></i>${TURLER[k].ad}</span><span style="${on?'background:rgba(255,255,255,.25)':`background:${c}22`}" class="px-2.5 py-0.5 rounded-full text-[11px]">${n} anket</span></button>`;}).join('');}
 function renderDash(){const k=dashK,T=TURLER[k],rows=filt(k),d=derive(calc(rows,k)),nq=T.q.length;
- $('stTotal').textContent=rows.length;
+ {const hn=HEDEF_N[k]||0,ok=rows.length>=hn;$('stTotal').textContent=rows.length+' / '+hn;$('stTotal').className='text-2xl font-black '+(ok?'text-emerald-600':'text-rose-600');$('stTotalSub').textContent=ok?'Hedef katılım sayısına ulaşıldı':(hn-rows.length)+' anket daha gerekli';}
  const sc={};LIKERT.forEach((L,i)=>sc[L]=5-i);const avgs=T.q.map((_,q)=>{const v=rows.map(r=>sc[String(r[10+q]||'').trim()]).filter(Boolean);return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):0;});
  const all=avgs.filter(x=>x>0);$('stAvg').textContent=(all.length?fmt(all.reduce((a,b)=>a+b,0)/all.length,2):'0')+' / 5';
  $('stTopLbl').textContent='En Yüksek Memnuniyetli '+(k==='yatan'?'Klinik':k==='ayaktan'?'Poliklinik':'Başvuru Şekli');
