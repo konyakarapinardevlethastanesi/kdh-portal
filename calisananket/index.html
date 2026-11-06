@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta name="kdh-back" content="1">
+    <script src="../kdh-theme.js"></script>
+    <script src="../kdh-auth.js"></script>
+<script>
+/* ../kdh-auth.js bulunamazsa (ör. klasörü tek başına bilgisayardan açınca) sayfa çökmesin */
+window.KDHAuth=window.KDHAuth||{init:function(){},who:function(){return{ad:'Yönetici',rol:'admin'};},history:function(id){var e=document.getElementById(id);if(e)e.innerHTML='<div class="p-6 text-xs text-slate-500 bg-white rounded-2xl border">İşlem geçmişi için ../kdh-auth.js dosyası bu klasörün bir üstünde bulunmalı.</div>';}};
+window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){return d;},saveMeta:function(){},init:function(o){M=document.getElementById(o.mount);if(M)M.innerHTML='<div class="text-[11px] font-bold text-slate-600 mb-1">İmza Alanı</div><div class="grid grid-cols-1 md:grid-cols-2 gap-2">'+[0,1,2].map(function(i){return '<input data-sn="'+i+'" placeholder="Ad Soyad" class="p-2 border border-slate-300 rounded-lg text-xs"><input data-st="'+i+'" placeholder="Unvan" class="p-2 border border-slate-300 rounded-lg text-xs">';}).join('')+'</div>';return Promise.resolve();},signers:function(){var r=[];[0,1,2].forEach(function(i){var n=M&&M.querySelector('[data-sn="'+i+'"]'),t=M&&M.querySelector('[data-st="'+i+'"]');if(n&&(n.value||t.value))r.push({name:n.value.trim(),title:t.value.trim()});});return r;}};})();
+</script>
+    <script src="../kdh-sign.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cg fill='%23fff' fill-rule='evenodd'%3E%3Cpath transform='translate(3.2 18)' d='M0 0H5V12.2L11.4 0H17.4L9.6 14.1L17.8 28H11.6L5 16.4V28H0Z'/%3E%3Cpath transform='translate(23.4 18)' d='M0 0H8.2C14 0 17.4 5 17.4 14S14 28 8.2 28H0Z M5 4.8V23.2H7.6C10.8 23.2 12.3 19.6 12.3 14S10.8 4.8 7.6 4.8Z'/%3E%3Cpath transform='translate(43.6 18)' d='M0 0H5V11.4H12.4V0H17.4V28H12.4V16.2H5V28H0Z'/%3E%3C/g%3E%3C/svg%3E">
+    <title>Yönetici Paneli - Konya Karapınar Devlet Hastanesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
+        button { cursor: pointer; transition: transform .12s ease, filter .12s ease, background-color .15s ease, box-shadow .15s ease; -webkit-tap-highlight-color: transparent; }
+        button:hover:not(:disabled) { filter: brightness(1.12); }
+        button:active:not(:disabled) { transform: scale(0.95); filter: brightness(0.9); }
+        button:disabled { opacity: .75; cursor: wait; }
+        button:focus-visible, select:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+        select { cursor: pointer; }
+
+        @keyframes popIn { 0% { opacity: 0; transform: scale(.7) translateY(24px); } 60% { opacity: 1; transform: scale(1.04); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shake { 0%,100% { transform: rotate(0); } 15% { transform: rotate(-14deg); } 30% { transform: rotate(11deg); } 45% { transform: rotate(-8deg); } 60% { transform: rotate(6deg); } 75% { transform: rotate(-3deg); } }
+        @keyframes ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.8); opacity: 0; } }
+        @keyframes rowFlash { 0% { background: #fde68a; } 100% { background: transparent; } }
+        .anim-pop { animation: popIn .38s cubic-bezier(.2,.9,.3,1.2) both; }
+        .anim-fade { animation: fadeIn .22s ease both; }
+        .anim-shake { animation: shake .9s ease .3s both; }
+        .pulse-ring::before, .pulse-ring::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: rgba(244,63,94,.35); animation: ring 1.8s ease-out infinite; }
+        .pulse-ring::after { animation-delay: .9s; }
+        tr.row-removing { transition: all .45s ease; opacity: 0; transform: translateX(40px); background: #fee2e2; }
+        tr.row-flash { animation: rowFlash 1.8s ease; }
+        @media (prefers-reduced-motion: reduce) { .anim-pop, .anim-shake, .pulse-ring::before, .pulse-ring::after { animation: none; } }
+
+
+        /* ===== RAPORLAMA (Excel "Seçenek Baz." + "Soru Baz." birebir düzen) ===== */
+        .rp-page { width: 194mm; min-height: 0; margin: 0 auto 16px; background: #fff; color: #000; font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; box-shadow: 0 4px 24px rgba(0,0,0,.35); box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .rp-page *, .rp-page *::before, .rp-page *::after { box-sizing: border-box; }
+        .rp-page table { border-collapse: collapse; width: 100%; table-layout: fixed; margin: 0; }
+        .rp-page td, .rp-page th { border: .3mm solid #000; padding: .6mm 1.2mm; font-weight: normal; line-height: 1.12; vertical-align: middle; word-wrap: break-word; }
+        .rp-page .c { text-align: center; } .rp-page .l { text-align: left; } .rp-page .b { font-weight: bold; }
+        .rp-page img { display: block; margin: 0 auto; height: 14.5mm; width: 14.5mm; object-fit: contain; }
+        .rp-hd td { height: 5mm; text-align: center; font-size: 9.5pt; }
+        .rp-hd tr.t1 td { height: 17.6mm; }
+        .rp-hd .title { font-weight: bold; font-size: 10.5pt; line-height: 1.2; }
+        .rp-row { border: .3mm solid #000; border-top: 0; padding: .9mm 1.4mm; line-height: 1.25; }
+        .rp-row.first { border-top: .3mm solid #000; }
+        .rp-row.u { text-decoration: underline; }
+        .rp-row.h6 { min-height: 6.2mm; display: flex; align-items: center; }
+        .rp-tbl th { font-size: 8.5pt; }
+        .rp-tbl thead tr { height: 22mm; }
+        .rp-tbl tbody tr { height: 6.8mm; }
+        .rp-tbl tbody td { padding-top: .3mm; padding-bottom: .3mm; line-height: 1.08; }
+        .rp-tbl tbody td { font-size: 8pt; }
+        .rp-tbl tbody td.num { font-size: 10pt; text-align: center; }
+        .rp-tbl tbody td.no { font-weight: bold; text-align: center; font-size: 9.5pt; }
+        .rp-tbl tfoot td { height: 6.8mm; font-weight: bold; font-size: 9pt; }
+        .rp-tbl tfoot td.num { font-weight: normal; text-align: center; font-size: 10.5pt; }
+        .rp-v { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); height: 20mm; text-align: center; font-size: 8.5pt; line-height: 1.15; }
+        .rp-v.bold { font-weight: bold; }
+        .rp-note { white-space: pre-wrap; }
+        .rp-indent { text-indent: 8mm; }
+        .rp-tight .rp-tbl tbody tr { height: 6.1mm; }
+        .rp-sig { display: flex; flex-direction: row-reverse; justify-content: space-around; margin-top: 5mm; }
+        .rp-sig > div { flex: 1 1 0; min-width: 0; text-align: center; padding: 0 2mm; min-height: 12mm; }
+        .rp-sig b { display: block; font-size: 9.5pt; line-height: 1.2; }
+        .rp-sig span { display: block; font-size: 9pt; line-height: 1.2; margin-top: 1mm; }
+        .rp-sig-wrap { margin-top: 5mm; }
+        .rp-sig-wrap .rp-sig { margin-top: 0; }
+        .rp-sig-wrap .rp-sig.alt { justify-content: center; margin-top: 4mm; }
+        .rp-sig-wrap .rp-sig.alt > div { flex: 0 1 50%; }
+        #reportModal .rp-scroll { background: #475569; }
+        @media print {
+            @page { size: A4 portrait; margin: 7mm; }
+            html, body { background: #fff !important; }
+            body.rp-printing > *:not(#reportModal) { display: none !important; }
+            body.rp-printing #reportModal { position: static !important; display: block !important; background: none !important; padding: 0 !important; overflow: visible !important; }
+            body.rp-printing #reportModal .rp-shell { max-height: none !important; box-shadow: none !important; background: none !important; display: block !important; }
+            body.rp-printing #reportModal .rp-toolbar { display: none !important; }
+            body.rp-printing #reportModal .rp-scroll { background: none !important; padding: 0 !important; overflow: visible !important; }
+            body.rp-printing .rp-page { box-shadow: none; margin: 0; min-height: 0; width: 194mm; }
+            body.rp-printing .rp-page + .rp-page { break-before: page; page-break-before: always; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- ==================== 1. GİRİŞ PORTALI (PORTAL BACKGROUND ANIMASYONLU) ==================== -->
+    <div id="mainAuthPortal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden select-none">
+        <canvas id="animatedPortalBg" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+        <div class="max-w-md w-full space-y-5 my-auto relative z-10">
+            <div class="text-center space-y-2">
+                <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto drop-shadow-2xl">
+                    <img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-lg">
+                </div>
+                <div class="text-[12px] font-bold tracking-widest text-red-500 uppercase">T.C. Sağlık Bakanlığı</div>
+                <div class="text-[12px] font-semibold text-slate-200">Konya İl Sağlık Müdürlüğü</div>
+                <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
+                <p class="text-[11px] text-slate-400 font-bold">Çalışan Memnuniyet Anketi · Analiz ve Raporlama</p>
+            </div>
+            <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-700 space-y-4">
+                <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-3">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-white border-b border-slate-700 pb-2">
+                        <i class="fa-solid fa-user-gear text-white"></i> Yönetici Giriş Paneli
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
+                        <input type="password" id="adminPasswordInputPortal" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-600 bg-slate-800 text-white placeholder-slate-400 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> Yönetici Paneline Giriş Yap
+                    </button>
+                    <p id="adminLoginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 2. YÖNETİCİ PANELİ ==================== -->
+    <div id="adminInterface" class="hidden flex-col flex-grow">
+        <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-[56px] h-[56px] flex items-center justify-center shrink-0">
+                        <img src="logo.png" alt="Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div class="flex flex-col justify-center leading-tight">
+                        <div class="text-[11px] font-extrabold text-red-500 uppercase tracking-wide">T.C. Sağlık Bakanlığı</div>
+                        <div class="text-[10.5px] font-semibold text-slate-200 mt-0.5">Konya İl Sağlık Müdürlüğü</div>
+                        <h1 class="text-sm font-extrabold text-white mt-0.5">Karapınar Devlet Hastanesi</h1>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Çalışan Memnuniyeti Analiz, Raporlama ve Anket Yönetim Paneli</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="openSurveyAsAdmin()" title="Anketi yönetici olarak aç" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-pen-to-square"></i> Ankete Giriş
+                    </button>
+                    <div class="text-right leading-tight shrink-0">
+                        <div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</div>
+                        <div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-700"></div>
+                    <button onclick="logoutToPortal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Çıkış
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
+            
+            <!-- ÜST FİLTRE VE EYLEM BARI -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <i class="fa-solid fa-filter text-slate-500"></i>
+                    <label class="text-xs font-bold text-slate-700">Yıl Filtresi:</label>
+                    <select id="filterYil" onchange="applyFiltersAndRender()" class="p-2 border rounded-xl text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-slate-900">
+                        <option value="ALL">Tüm Yıllar</option>
+                    </select>
+                    <span id="lastUpdate" class="text-[10px] text-slate-400 font-semibold"></span>
+                </div>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button id="refreshBtn" onclick="refreshData(true)" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-2">
+                        <i id="refreshIcon" class="fa-solid fa-rotate text-sm"></i> Yenile
+                    </button>
+                    <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel text-sm"></i> Yanıtları Excel (.xlsx) İndir
+                    </button>
+                    <button onclick="openQrModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-qrcode text-sm"></i> Anket QR / Link Al
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEKMELER -->
+            <div class="flex gap-2 border-b border-slate-300">
+                <button id="tabBtnDash" onclick="showTab('dash')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-chart-pie"></i> Genel Özet</button>
+                <button id="tabBtnList" onclick="showTab('list')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-list-check"></i> Anket Sonuçları <span id="tabCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+                <button id="tabBtnRapor" onclick="showTab('rapor')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-file-pdf"></i> Raporlar</button>
+                <button id="tabBtnRaporlarim" style="display:none" onclick="showTab('rapl')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-folder-open"></i> Raporlarım <span id="tabRplCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+                <button id="tabBtnGecmis" onclick="showTab('gecmis')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</button>
+            </div>
+
+            <div id="tabDash" class="space-y-6 anim-fade">
+            <!-- ÖZET İSTATİSTİKLER -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Toplam Katılım</p>
+                        <h3 id="statTotalResponses" class="text-2xl font-black text-slate-900">0</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-users text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Genel Memnuniyet Ortalaması</p>
+                        <h3 id="statAvgScore" class="text-2xl font-black text-emerald-600">0 / 5</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">En Yüksek Memnuniyetli Birim</p>
+                        <h3 id="statTopBirim" class="text-sm font-black text-slate-800 leading-tight max-w-[190px]">-</h3>
+                        <p id="statTopBirimSub" class="text-[10px] text-slate-400 font-semibold mt-0.5"></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                        <i class="fa-solid fa-hospital-user text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GENEL PUAN: Excel "Soru Baz." / "Seçenek Baz." mantığı -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Genel Memnuniyet Puanı</p>
+                        <h3 id="statRpScore" class="text-2xl font-black text-slate-900">-</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">21 sorunun karşılanma oranı ortalaması</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-gauge-high text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Hedef Durumu (%80)</p>
+                        <h3 id="statRpStatus" class="text-sm font-black text-slate-800 leading-tight">-</h3>
+                        <p id="statRpStatusSub" class="text-[10px] text-slate-400 font-semibold mt-0.5"></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-bullseye text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Olumlu Cevap Oranı</p>
+                        <h3 id="statRpPos" class="text-2xl font-black text-emerald-600">-</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Tamamen Katılıyorum + Katılıyorum</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-thumbs-up text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Hedef Altındaki Soru</p>
+                        <h3 id="statRpBelow" class="text-2xl font-black text-rose-600">-</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Karşılanma oranı %80'in altında</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <div class="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-bullseye text-rose-500"></i> Soru Bazında Karşılanma Oranı (%) — Hedef %80
+                    </h3>
+                    <div class="h-72"><canvas id="rateChart"></canvas></div>
+                    <p class="text-[10px] text-slate-400 font-semibold">Oran = (Tamamen×4 + Katılıyorum×3 + Kararsızım×2 + Katılmıyorum×1) / (cevap sayısı × 4) × 100</p>
+                </div>
+                <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-table-list text-blue-600"></i> Seçenek Bazında Cevap Dağılımı
+                    </h3>
+                    <table class="w-full text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b"><tr><th class="p-2 text-left">Seçenek</th><th class="p-2 text-center">Adet</th><th class="p-2 text-center">Oran</th></tr></thead>
+                        <tbody id="rpDashOpts" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- GRAFİK ALANLARI -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-chart-pie text-blue-600"></i> Birim Bazlı Katılım Dağılımı
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="birimChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-chart-bar text-emerald-600"></i> Soru Bazlı Ortalama Memnuniyet Puanları (5 Üzerinden)
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="scoresChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AÇIK UÇLU GÖRÜŞ VE ÖNERİLER TABLOSU -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+                    <i class="fa-solid fa-comments text-amber-500"></i> İletilen Görüş ve Öneriler
+                </h3>
+                <div class="overflow-x-auto max-h-60">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b sticky top-0">
+                            <tr>
+                                <th class="p-2.5">Yıl</th>
+                                <th class="p-2.5">Bölüm / Birim</th>
+                                <th class="p-2.5">Meslek</th>
+                                <th class="p-2.5">İletilen Görüş ve Öneri</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedbackTableBody" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+            <!-- ANKET SONUÇLARI SEKMESİ -->
+            <div id="tabList" class="hidden space-y-4 anim-fade">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-3">
+                        <div class="relative lg:col-span-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input id="lsSearch" type="search" oninput="listChanged()" placeholder="Ara: birim, meslek, görüş, tarih..." class="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-slate-900">
+                        </div>
+                        <select id="lsBirim" onchange="listChanged()" class="p-2.5 border border-slate-300 rounded-xl text-xs font-semibold bg-white"></select>
+                        <select id="lsMeslek" onchange="listChanged()" class="p-2.5 border border-slate-300 rounded-xl text-xs font-semibold bg-white"></select>
+                        <select id="lsCins" onchange="listChanged()" class="p-2.5 border border-slate-300 rounded-xl text-xs font-semibold bg-white"></select>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                        <label class="flex items-center gap-1.5 text-slate-600 font-semibold cursor-pointer"><input type="checkbox" id="lsOnlyFb" onchange="listChanged()" class="rounded"> Sadece görüş yazılanlar</label>
+                        <div class="flex items-center gap-3">
+                            <span id="lsInfo" class="text-slate-500 font-bold"></span>
+                            <button onclick="resetListFilters()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold flex items-center gap-1.5"><i class="fa-solid fa-rotate-left"></i> Filtreleri Temizle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="lsNotice" class="hidden bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold rounded-xl px-4 py-3">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Bazı kayıtların ID'si yok. Apps Script kodunu güncelleyip yeniden dağıtın; düzenleme ve silme bundan sonra çalışır.
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b">
+                                <tr>
+                                    <th class="p-2.5 w-10">#</th>
+                                    <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900" onclick="sortBy('date')">Tarih <i data-sk="date" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+                                    <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900" onclick="sortBy('birim')">Birim <i data-sk="birim" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+                                    <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900" onclick="sortBy('meslek')">Meslek <i data-sk="meslek" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+                                    <th class="p-2.5 cursor-pointer select-none whitespace-nowrap hover:text-slate-900" onclick="sortBy('avg')">Ort. Puan <i data-sk="avg" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+                                    <th class="p-2.5">Görüş / Öneri</th>
+                                    <th class="p-2.5 text-right">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lsBody" class="divide-y text-slate-700"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t bg-slate-50 text-[11px] text-slate-600 font-semibold">
+                        <span><i class="fa-solid fa-arrow-up-wide-short mr-1"></i> Sıralamak için sütun başlığına tıklayın</span>
+                        <div class="flex items-center gap-2">
+                            <select id="lsSize" onchange="ls.size=+this.value; ls.page=1; renderList()" class="p-1.5 border border-slate-300 rounded-lg bg-white text-[11px]"><option value="10">10 / sayfa</option><option value="25" selected>25 / sayfa</option><option value="50">50 / sayfa</option><option value="100">100 / sayfa</option></select>
+                            <button id="lsPrev" onclick="goPage(-1)" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="lsPageInfo" class="min-w-[80px] text-center"></span>
+                            <button id="lsNext" onclick="goPage(1)" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAPORLAMA SEKMESİ -->
+            <div id="tabRapor" class="hidden space-y-4 anim-fade">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-3"><div class="text-xs font-bold text-slate-700"><i class="fa-solid fa-file-pdf text-rose-600 mr-1"></i> Çalışan geri bildirimi anketi analiz ve değerlendirme tutanağı</div>
+                    <button onclick="openRpForm()" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-rose-600 hover:bg-rose-700"><i class="fa-solid fa-plus"></i> Rapor Oluştur</button></div>
+            </div>
+
+            <!-- RAPORLARIM SEKMESİ -->
+            <div id="tabGecmis" class="admin-only hidden space-y-4 anim-fade"><div id="gecmisBox"></div></div>
+
+            <div id="tabRaporlarim" class="hidden space-y-4 anim-fade">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b bg-slate-50">
+                        <div class="text-xs font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-folder-open text-amber-500"></i> Kayıtlı Raporlar <span id="rpSavedInfo" class="text-slate-400 font-semibold"></span></div>
+                        <button onclick="rpFetchList()" class="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-[11px] font-bold flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> Yenile</button>
+                    </div>
+                    <div id="rpServerState" class="hidden"></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 font-bold border-b">
+                                <tr>
+                                    <th class="p-2.5 w-10">#</th>
+                                    <th class="p-2.5">Rapor</th>
+                                    <th class="p-2.5">Yıl</th>
+                                    <th class="p-2.5">Çalışan Sayısı</th>
+                                    <th class="p-2.5">Memnuniyet</th>
+                                    <th class="p-2.5">Oluşturma Tarihi</th>
+                                    <th class="p-2.5 text-right">İşlem</th>
+                                    <th class="p-2.5 whitespace-nowrap col-yapan">İşlemi Yapan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rpSavedBody" class="divide-y text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800 no-print">
+            Konya Karapınar Devlet Hastanesi <span id="footYear">2026</span> &copy; Tüm Hakları Saklıdır.
+        </footer>
+    </div>
+
+
+    <!-- RAPOR ÖNİZLEME MODALI -->
+<div id="rpForm" class="fixed inset-0 bg-slate-900/70 z-[70] hidden flex items-center justify-center p-3"><div class="bg-white rounded-2xl w-full max-w-4xl max-h-[94vh] overflow-auto p-5 space-y-5 shadow-2xl">
+ <div class="flex justify-between items-center border-b pb-2"><h3 class="text-xs font-bold text-slate-800"><i class="fa-solid fa-file-pdf text-rose-600 mr-1"></i> Rapor Oluştur — Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı</h3><button onclick="$('rpForm').classList.add('hidden')" class="text-slate-400 text-lg px-2">&times;</button></div>
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Anket Yılı</label><select id="rpYear" onchange="rpYearChanged()" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></select></div>
+  <div class="flex items-end md:col-span-3"><p id="rpYearInfo" class="text-[11px] font-semibold text-slate-400 pb-2"></p></div></div>
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doküman Kodu</label><input id="rpKod" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div><div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Yayın Tarihi</label><input id="rpYayin" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div>
+  <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon No</label><input id="rpRevNo" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div><div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon Tarihi</label><input id="rpRevTar" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div></div>
+ <div class="space-y-3"><div class="flex items-center justify-between gap-3 flex-wrap"><div class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-signature text-slate-500 mr-1"></i> İmza Alanı <span class="font-semibold text-slate-400">(1. kişi en sağda; 4-5 imzada 1. kişi alt satırda ortada)</span></div>
+  <div class="flex items-center gap-2 text-[11px] font-bold text-slate-600">İmza sayısı: <select id="rpSigCount" onchange="rpSigRender()" class="p-1.5 border border-slate-300 rounded-lg bg-white text-xs font-bold"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div></div>
+  <div class="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5"><span class="text-[11px] font-bold text-slate-600">İmza şablonu:</span>
+   <select id="rpSab" onchange="rpSabSec()" class="p-1.5 border border-slate-300 rounded-lg bg-white text-xs font-bold min-w-[10rem]"></select>
+   <input id="rpSabAd" placeholder="Şablon adı" class="p-1.5 border border-slate-300 rounded-lg text-xs bg-white">
+   <button onclick="rpSabKaydet()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">Şablonu Kaydet</button>
+   <button onclick="rpSabSil()" class="px-3 py-1.5 bg-slate-200 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Sil</button></div>
+  <div id="rpSigFields" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div><datalist id="rpNameList"></datalist><datalist id="rpTitleList"></datalist>
+  <div><div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Raporda imza yerleşimi</div><div id="rpSigLayout" class="flex flex-row-reverse border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2"></div></div></div>
+ <div class="flex flex-wrap justify-end gap-2 pt-2 border-t">
+  <button onclick="rpOpenFromForm('view')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-slate-700 hover:bg-slate-800"><i class="fa-solid fa-eye"></i> Önizle</button>
+  <button onclick="rpOpenFromForm('save')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"><i class="fa-solid fa-floppy-disk"></i> Raporlarım'a Kaydet</button>
+  <button onclick="rpOpenFromForm('print')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-rose-600 hover:bg-rose-700"><i class="fa-solid fa-print"></i> PDF / Yazdır</button></div></div></div>
+    <div id="reportModal" class="fixed inset-0 bg-slate-900/80 z-[80] hidden flex items-center justify-center p-3 anim-fade">
+        <div class="rp-shell bg-slate-700 rounded-2xl w-full max-w-[230mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="rp-toolbar px-4 py-3 bg-slate-900 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <div id="rpModalTitle" class="text-sm font-extrabold text-white"></div>
+                    <div id="rpModalSub" class="text-[10px] text-slate-400 font-semibold"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="rpSaveBtn" onclick="rpSaveCurrent()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                    <button onclick="rpPrint()" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i> PDF / Yazdır</button>
+                    <button onclick="rpCloseModal()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold">Kapat</button>
+                </div>
+            </div>
+            <div class="rp-scroll p-4 overflow-auto flex-1"><div id="rpPages"></div></div>
+        </div>
+    </div>
+
+    <!-- QR & LINK MODALI -->
+    <div id="qrModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+            <h3 class="text-sm font-bold text-slate-900 border-b pb-2">Anket QR Kodu ve Bağlantı Linki</h3>
+            <div class="flex justify-center p-3 bg-slate-50 border rounded-xl" id="modalQrCode"></div>
+            <div class="space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">Katılımcı Linki</label>
+                <input type="text" id="surveyUrlInput" readonly class="w-full p-2 border rounded-lg text-xs font-mono bg-slate-100 text-center select-all">
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="copySurveyLink(this)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 border border-slate-200">
+                    <i class="fa-solid fa-copy text-sm"></i> Linki Kopyala
+                </button>
+                <button onclick="saveQr(this)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-[11px] flex flex-col items-center gap-1 border border-slate-200">
+                    <i class="fa-solid fa-download text-sm"></i> QR Kaydet
+                </button>
+                <button onclick="shareSurvey()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[11px] flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-share-nodes text-sm"></i> Paylaş
+                </button>
+            </div>
+            <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold text-xs">Kapat</button>
+        </div>
+    </div>
+
+<!-- SİLME UYARI MODALI -->
+    <div id="delModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl anim-pop space-y-4">
+            <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+                <div class="pulse-ring absolute inset-0 rounded-full"></div>
+                <div class="relative w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-3xl anim-shake"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </div>
+            <h3 class="text-base font-extrabold text-slate-900">Bu yanıt silinsin mi?</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">Seçili anket yanıtı listeden ve tablodan kaldırılır. Silinen satırın bir kopyası Google Sheets'teki <b>IslemGunlugu</b> sayfasına yedeklenir.</p>
+            <div id="delSummary" class="text-left text-[11px] bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-0.5"></div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeDel()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button id="delConfirmBtn" onclick="confirmDelete()" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-trash"></i> Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DÜZENLEME MODALI -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-3 anim-fade">
+        <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl anim-pop">
+            <div class="px-5 py-3 border-b flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900"><i class="fa-solid fa-pen text-blue-600 mr-1"></i> Anket Yanıtını Düzenle</h3>
+                    <p id="editMeta" class="text-[10px] text-slate-400 font-semibold"></p>
+                </div>
+                <button onclick="closeEdit()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="editFields" class="p-5 overflow-y-auto space-y-4 text-xs"></div>
+            <div class="px-5 py-3 border-t flex items-center justify-between gap-3">
+                <p id="editError" class="hidden text-xs font-semibold text-rose-600"></p>
+                <div class="flex gap-2 ml-auto">
+                    <button onclick="closeEdit()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                    <button id="editSaveBtn" onclick="saveEdit()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxR4O8MM7I6u__U7CjZJr7zRb8JOfvzZqm78yKal_fMzMTJnKuFHz65OYwdm4z0xUzc/exec";
+        const SCORE = { "Kesinlikle Katılıyorum": 5, "Katılıyorum": 4, "Kararsızım": 3, "Katılmıyorum": 2, "Kesinlikle Katılmıyorum": 1 };
+        // Sütun sırası (Apps Script ile aynı): 0 Tarih, 1 Yıl, 2 Cinsiyet, 3 Yaş, 4 Eğitim, 5 Meslek, 6 Süre, 7 Birim, 8-28 Sorular, 29 Görüş
+        let HEADERS = [], ALL_ROWS = [];
+        let birimChartInstance = null, scoresChartInstance = null;
+
+        const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        async function fetchData(key) {
+            const res = await fetch(API_URL + "?key=" + encodeURIComponent(key));
+            const txt = await res.text();
+            try { return JSON.parse(txt); }
+            catch (e) { const er = new Error("bad_json"); er.bad = true; throw er; }
+        }
+
+        let lastSig = "", refreshing = false, yearInitDone = false;
+
+        function loadPayload(out) {
+            HEADERS = out.headers || [];
+            ALL_ROWS = out.rows || [];
+            lastSig = JSON.stringify(ALL_ROWS);
+            populateYearFilter();
+            populateListFilters();
+        }
+
+        function populateYearFilter() {
+            const sel = document.getElementById('filterYil');
+            const cur = String(new Date().getFullYear());
+            const keep = sel.value;
+            const years = new Set([cur]);
+            ALL_ROWS.forEach(r => { if (r[1]) years.add(String(r[1])); });
+            const list = [...years].sort().reverse();
+            sel.innerHTML = '<option value="ALL">Tüm Yıllar</option>' + list.map(y => `<option value="${esc(y)}">${esc(y)} Yılı</option>`).join('');
+            const dataYears = [...new Set(ALL_ROWS.map(r => String(r[1] || '')).filter(Boolean))].sort().reverse();
+            const first = dataYears.includes(cur) ? cur : (dataYears[0] || cur);
+            const want = yearInitDone ? keep : first;
+            sel.value = [...sel.options].some(o => o.value === want) ? want : cur;
+            yearInitDone = true;
+        }
+
+        function nowTime() {
+            return new Date().toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hourCycle: 'h23' });
+        }
+
+        function setLastUpdate(msg) {
+            document.getElementById('lastUpdate').textContent = msg || ('Son güncelleme: ' + nowTime());
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'fixed bottom-4 right-4 z-[60] bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2';
+            t.innerHTML = '<i class="fa-solid fa-bell text-amber-400"></i> ' + esc(msg);
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 4000);
+        }
+
+        async function refreshData(manual) {
+            const key = sessionStorage.getItem('kdh_admin_key');
+            if (!key || refreshing) return;
+            refreshing = true;
+            const btn = document.getElementById('refreshBtn'), icon = document.getElementById('refreshIcon');
+            if (manual) { btn.disabled = true; }
+            icon.classList.add('fa-spin');
+            try {
+                const out = await fetchData(key);
+                if (out.status === 'success') {
+                    if (JSON.stringify(out.rows) !== lastSig) {
+                        const prev = ALL_ROWS.length;
+                        loadPayload(out);
+                        applyFiltersAndRender();
+                        if (out.rows.length > prev) showToast((out.rows.length - prev) + ' yeni yanıt geldi');
+                    }
+                    setLastUpdate();
+                } else if (out.message === 'unauthorized') {
+                    logoutToPortal();
+                } else {
+                    setLastUpdate('Güncellenemedi: ' + out.message);
+                }
+            } catch (e) {
+                setLastUpdate('Bağlantı sorunu, Yenile ile tekrar deneyin');
+            } finally {
+                refreshing = false; btn.disabled = false; icon.classList.remove('fa-spin');
+            }
+        }
+
+
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const err = document.getElementById('adminLoginError');
+            const btn = e.target.querySelector('button[type=submit]');
+            const key = document.getElementById('adminPasswordInputPortal').value;
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
+            err.classList.add('hidden');
+            try {
+                const out = await fetchData(key);
+                if (out.status !== "success") {
+                    err.textContent = out.message === "unauthorized" ? "Hatalı şifre!" : "Hata: " + out.message;
+                    err.classList.remove('hidden');
+                    return;
+                }
+                sessionStorage.setItem('kdh_admin_key', key);
+                sessionStorage.removeItem('kdh_tab');      // her girişte 1. sekme
+                loadPayload(out);
+                showAdminInterface();
+            } catch (x) {
+                err.textContent = x.bad
+                    ? "Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış, izin verilmemiş ya da API linki değişmiş olabilir."
+                    : "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.";
+                err.classList.remove('hidden');
+            } finally { btn.disabled = false; btn.innerHTML = oldHtml; }
+        }
+
+        function showAdminInterface() {
+            KDHAuth.init({ api: API_URL, key: function () { return sessionStorage.getItem('kdh_admin_key') || ''; }, title: 'Çalışan Anketi' });
+            document.getElementById('mainAuthPortal').classList.add('hidden');
+            document.getElementById('adminInterface').classList.remove('hidden');
+            document.getElementById('adminInterface').classList.add('flex');
+            applyFiltersAndRender();
+            setLastUpdate();
+            showTab(sessionStorage.getItem('kdh_tab') || 'dash');
+        }
+
+        function logoutToPortal() {
+            sessionStorage.removeItem('kdh_admin_key');
+            sessionStorage.removeItem('kdh_tab');
+            localStorage.removeItem('kdh_admin_bypass');
+            location.href = '../';
+        }
+
+        function getFiltered() {
+            const y = document.getElementById("filterYil").value;
+            return y === "ALL" ? ALL_ROWS : ALL_ROWS.filter(r => String(r[1]) === y);
+        }
+
+        function applyFiltersAndRender() {
+            const f = getFiltered();
+            document.getElementById("statTotalResponses").innerText = f.length;
+
+            const birimCounts = {};
+            f.forEach(r => { const b = r[7] || "Diğer"; birimCounts[b] = (birimCounts[b] || 0) + 1; });
+            // Birim büyüklüğünden etkilenmemesi için katılım sayısı değil ortalama memnuniyet puanı;
+            // az kişili birimlerde kimliğin anlaşılmaması için en az 3 yanıt şartı
+            const MIN_N = 3, grp = {};
+            f.forEach(r => { const b = r[7] || "Diğer"; (grp[b] = grp[b] || []).push(r); });
+            let best = null;
+            for (const b in grp) {
+                if (grp[b].length < MIN_N) continue;
+                const sc = grp[b].flatMap(r => r.slice(8, 29).map(v => SCORE[v]).filter(Boolean));
+                if (!sc.length) continue;
+                const m = sc.reduce((x, y) => x + y, 0) / sc.length;
+                if (!best || m > best.m || (m === best.m && grp[b].length > best.n)) best = { b, m, n: grp[b].length };
+            }
+            document.getElementById("statTopBirim").innerText = best ? best.b : "-";
+            document.getElementById("statTopBirimSub").innerText = best
+                ? best.m.toFixed(2) + " / 5 · " + best.n + " yanıt"
+                : "Yeterli veri yok (birim başına en az " + MIN_N + " yanıt)";
+
+            const all = f.flatMap(r => r.slice(8, 29).map(v => SCORE[v]).filter(Boolean));
+            const avg = all.length ? (all.reduce((x, y) => x + y, 0) / all.length).toFixed(2) : 0;
+            document.getElementById("statAvgScore").innerText = avg + " / 5";
+
+            renderCharts(birimCounts, f);
+            renderFeedbackTable(f);
+            renderList();
+            rpRenderDash(f);
+        }
+
+        function renderCharts(birimCounts, f) {
+            const labels = Object.keys(birimCounts);
+            const colors = labels.map((_, i) => `hsl(${Math.round(i * 360 / Math.max(labels.length, 1))},65%,55%)`);
+            if (birimChartInstance) birimChartInstance.destroy();
+            birimChartInstance = new Chart(document.getElementById('birimChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: Object.values(birimCounts), backgroundColor: colors }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+
+            const avgs = [];
+            for (let q = 0; q < 21; q++) {
+                const v = f.map(r => SCORE[r[8 + q]]).filter(Boolean);
+                avgs.push(v.length ? +(v.reduce((x, y) => x + y, 0) / v.length).toFixed(2) : 0);
+            }
+            if (scoresChartInstance) scoresChartInstance.destroy();
+            scoresChartInstance = new Chart(document.getElementById('scoresChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels: avgs.map((_, i) => 'S' + (i + 1)), datasets: [{ label: 'Ortalama Puan (5 Üzerinden)', data: avgs, backgroundColor: '#10b981' }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { min: 0, max: 5 } },
+                    plugins: { tooltip: { callbacks: { title: items => HEADERS[8 + items[0].dataIndex] || items[0].label } } }
+                }
+            });
+        }
+
+        function renderFeedbackTable(f) {
+            const rows = f.filter(r => (r[29] || "").trim()).reverse();
+            document.getElementById("feedbackTableBody").innerHTML = rows.length ? rows.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-bold">${esc(r[1])}</td>
+                    <td class="p-2.5 font-semibold text-blue-900">${esc(r[7])}</td>
+                    <td class="p-2.5">${esc(r[5])}</td>
+                    <td class="p-2.5 italic">${esc(r[29])}</td>
+                </tr>`).join('') : '<tr><td colspan="4" class="p-3 text-center text-slate-400">Henüz görüş / öneri yok.</td></tr>';
+        }
+
+        function exportToExcel() {
+            const y = document.getElementById("filterYil").value;
+            const ws = XLSX.utils.aoa_to_sheet([HEADERS.slice(0, 30), ...getFiltered().map(r => r.slice(0, 30))]);
+            const wb = XLSX.utils.book_new();
+            // Yıl seçiliyse başlık "2026 Yılı Çalışan Geri Bildirim Anketi"; Excel sayfa adı en çok 31 karakter olabilir
+            const yilli = y && y !== "ALL";
+            const tamBaslik = yilli ? `${y} Yılı Çalışan Geri Bildirim Anketi` : "Çalışan Geri Bildirim Anketi";
+            const sayfaAdi = (yilli ? `${y} Yılı Çalışan Geri Bildirim` : "Çalışan Geri Bildirim Anketi").slice(0, 31);
+            wb.Props = { Title: tamBaslik, Author: "Karapınar Devlet Hastanesi" };
+            XLSX.utils.book_append_sheet(wb, ws, sayfaAdi);
+            XLSX.writeFile(wb, `${tamBaslik}.xlsx`);
+        }
+
+        function openQrModal() {
+            const url = location.origin + location.pathname.replace(/[^\/]*$/, '') + 'anket.html';
+            document.getElementById('surveyUrlInput').value = url;
+            const container = document.getElementById('modalQrCode');
+            container.innerHTML = "";
+            new QRCode(container, { text: url, width: 140, height: 140 });
+            document.getElementById('qrModal').classList.remove('hidden');
+        }
+
+        function openSurveyAsAdmin() {
+            // 2 saat geçerli yönetici izni: anket sayfası tek-cihaz kilidini atlar
+            localStorage.setItem('kdh_admin_bypass', String(Date.now() + 2 * 60 * 60 * 1000));
+            window.open('anket.html', '_blank');
+        }
+
+        function flashBtn(btn, text) {
+            const old = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-sm"></i> ' + text;
+            btn.disabled = true;
+            setTimeout(() => { btn.innerHTML = old; btn.disabled = false; }, 1500);
+        }
+
+        async function copySurveyLink(btn) {
+            const input = document.getElementById('surveyUrlInput');
+            try { await navigator.clipboard.writeText(input.value); }
+            catch (e) { input.select(); document.execCommand('copy'); }
+            flashBtn(btn, 'Kopyalandı!');
+        }
+
+        function saveQr(btn) {
+            const url = document.getElementById('surveyUrlInput').value;
+            const tmp = document.createElement('div');
+            new QRCode(tmp, { text: url, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+            const qr = tmp.querySelector('canvas');
+            if (!qr) { alert('QR kodu oluşturulamadı.'); return; }
+            const pad = 48, cap = 80, out = document.createElement('canvas');
+            out.width = 512 + pad * 2; out.height = 512 + pad * 2 + cap;
+            const g = out.getContext('2d');
+            g.fillStyle = '#ffffff'; g.fillRect(0, 0, out.width, out.height);
+            g.drawImage(qr, pad, pad);
+            g.fillStyle = '#0f172a'; g.textAlign = 'center';
+            g.font = 'bold 24px sans-serif';
+            g.fillText('Çalışan Geri Bildirim Anketi', out.width / 2, 512 + pad * 2 + 8);
+            g.font = '18px sans-serif';
+            g.fillText('Konya Karapınar Devlet Hastanesi', out.width / 2, 512 + pad * 2 + 40);
+            const a = document.createElement('a');
+            a.href = out.toDataURL('image/png');
+            a.download = 'KDH_Anket_QR.png';
+            document.body.appendChild(a); a.click(); a.remove();
+            flashBtn(btn, 'Kaydedildi!');
+        }
+
+        async function shareSurvey() {
+            const url = document.getElementById('surveyUrlInput').value;
+            const title = 'Çalışan Geri Bildirim Anketi';
+            if (navigator.share) {
+                try { await navigator.share({ title, text: 'Konya Karapınar Devlet Hastanesi ' + title, url }); } catch (e) { /* iptal edildi */ }
+            } else {
+                window.open('https://wa.me/?text=' + encodeURIComponent(title + ': ' + url), '_blank');
+            }
+        }
+
+        function tickClock() {
+            const d = new Date();
+            document.getElementById('clockTime').textContent = d.toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hourCycle: 'h23' });
+            document.getElementById('clockDate').textContent = d.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
+        }
+        tickClock(); setInterval(tickClock, 1000);
+        document.getElementById('footYear').textContent = new Date().getFullYear();
+
+        // ================== ANKET SONUÇLARI SEKMESİ ==================
+        const UNIT_GROUPS = [{"g": "Başhekimlik ve Bağlı Birimler", "items": ["Başhekimlik", "Başhekim Yardımcılığı", "Kalite Yönetim Birimi", "Hasta Hakları ve Halkla İlişkiler Birimi", "Enfeksiyon Kontrol Komitesi Birimi", "Hasta ve Çalışan Güvenliği Birimi", "İş Sağlığı ve Güvenliği Birimi", "Hizmet İçi Eğitim Birimi", "Bilgi İşlem (Sağlık Bilgi Sistemleri) Birimi", "Sivil Savunma ve Afet Birimi", "Sosyal Hizmet Birimi"]}, {"g": "İdari ve Mali İşler (Hastane Müdürlüğü)", "items": ["Hastane Müdürlüğü", "Özlük (Personel) Birimi", "Yazı İşleri (Evrak ve Arşiv) Birimi", "Tahakkuk (Maaş) Birimi", "Muhasebe (Gelir-Gider) Birimi", "Satın Alma ve İhale Birimi", "Gelir Tahsilat (Veznedar) Birimi", "Hasta Kabul ve Kayıt Birimi", "Faturalama ve Medikal Kodlama Birimi"]}, {"g": "Destek ve Teknik Hizmetler", "items": ["Teknik Servis", "Biyomedikal Birimi", "Santral (Telefon) Birimi", "Temizlik Hizmetleri", "Güvenlik Hizmetleri", "Yemekhane / Mutfak", "Çamaşırhane", "Ambulans ve Hasta Nakil Hizmetleri", "Morg"]}, {"g": "Sağlık Bakım Hizmetleri Müdürlüğü", "items": ["Sağlık Bakım Hizmetleri Müdürlüğü (Başhemşirelik)", "Eğitim Hemşireliği", "Enfeksiyon Kontrol Hemşireliği", "Kalite Hemşireliği"]}, {"g": "Acil ve Girişimsel Birimler", "items": ["Acil Servis", "Ameliyathane", "Doğumhane", "Sterilizasyon Ünitesi", "Anestezi ve Reanimasyon", "Endoskopi Ünitesi"]}, {"g": "Yataklı Servisler ve Yoğun Bakım", "items": ["Yataklı Servisler", "Dahiliye Servisi", "Cerrahi Servisi", "Kadın Hastalıkları ve Doğum Servisi", "Çocuk Servisi", "Ortopedi Servisi", "Yoğun Bakım", "Yenidoğan Yoğun Bakım", "Koroner Yoğun Bakım", "Palyatif Bakım Ünitesi"]}, {"g": "Poliklinikler", "items": ["Poliklinikler", "Dahiliye Polikliniği", "Genel Cerrahi Polikliniği", "Kadın Hastalıkları ve Doğum Polikliniği", "Çocuk Sağlığı ve Hastalıkları Polikliniği", "Ortopedi ve Travmatoloji Polikliniği", "Kulak Burun Boğaz Polikliniği", "Göz Hastalıkları Polikliniği", "Nöroloji Polikliniği", "Kardiyoloji Polikliniği", "Üroloji Polikliniği", "Dermatoloji (Cildiye) Polikliniği", "Psikiyatri Polikliniği", "Göğüs Hastalıkları Polikliniği", "Enfeksiyon Hastalıkları Polikliniği", "Ağız ve Diş Sağlığı Polikliniği"]}, {"g": "Tanı, Tedavi ve Destek Üniteleri", "items": ["Laboratuvar", "Radyoloji", "Eczane", "Kan Merkezi", "Diyaliz Ünitesi", "Kemoterapi Ünitesi", "Fizik Tedavi ve Rehabilitasyon", "Diyetisyenlik", "Evde Sağlık Hizmetleri"]}, {"g": "Diğer", "items": ["Diğer"]}];
+        const OPT = {"cinsiyet": ["Erkek", "Kadın"], "yas": ["20'nin altında", "20-29", "30-39", "40-49", "50-59", "60 üstü"], "egitim": ["Okuryazar değil", "Okuryazar", "İlkokul", "Ortaokul", "Lise", "Üniversite", "Yüksek Lisans", "Doktora"], "meslek": ["Sağlık Hizmetleri Sınıfı", "İdari Hizmetler Sınıfı", "Yardımcı Sağlık Hizmetleri Sınıfı", "Teknik Hizmetler Sınıfı"], "sure": ["1-5 yıl", "5-15 yıl", "15-25 yıl", "25 yıldan fazla"]};
+        const LIKERT = [
+            "Kesinlikle Katılıyorum",
+            "Katılıyorum",
+            "Kararsızım",
+            "Katılmıyorum",
+            "Kesinlikle Katılmıyorum"
+        ];
+        const $ = id => document.getElementById(id);
+        const normTr = s => String(s ?? "").toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ş/g, "s").replace(/ü/g, "u");
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const ls = { key: 'date', dir: 'desc', page: 1, size: 25, flash: null };
+        let editId = null, delId = null;
+
+        function showTab(t) {
+            const tabs = { dash: ['tabDash', 'tabBtnDash'], list: ['tabList', 'tabBtnList'], rapor: ['tabRapor', 'tabBtnRapor'], gecmis: ['tabGecmis', 'tabBtnGecmis'] };
+            if (t === 'rapl') t = 'rapor';   // Raporlarım artık Raporlar sekmesinin altında
+            if (t === 'gecmis' && !(window.KDHAuth && KDHAuth.who() && KDHAuth.who().rol === 'admin')) t = 'dash';
+            if (!tabs[t]) t = 'dash';
+            const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
+            Object.entries(tabs).forEach(([k, [pid, bid]]) => {
+                $(pid).classList.toggle('hidden', k !== t);
+                $(bid).className = (k === 'gecmis' ? 'admin-only ' : '') + 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 ' + (k === t ? on : off);
+            });
+            $('tabRaporlarim').classList.toggle('hidden', t !== 'rapor');
+            sessionStorage.setItem('kdh_tab', t);
+            if (!RP.fetched) { RP.fetched = true; rpFetchList(); }
+            if (t === 'list') renderList();
+            if (t === 'rapor') rpInitForm();
+            if (t === 'rapor') rpFetchList();
+            if (t === 'gecmis') KDHAuth.history('gecmisBox');
+        }
+
+        function parseTs(s) {
+            const m = String(s || "").match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+            return m ? new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)).getTime() : 0;
+        }
+        function recAvg(r) {
+            const v = r.slice(8, 29).map(x => SCORE[x]).filter(Boolean);
+            return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0;
+        }
+
+        function fillSel(id, label, values) {
+            const sel = $(id), keep = sel.value;
+            const list = [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
+            sel.innerHTML = `<option value="">${label}</option>` + list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+            sel.value = list.includes(keep) ? keep : '';
+        }
+        function populateListFilters() {
+            fillSel('lsBirim', 'Tüm Birimler', ALL_ROWS.map(r => r[7]));
+            fillSel('lsMeslek', 'Tüm Meslekler', ALL_ROWS.map(r => r[5]));
+            fillSel('lsCins', 'Tüm Cinsiyetler', ALL_ROWS.map(r => r[2]));
+        }
+
+        function listFiltered() {
+            const q = normTr($('lsSearch').value.trim()), b = $('lsBirim').value, m = $('lsMeslek').value, c = $('lsCins').value, fb = $('lsOnlyFb').checked;
+            const recs = getFiltered().map(r => ({ id: r[30] || "", r, ts: parseTs(r[0]), avg: recAvg(r) })).filter(x => {
+                const r = x.r;
+                if (b && r[7] !== b) return false;
+                if (m && r[5] !== m) return false;
+                if (c && r[2] !== c) return false;
+                if (fb && !(r[29] || "").trim()) return false;
+                if (q && !normTr([r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[29]].join(" | ")).includes(q)) return false;
+                return true;
+            });
+            const dir = ls.dir === 'asc' ? 1 : -1;
+            const cmp = {
+                date: (a, b) => a.ts - b.ts,
+                birim: (a, b) => String(a.r[7]).localeCompare(String(b.r[7]), 'tr'),
+                meslek: (a, b) => String(a.r[5]).localeCompare(String(b.r[5]), 'tr'),
+                avg: (a, b) => a.avg - b.avg
+            }[ls.key];
+            recs.sort((a, b) => dir * cmp(a, b) || b.ts - a.ts);
+            return recs;
+        }
+
+        function chip(avg) {
+            if (!avg) return '<span class="text-slate-300">-</span>';
+            const c = avg >= 4 ? 'bg-emerald-100 text-emerald-700' : avg >= 3 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700';
+            return `<span class="px-2 py-0.5 rounded-full font-extrabold ${c}">${avg.toFixed(2)}</span>`;
+        }
+
+        function renderList() {
+            const recs = listFiltered(), total = recs.length, all = getFiltered().length;
+            const pages = Math.max(1, Math.ceil(total / ls.size));
+            if (ls.page > pages) ls.page = pages;
+            const start = (ls.page - 1) * ls.size, slice = recs.slice(start, start + ls.size);
+            $('tabCount').textContent = all;
+            $('lsInfo').textContent = total + ' kayıt' + (total !== all ? ' (filtrelendi)' : '');
+            $('lsNotice').classList.toggle('hidden', !slice.some(x => !x.id));
+            $('lsBody').innerHTML = slice.length ? slice.map((x, i) => {
+                const r = x.r, fb = (r[29] || '').trim();
+                const act = x.id
+                    ? `<button onclick="openEdit('${esc(x.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
+                       <button onclick="openDel('${esc(x.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 ml-1"><i class="fa-solid fa-trash"></i></button>`
+                    : '<span class="text-[10px] text-amber-600 font-bold">ID yok</span>';
+                return `<tr data-id="${esc(x.id)}" class="hover:bg-slate-50 ${ls.flash === x.id ? 'row-flash' : ''}">
+                    <td class="p-2.5 text-slate-400">${start + i + 1}</td>
+                    <td class="p-2.5 whitespace-nowrap font-semibold">${esc((r[0] || '').slice(0, 16))}</td>
+                    <td class="p-2.5 font-semibold text-blue-900">${esc(r[7])}</td>
+                    <td class="p-2.5">${esc(r[5])}<div class="text-[10px] text-slate-400">${esc([r[2], r[3], r[6]].filter(Boolean).join(' · '))}</div></td>
+                    <td class="p-2.5">${chip(x.avg)}</td>
+                    <td class="p-2.5 italic text-slate-600 max-w-[240px] truncate" title="${esc(fb)}">${fb ? esc(fb) : '<span class="text-slate-300 not-italic">-</span>'}</td>
+                    <td class="p-2.5 whitespace-nowrap text-right">${act}</td></tr>`;
+            }).join('') : `<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">${all === 0 ? 'Seçili yıl için kayıt yok. Üstteki yıl filtresinden "Tüm Yıllar"ı seçerek diğer yılları görebilirsiniz.' : 'Aramanıza uyan kayıt bulunamadı.'}</td></tr>`;
+            document.querySelectorAll('[data-sk]').forEach(i => {
+                const on = i.dataset.sk === ls.key;
+                i.className = 'fa-solid ml-1 ' + (on ? (ls.dir === 'asc' ? 'fa-sort-up text-slate-800' : 'fa-sort-down text-slate-800') : 'fa-sort text-slate-300');
+            });
+            $('lsPageInfo').textContent = 'Sayfa ' + ls.page + ' / ' + pages;
+            $('lsPrev').disabled = ls.page <= 1; $('lsNext').disabled = ls.page >= pages;
+            ls.flash = null;
+        }
+        function listChanged() { ls.page = 1; renderList(); }
+        function goPage(d) { ls.page += d; renderList(); }
+        function sortBy(k) {
+            if (ls.key === k) ls.dir = ls.dir === 'asc' ? 'desc' : 'asc';
+            else { ls.key = k; ls.dir = (k === 'date' || k === 'avg') ? 'desc' : 'asc'; }
+            ls.page = 1; renderList();
+        }
+        function resetListFilters() {
+            $('lsSearch').value = ''; $('lsBirim').value = ''; $('lsMeslek').value = ''; $('lsCins').value = ''; $('lsOnlyFb').checked = false;
+            listChanged();
+        }
+
+        async function adminPost(payload) {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ ...payload, key: sessionStorage.getItem('kdh_admin_key') })
+            });
+            return await res.json();
+        }
+        function afterChange() {
+            lastSig = JSON.stringify(ALL_ROWS);
+            populateYearFilter(); populateListFilters();
+            applyFiltersAndRender();
+        }
+
+        // ---------- SİLME ----------
+        function openDel(id) {
+            const r = ALL_ROWS.find(x => x[30] === id); if (!r) return;
+            delId = id;
+            $('delSummary').innerHTML =
+                `<div><b>Tarih:</b> ${esc(r[0])}</div><div><b>Birim:</b> ${esc(r[7])}</div><div><b>Meslek:</b> ${esc(r[5])}</div>` +
+                ((r[29] || '').trim() ? `<div class="truncate"><b>Görüş:</b> ${esc(r[29])}</div>` : '');
+            $('delModal').classList.remove('hidden');
+        }
+        function closeDel() { $('delModal').classList.add('hidden'); delId = null; }
+        async function confirmDelete() {
+            const id = delId, btn = $('delConfirmBtn'), old = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Siliniyor...';
+            try {
+                const out = await adminPost({ action: 'delete', id });
+                if (out.status !== 'success') throw new Error(out.message || 'Hata');
+                closeDel();
+                const tr = document.querySelector(`tr[data-id="${id}"]`);
+                if (tr) { tr.classList.add('row-removing'); await sleep(450); }
+                ALL_ROWS = ALL_ROWS.filter(r => r[30] !== id);
+                afterChange();
+                showToast('Kayıt silindi');
+            } catch (e) {
+                alert('Silinemedi: ' + (e.message || e));
+            } finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+
+        // ---------- DÜZENLEME ----------
+        function selHtml(id, options, cur) {
+            let h = '<option value="">Seçiniz...</option>';
+            if (cur && !options.includes(cur)) h += `<option value="${esc(cur)}" selected>${esc(cur)} (eski)</option>`;
+            h += options.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('');
+            return `<select id="${id}" class="w-full p-2 border border-slate-300 rounded-lg bg-white text-xs font-semibold">${h}</select>`;
+        }
+        function unitSelHtml(id, cur) {
+            const all = UNIT_GROUPS.flatMap(g => g.items);
+            let h = '<option value="">Seçiniz...</option>';
+            if (cur && !all.includes(cur)) h += `<option value="${esc(cur)}" selected>${esc(cur)} (eski)</option>`;
+            h += UNIT_GROUPS.map(g => `<optgroup label="${esc(g.g)}">` + g.items.map(u => `<option value="${esc(u)}"${u === cur ? ' selected' : ''}>${esc(u)}</option>`).join('') + '</optgroup>').join('');
+            return `<select id="${id}" class="w-full p-2 border border-slate-300 rounded-lg bg-white text-xs font-semibold">${h}</select>`;
+        }
+        function openEdit(id) {
+            const r = ALL_ROWS.find(x => x[30] === id); if (!r) return;
+            editId = id;
+            const f = (label, html) => `<div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">${label}</label>${html}</div>`;
+            $('editMeta').textContent = r[0] + ' · ID: ' + id;
+            $('editFields').innerHTML =
+                `<div class="grid grid-cols-2 md:grid-cols-4 gap-3">` +
+                f('Yıl', `<input id="ed_yil" type="text" inputmode="numeric" maxlength="4" value="${esc(r[1])}" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold">`) +
+                f('Cinsiyet', selHtml('ed_cinsiyet', OPT.cinsiyet, r[2])) +
+                f('Yaş', selHtml('ed_yas', OPT.yas, r[3])) +
+                f('Eğitim', selHtml('ed_egitim', OPT.egitim, r[4])) +
+                f('Meslek', selHtml('ed_meslek', OPT.meslek, r[5])) +
+                f('Çalışma Süresi', selHtml('ed_sure', OPT.sure, r[6])) +
+                `<div class="col-span-2">` + f('Birim', unitSelHtml('ed_birim', r[7])) + `</div></div>` +
+                `<div class="space-y-1.5">` + Array.from({ length: 21 }, (_, i) =>
+                    `<div class="grid grid-cols-1 md:grid-cols-[1fr_200px] gap-2 items-center bg-slate-50 rounded-lg p-2">
+                        <div class="text-[11px] font-semibold text-slate-700"><span class="text-blue-600 font-black">${i + 1}.</span> ${esc(HEADERS[8 + i] || ('Soru ' + (i + 1)))}</div>
+                        ${selHtml('ed_q' + i, LIKERT, r[8 + i])}</div>`).join('') + `</div>` +
+                f('Görüş ve Öneri', `<textarea id="ed_fb" rows="3" maxlength="2000" class="w-full p-2 border border-slate-300 rounded-lg text-xs">${esc(r[29])}</textarea>`);
+            $('editError').classList.add('hidden');
+            $('editModal').classList.remove('hidden');
+        }
+        function closeEdit() { $('editModal').classList.add('hidden'); editId = null; }
+        async function saveEdit() {
+            const err = $('editError'), btn = $('editSaveBtn'), old = btn.innerHTML;
+            const g = id => $(id).value.trim();
+            const head = [g('ed_yil'), g('ed_cinsiyet'), g('ed_yas'), g('ed_egitim'), g('ed_meslek'), g('ed_sure'), g('ed_birim')];
+            const ans = Array.from({ length: 21 }, (_, i) => $('ed_q' + i).value);
+            const fail = m => { err.textContent = m; err.classList.remove('hidden'); };
+            if (head.some(v => !v) || ans.some(v => !v)) return fail('Lütfen tüm alanları ve 21 soruyu doldurun.');
+            if (!/^\d{4}$/.test(head[0])) return fail('Yıl 4 haneli olmalıdır (örn. 2026).');
+            const values = [...head, ...ans, $('ed_fb').value.trim()];
+            err.classList.add('hidden');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+            try {
+                const out = await adminPost({ action: 'update', id: editId, values });
+                if (out.status !== 'success') throw new Error(out.message || 'Hata');
+                const r = ALL_ROWS.find(x => x[30] === editId);
+                for (let i = 0; i < 29; i++) r[1 + i] = values[i];
+                ls.flash = editId;
+                closeEdit();
+                afterChange();
+                showToast('Kayıt güncellendi');
+            } catch (e) {
+                fail('Kaydedilemedi: ' + (e.message || e));
+            } finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDel(); closeEdit(); } });
+
+
+        // ================== RAPORLAMA ==================
+        // Excel karşılığı: "Seçenek Baz." (sayfa 1) + "Soru Baz." (sayfa 2)
+        //  - Seçenek sayıları  : COUNTIF(soru sütunu; seçenek)            (Veri Tablosu)
+        //  - Seçenek oranı     : seçenek toplamı / toplam cevap * 100
+        //  - Soru ağırlıkları  : Tamamen*4, Katılıyorum*3, Kararsızım*2, Katılmıyorum*1, Kesinlikle Katılmıyorum*0
+        //  - Karşılanma oranı  : SUM(ağırlıklı) / (soru cevap sayısı * 4) * 100
+        //  - Genel puan        : 21 sorunun karşılanma oranlarının ortalaması (SUM(L13:L33/21))
+        //  - Karar metni       : puan < 80 ise "ulaşılamamıştır" + iyileştirme metni, değilse "ulaşılmıştır" + devam metni
+        const RP = {
+            KEY: 'kdh_reports_v1', SIG: 'kdh_rep_sig_v1', META: 'kdh_rep_meta_v1',
+            OPTS: ['Tamamen Katılıyorum', 'Katılıyorum', 'Kararsızım', 'Katılmıyorum', 'Kesinlikle Katılmıyorum'],
+            W: [4, 3, 2, 1, 0], TARGET: 80, NQ: 21,
+            cur: null, curSaved: false, list: [], serverOk: null, fetched: false
+        };
+        const RP_MSG_OK = '        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden tüm soruların hedef değer üzerinde olduğu görülmüş ve aynı şekilde uygulamaların yapılmasına karar verilmiştir.';
+        const RP_MSG_BAD = '        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden hedef değer üzerinde uygunsuzluk olduğu görülmüş ve olumsuz konularda gerekli iyileştirme çalışmalarının yapılmasına karar verilmiştir.';
+
+        const rpFmt = (x, d) => Number(x).toLocaleString('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d });
+        function rpOptIdx(v) {
+            const t = normTr(String(v || '').trim());
+            if (t === 'tamamen katiliyorum' || t === 'kesinlikle katiliyorum') return 0;
+            if (t === 'katiliyorum') return 1;
+            if (t === 'kararsizim') return 2;
+            if (t === 'katilmiyorum') return 3;
+            if (t === 'kesinlikle katilmiyorum') return 4;
+            return -1;
+        }
+        function rpNow() { return new Date().toISOString(); }
+        function rpDateTxt(iso) {
+            const d = new Date(iso), o = { timeZone: 'Europe/Istanbul', hourCycle: 'h23' };
+            return d.toLocaleDateString('tr-TR', { ...o, day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('tr-TR', { ...o, hour: '2-digit', minute: '2-digit' });
+        }
+        function rpLoad(key, def) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? def; } catch (e) { return def; } }
+        function rpStore(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; } }
+
+        // ---- Hesap: seçilen yıl için sayımlar ----
+        function rpCountRows(rows) {
+            const counts = Array.from({ length: RP.NQ }, () => [0, 0, 0, 0, 0]);
+            rows.forEach(r => { for (let q = 0; q < RP.NQ; q++) { const k = rpOptIdx(r[8 + q]); if (k >= 0) counts[q][k]++; } });
+            return counts;
+        }
+        function rpCompute(year) {
+            const rows = ALL_ROWS.filter(r => String(r[1]) === String(year));
+            const counts = rpCountRows(rows);
+            const questions = Array.from({ length: RP.NQ }, (_, q) => String(HEADERS[8 + q] || ('Soru ' + (q + 1))).trim());
+            return { n: rows.length, counts, questions };
+        }
+        // ---- Türetilen değerler (Excel formülleri) ----
+        function rpDerive(s) {
+            const tot = [0, 0, 0, 0, 0];
+            s.counts.forEach(c => c.forEach((v, k) => tot[k] += v));
+            const grand = tot.reduce((a, b) => a + b, 0);
+            const pct = tot.map(v => grand ? v / grand * 100 : 0);
+            const weighted = s.counts.map(c => c.map((v, k) => v * RP.W[k]));
+            const rate = s.counts.map((c, q) => { const n = c.reduce((a, b) => a + b, 0); return n ? weighted[q].reduce((a, b) => a + b, 0) / (n * 4) * 100 : 0; });
+            const score = rate.reduce((a, b) => a + b, 0) / RP.NQ;
+            return { tot, grand, pct, weighted, rate, score, reached: !(score < RP.TARGET) };
+        }
+
+        // ---- Rapor HTML (2 sayfa) ----
+        function rpHeader(meta, pageNo) {
+            const lg = '<img src="logo.png" alt="">';
+            return `<table class="rp-hd">
+                <colgroup><col style="width:46mm"><col style="width:37mm"><col style="width:37mm"><col style="width:37mm"><col style="width:37mm"></colgroup>
+                <tr class="t1"><td>${lg}</td><td colspan="3" class="title">KARAPINAR DEVLET HASTANESİ<br>ÇALIŞAN GERİ BİLDİRİMİ ANKETİ ANALİZ VE DEĞERLENDİRME TUTANAĞI</td><td>${lg}</td></tr>
+                <tr class="b"><td class="b">Doküman Kodu</td><td class="b">Yayın Tarihi</td><td class="b">Revizyon No</td><td class="b">Revizyon Tarihi</td><td class="b">Sayfa No</td></tr>
+                <tr><td>${esc(meta.kod)}</td><td>${esc(meta.yayin)}</td><td>${esc(meta.revNo)}</td><td>${esc(meta.revTar)}</td><td>${pageNo}</td></tr>
+            </table>`;
+        }
+        /* rpSigHtml aşağıda */
+        function rpRender(s) {
+            const d = rpDerive(s), y = s.year, sc = rpFmt(d.score, 2);
+            const th = (t, cls) => `<th><span class="rp-v ${cls || ''}">${t}</span></th>`;
+            const optHead = RP.OPTS.map(o => th(o)).join('');
+
+            // --- Sayfa 1 : Seçenek Bazında ---
+            const rows1 = s.counts.map((c, q) => `<tr><td class="no">${q + 1}</td><td class="l">${esc(s.questions[q])}</td>${c.map(v => `<td class="num">${v}</td>`).join('')}</tr>`).join('');
+            const p1 = `<div class="rp-page">
+                ${rpHeader(s.meta, '1/2')}
+                <div class="rp-row first" style="min-height:6.2mm;"><b>DEĞERLENDİRME TARİH VE SAATİ: ${esc(rpDateTxt(s.createdAt))}</b></div>
+                <div class="rp-row u">KONU: Çalışan Geri Bildirimi Anketi Anket Sonuçlarının ve İyileştirme Çalışmalarının Görüşülmesi</div>
+                <div class="rp-row b u c">ÇALIŞAN GERİ BİLDİRİMİ ANKETİ ANALİZ SONUÇLARI</div>
+                <div class="rp-row b h6">Anketin Uygulandığı Yıl: ${esc(y)}</div>
+                <div class="rp-row b h6">Anket Uygulanan Çalışan Sayısı: ${s.n}</div>
+                <div class="rp-row b h6">Çalışan Geri Bildirimi Anketi Puanı: %${sc}</div>
+                <div class="rp-row u">ANALİZ SONUÇLARI</div>
+                <div class="rp-row b">${esc(y)} yılı içerisinde çalışan geri bildirimi anketini ${s.n} adet memnuniyet anketi uygulanmıştır.</div>
+                <div class="rp-row b">Anket uygulanan çalışanların seçenek bazında verilen cevap sayış ve oranları incelendiğinde;</div>
+                <table class="rp-tbl" style="margin-top:-.3mm">
+                    <colgroup><col style="width:9mm"><col style="width:85mm"><col span="5" style="width:20mm"></colgroup>
+                    <thead><tr><th>${'<span class="rp-v bold">Sıra No</span>'}</th><th class="b" style="font-size:12pt">Anket Soruları</th>${optHead}</tr></thead>
+                    <tbody>${rows1}</tbody>
+                    <tfoot>
+                        <tr><td colspan="2" class="l">Seçenek Bazında Verilen Toplam Cevap Sayısı</td>${d.tot.map(v => `<td class="num">${v}</td>`).join('')}</tr>
+                        <tr><td colspan="2" class="l">Toplam Cevap Sayısı</td><td colspan="5" class="num">${d.grand} Adet</td></tr>
+                        <tr><td colspan="2" class="l">Seçenek Bazında Verilen Cevap Oranı</td>${d.pct.map(v => `<td class="num" style="font-size:9.5pt">%${rpFmt(v, 2)}</td>`).join('')}</tr>
+                    </tfoot>
+                </table>
+            </div>`;
+
+            // --- Sayfa 2 : Soru Bazında ---
+            const rows2 = s.counts.map((c, q) => `<tr><td class="no">${q + 1}</td><td class="l">${esc(s.questions[q])}</td>${d.weighted[q].map(v => `<td class="num">${v}</td>`).join('')}<td class="num">%${Math.round(d.rate[q])}</td></tr>`).join('');
+            const sumTxt = `Anket genelinde seçenek bazında verilen cevap oranına bakıldığında ankete katılanların %${rpFmt(d.pct[0], 2)} Tamamen katılıyorum, %${rpFmt(d.pct[1], 2)} Katılıyorum, %${rpFmt(d.pct[2], 2)} Kararsızım, %${rpFmt(d.pct[3], 2)} Katılmıyorum, %${rpFmt(d.pct[4], 2)} Kesinlikle katılmıyorum cevabını vermiştir.`;
+            const decision1 = `        ${y} yılı çalışan deneyim anket sonuçları değerlendirilmiş olup, memnuniyet oranı %${sc} olarak analiz edilmiş olup hedef değere ${d.reached ? 'ulaşılmıştır.' : 'ulaşılamamıştır.'}`;
+            const decision2 = d.reached ? RP_MSG_OK : RP_MSG_BAD;
+            const p2 = `<div class="rp-page${(s.signers || []).filter(x => (x.name || '').trim() || (x.title || '').trim()).length > 3 ? ' rp-tight' : ''}">
+                ${rpHeader(s.meta, '2/2')}
+                <div class="rp-row first" style="font-size:10.5pt;line-height:1.3;padding-bottom:2mm">${esc(sumTxt)}<div class="b" style="font-size:9.5pt;margin-top:3mm">Anket uygulanan çalışanların soru bazında karşılanma oranları incelendiğinde ;</div></div>
+                <table class="rp-tbl" style="margin-top:-.3mm">
+                    <colgroup><col style="width:9mm"><col style="width:78mm"><col span="5" style="width:17mm"><col style="width:22mm"></colgroup>
+                    <thead><tr><th><span class="rp-v bold">Sıra No</span></th><th class="b" style="font-size:12pt">Anket Soruları</th>${optHead}${th('Soru Bazında Karşılanma Oranı (%)', 'bold')}</tr></thead>
+                    <tbody>${rows2}</tbody>
+                </table>
+                <div class="rp-row b c" style="border-top:0">YAPILACAK İYİLEŞTİRMELER VE ALINAN KARARLAR.</div>
+                <div class="rp-row rp-note" style="font-size:9.5pt;line-height:1.3;padding:2mm 1.4mm"><div class="rp-indent">${esc(decision1.trim())}</div><div class="rp-indent" style="margin-top:3mm">${esc(decision2.trim())}</div></div>
+                ${rpSigHtml(s.signers)}
+            </div>`;
+            return p1 + p2;
+        }
+
+        // ---- Form ----
+        function rpYears() {
+            const set = new Set(ALL_ROWS.map(r => String(r[1] || '')).filter(Boolean));
+            set.add(String(new Date().getFullYear()));
+            return [...set].sort().reverse();
+        }
+        function rxLo(x){return String(x).toLocaleLowerCase('tr-TR');}
+        const RX={tur:'',defMeta:{},tpl:[],metaKey:'',ready:false,get:null,set:null,toast:alert};
+        function rxMetaFill(m){$('rpKod').value=m.kod||'';$('rpYayin').value=m.yayin||'';$('rpRevNo').value=m.revNo||'';$('rpRevTar').value=m.revTar||'';}
+        function rxMetaSave(m){RX.set(RX.metaKey||('rapor_meta_'+RX.tur),m).catch(function(){});}
+        function rxInit(cfg){Object.assign(RX,cfg);if(RX.ready)return;RX.ready=true;rxMetaFill(RX.defMeta);rpSabListe();rpSigRender([]);rxLoad();}
+        async function rxLoad(){let ay={};try{ay=(await RX.get())||{};}catch(e){}
+         RX.tpl=Array.isArray(ay.imza_sablonlari)?ay.imza_sablonlari:[];
+         const mk=Object.keys(ay).find(k=>/meta/.test(k)&&k.indexOf(RX.tur)>=0);RX.metaKey=mk||('rapor_meta_'+RX.tur);
+         const m=ay[RX.metaKey];rxMetaFill(Object.assign({},RX.defMeta,(m&&typeof m==='object')?m:{}));rpSabListe();}
+        function rpSabListe(){$('rpSab').innerHTML='<option value="">— Şablon seçiniz —</option>'+RX.tpl.map(s=>`<option value="${esc(s.id)}">${esc(s.ad)}</option>`).join('');
+         const nm=new Set(),tt=new Set();RX.tpl.forEach(s=>s.signers.forEach(x=>{if(x.name)nm.add(x.name);if(x.title)tt.add(x.title);}));
+         $('rpNameList').innerHTML=[...nm].map(x=>`<option value="${esc(x)}">`).join('');$('rpTitleList').innerHTML=[...tt].map(x=>`<option value="${esc(x)}">`).join('');}
+        function rpSabSec(){const s=RX.tpl.find(x=>x.id===$('rpSab').value);if(!s)return;$('rpSigCount').value=String(s.signers.length);$('rpSabAd').value=s.ad;rpSigRender(s.signers);}
+        async function rpSabKaydet(){const ad=$('rpSabAd').value.trim(),sg=rpSigRead().filter(x=>x.name||x.title);if(!ad||!sg.length)return RX.toast('Şablon adı ve en az bir imzacı gerekli.');
+         const old=RX.tpl.slice(),ex=RX.tpl.find(x=>rxLo(x.ad)===rxLo(ad));
+         if(ex){ex.signers=sg;ex.ad=ad;}else RX.tpl.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),ad,signers:sg});
+         try{const o=await RX.set('imza_sablonlari',RX.tpl);if(o&&o.status&&o.status!=='success')throw new Error(o.message||'Hata');rpSabListe();$('rpSab').value=(RX.tpl.find(x=>rxLo(x.ad)===rxLo(ad))||{}).id||'';RX.toast('Şablon kaydedildi.');}catch(e){RX.tpl=old;rpSabListe();RX.toast('Şablon kaydedilemedi: '+e.message);}}
+        async function rpSabSil(){const id=$('rpSab').value;if(!id||!confirm('Seçili şablon silinsin mi?'))return;const old=RX.tpl.slice();RX.tpl=RX.tpl.filter(x=>x.id!==id);
+         try{const o=await RX.set('imza_sablonlari',RX.tpl);if(o&&o.status&&o.status!=='success')throw new Error(o.message||'Hata');rpSabListe();$('rpSabAd').value='';}catch(e){RX.tpl=old;rpSabListe();RX.toast('Silinemedi: '+e.message);}}
+        function rpSigRead(){const n=+$('rpSigCount').value;return Array.from({length:n},(_,i)=>({name:($('rpSigName'+i)?.value||'').trim(),title:($('rpSigTitle'+i)?.value||'').trim()}));}
+        function rpAutoTitle(i){const nm=$('rpSigName'+i).value.trim();if(!nm||$('rpSigTitle'+i).value.trim())return;for(const s of RX.tpl){const x=s.signers.find(y=>y.name===nm&&y.title);if(x){$('rpSigTitle'+i).value=x.title;return;}}}
+        function rpSigRender(list){const prev=list&&list.length?list:rpSigRead(),n=+$('rpSigCount').value;
+         $('rpSigFields').innerHTML=Array.from({length:n},(_,i)=>{const p=prev[i]||{};return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center"><div class="row-span-2 w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-black flex items-center justify-center">${i+1}</div>
+          <input id="rpSigName${i}" list="rpNameList" onchange="rpAutoTitle(${i})" placeholder="Ad Soyad" value="${esc(p.name||'')}" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"><input id="rpSigTitle${i}" list="rpTitleList" placeholder="Ünvan" value="${esc(p.title||'')}" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"></div>`;}).join('');
+         const dot=i=>`<div class="flex-1 text-center"><span class="inline-flex w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-black items-center justify-center">${i+1}</span><div class="text-[9px] text-slate-400 font-semibold mt-0.5">Adı soyadı</div></div>`,idx=Array.from({length:n},(_,i)=>i),lay=$('rpSigLayout');
+         if(n>=4){lay.className='flex flex-col border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2 gap-2';lay.innerHTML=`<div class="flex flex-row-reverse">${idx.slice(1).map(dot).join('')}</div><div class="flex justify-center"><div class="w-1/3">${dot(0)}</div></div>`;}
+         else{lay.className='flex flex-row-reverse border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2';lay.innerHTML=idx.map(dot).join('');}}
+        
+        function rpSigHtml(sig){const list=(sig||[]).filter(x=>(x.name||'').trim()||(x.title||'').trim());if(!list.length)return '';const cell=x=>`<div><b>${esc(x.name)}</b><span>${esc(x.title)}</span></div>`;
+         if(list.length>=4)return `<div class="rp-sig-wrap"><div class="rp-sig">${list.slice(1).map(cell).join('')}</div><div class="rp-sig alt">${cell(list[0])}</div></div>`;return `<div class="rp-sig">${list.map(cell).join('')}</div>`;}
+        const MSG_OK='        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden tüm soruların hedef değer üzerinde olduğu görülmüş ve aynı şekilde uygulamaların yapılmasına karar verilmiştir.';
+        const MSG_BAD='        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden hedef değer üzerinde uygunsuzluk olduğu görülmüş ve olumsuz konularda gerekli iyileştirme çalışmalarının yapılmasına karar verilmiştir.';
+        
+        
+        function openRpForm() { rpInitForm(); document.getElementById("rpForm").classList.remove("hidden"); }
+        function rpInitForm() {
+            const sel = $('rpYear'), keep = sel.value, years = rpYears();
+            sel.innerHTML = years.map(y => `<option value="${esc(y)}">${esc(y)}</option>`).join('');
+            const f = $('filterYil').value;
+            const withData = years.find(y => ALL_ROWS.some(r => String(r[1]) === y));
+            sel.value = years.includes(keep) ? keep : (f && f !== 'ALL' && years.includes(f) ? f : (withData || years[0]));
+            rxInit({ tur: 'calisan', defMeta: { kod: 'HD.YD.03', yayin: '18.02.2026', revNo: '0', revTar: '0' }, toast: showToast,
+                get: async () => { const r = await fetch(API_URL + '?' + new URLSearchParams({ islem: 'ayar', key: sessionStorage.getItem('kdh_admin_key') || '' })); const o = await r.json(); return o.ayar || {}; },
+                set: (k, v) => adminPost({ action: 'ayarKaydet', anahtar: k, deger: v }) });
+            rpYearChanged();
+        }
+        function rpYearChanged() {
+            const y = $('rpYear').value, n = ALL_ROWS.filter(r => String(r[1]) === y).length;
+            $('rpYearInfo').textContent = n ? (n + ' anket yanıtı') : 'Bu yıl için yanıt yok';
+            $('rpYearInfo').className = 'text-[10px] font-semibold mt-1 ' + (n ? 'text-slate-400' : 'text-rose-500');
+        }
+        
+        function rpSnapshotFromForm() {
+            const year = $('rpYear').value, c = rpCompute(year);
+            if (!c.n) { showToast(year + ' yılı için anket yanıtı yok, rapor oluşturulamadı'); return null; }
+            const meta = { kod: $('rpKod').value.trim(), yayin: $('rpYayin').value.trim(), revNo: $('rpRevNo').value.trim(), revTar: $('rpRevTar').value.trim() };
+            const signers = rpSigRead();
+            rxMetaSave(meta);   // doküman kodları sunucuda saklanır, değiştirene kadar aynı kalır
+            return { v: 1, id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), year, createdAt: rpNow(), n: c.n, counts: c.counts, questions: c.questions, meta, signers };
+        }
+
+        // ---- Modal / kaydet / yazdır ----
+        function rpPaginate(host){
+         const LIM=281*3.7795275591,gl=(p,c)=>p.matches('.rp-gap,.rp-row.b.c,.rp-row.u')||(c.matches('.rp-tbl')&&p.matches('.rp-row'));
+         const pages=[...host.querySelectorAll('.rp-page')];
+         for(let i=0;i<pages.length;i++){const pg=pages[i];let nx=null;
+          while(pg.offsetHeight>LIM&&pg.children.length>2){
+           const mv=[pg.lastElementChild];
+           for(;;){const c=mv[0],p=c.previousElementSibling;if(p&&p!==pg.firstElementChild&&gl(p,c))mv.unshift(p);else break;}
+           if(mv.length>=pg.children.length-1)break;
+           if(!nx){nx=document.createElement('div');nx.className=pg.className;nx.appendChild(pg.firstElementChild.cloneNode(true));pg.after(nx);pages.splice(i+1,0,nx);}
+           const ref=nx.children[1]||null;mv.forEach(m=>nx.insertBefore(m,ref));}
+          }
+         pages.forEach((pg,i)=>{while(pg.children[1]&&pg.children[1].matches('.rp-gap'))pg.children[1].remove();while(pg.lastElementChild&&pg.lastElementChild.matches('.rp-gap'))pg.lastElementChild.remove();
+          const c=pg.querySelector('.rp-hd tr:last-child td:last-child');if(c)c.textContent=(i+1)+'/'+pages.length;});}
+        
+        function rpOpenModal(s, saved) {
+            RP.cur = s; RP.curSaved = !!saved;
+            const d = rpDerive(s);
+            $('rpPages').innerHTML = rpRender(s);
+            $('rpModalTitle').textContent = s.year + ' Yılı Çalışan Geri Bildirimi Anketi — Analiz ve Değerlendirme Tutanağı';
+            $('rpModalSub').textContent = s.n + ' çalışan · Memnuniyet %' + rpFmt(d.score, 2) + ' · ' + rpDateTxt(s.createdAt) + (saved ? ' · Kayıtlı rapor' : '');
+            $('rpSaveBtn').classList.toggle('hidden', !!saved);
+            $('reportModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            rpPaginate($('rpPages'));
+        }
+        function rpCloseModal() { $('reportModal').classList.add('hidden'); document.body.style.overflow = ''; }
+        async function rpOpenFromForm(mode) {
+            const s = rpSnapshotFromForm(); if (!s) return;
+            document.getElementById("rpForm").classList.add("hidden");
+            if (mode === 'save') { const ok = await rpSaveSnapshot(s); rpOpenModal(s, ok); }
+            else { rpOpenModal(s, false); if (mode === 'print') rpPrint(); }
+        }
+        // Önce sunucuya (tüm yöneticiler görür); sunucu eski sürümse bu tarayıcıya yerel kaydeder
+        async function rpSaveSnapshot(s) {
+            try {
+                const out = await adminPost({ action: 'raporKaydet', rapor: s });
+                if (out.status !== 'success') throw new Error(out.message || 'Hata');
+                RP.serverOk = true;
+                showToast('Rapor kaydedildi, diğer yöneticiler de görebilir');
+                await rpFetchList();
+                return true;
+            } catch (e) {
+                const list = rpLoad(RP.KEY, []); list.push(s);
+                if (!rpStore(RP.KEY, list)) { showToast('Rapor kaydedilemedi: ' + (e.message || e)); return false; }
+                RP.serverOk = false;
+                showToast('Sunucuya kaydedilemedi, yalnızca bu tarayıcıya kaydedildi');
+                await rpFetchList();
+                return true;
+            }
+        }
+        async function rpSaveCurrent() {
+            if (!RP.cur || RP.curSaved) return;
+            const btn = $('rpSaveBtn'); btn.disabled = true;
+            const ok = await rpSaveSnapshot(RP.cur);
+            btn.disabled = false;
+            if (ok) { RP.curSaved = true; btn.classList.add('hidden'); }
+        }
+        async function rpPrint() {
+            if (!RP.cur) return;
+            const imgs = [...document.querySelectorAll('#rpPages img')];
+            await Promise.all(imgs.map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; })));
+            const oldTitle = document.title;
+            document.title = RP.cur.year + ' Yılı Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı';
+            document.body.classList.add('rp-printing');
+            const done = () => { document.body.classList.remove('rp-printing'); document.title = oldTitle; window.removeEventListener('afterprint', done); };
+            window.addEventListener('afterprint', done);
+            setTimeout(() => window.print(), 60);
+        }
+
+        // ---- Raporlarım ----
+        async function rpFetchList() {
+            const key = sessionStorage.getItem('kdh_admin_key');
+            let ok = false;
+            try {
+                const res = await fetch(API_URL + '?islem=raporlar&key=' + encodeURIComponent(key || ''));
+                const out = JSON.parse(await res.text());
+                if (out.status === 'success' && Array.isArray(out.raporlar)) { RP.list = out.raporlar; ok = true; }
+            } catch (e) { /* aşağıda yerel listeye düşer */ }
+            RP.serverOk = ok;
+            if (!ok) RP.list = rpLoad(RP.KEY, []);
+            rpRenderSaved(); rpFillSuggest();
+        }
+        function rpFillSuggest() { /* imza şablonları artık sunucudan (KDHSign) gelir */ }
+        function rpRenderSaved() {
+            const list = RP.list.slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+            $('rpSavedInfo').textContent = list.length ? '(' + list.length + ')' : '';
+            const st = $('rpServerState');
+            if (RP.serverOk === false) {
+                st.className = 'px-4 py-2 text-[11px] font-semibold bg-amber-50 border-b border-amber-200 text-amber-800';
+                st.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Sunucu bağlantısı yok ya da Apps Script güncel değil: raporlar yalnızca bu tarayıcıda görünür. Güncel <b>anket_Code.gs</b> kodunu yayınlayınca tüm yöneticiler görür.';
+            } else if (RP.serverOk) {
+                st.className = 'px-4 py-2 text-[11px] font-semibold bg-emerald-50 border-b border-emerald-200 text-emerald-800';
+                st.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Raporlar sunucuda saklanıyor; tüm yöneticiler görebilir.';
+            } else { st.className = 'hidden'; }
+            $('rpSavedBody').innerHTML = list.length ? list.map((s, i) => {
+                const d = rpDerive(s), c = d.reached ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
+                return `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 text-slate-400">${i + 1}</td>
+                    <td class="p-2.5 font-semibold text-blue-900">Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı</td>
+                    <td class="p-2.5 font-bold">${esc(s.year)}</td>
+                    <td class="p-2.5">${s.n}</td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded-full font-extrabold ${c}">%${rpFmt(d.score, 2)}</span></td>
+                    <td class="p-2.5 whitespace-nowrap">${esc(rpDateTxt(s.createdAt))}</td>
+                    <td class="p-2.5 whitespace-nowrap text-right">
+                        <button onclick="rpShowSaved('${esc(s.id)}')" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold"><i class="fa-solid fa-eye mr-1"></i> Göster</button>
+                        <button onclick="rpShowSaved('${esc(s.id)}', true)" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold ml-1"><i class="fa-solid fa-print mr-1"></i> Çıktı Al</button>
+                        <button onclick="rpDeleteSaved('${esc(s.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 ml-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                    <td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap col-yapan">${esc(s.kaydeden || '-')}</td></tr>`;
+            }).join('') : '<tr><td colspan="8" class="p-6 text-center text-slate-400 font-semibold">Henüz kayıtlı rapor yok. Raporlama sekmesinden rapor oluşturup kaydedebilirsiniz.</td></tr>';
+            $('tabRplCount').textContent = list.length;
+        }
+        function rpShowSaved(id, print) {
+            const s = RP.list.find(x => x.id === id); if (!s) return;
+            rpOpenModal(s, true); if (print) rpPrint();
+        }
+        async function rpDeleteSaved(id) {
+            if (!confirm('Bu kayıtlı rapor tüm yöneticiler için silinsin mi?')) return;
+            const local = rpLoad(RP.KEY, []);
+            if (local.some(x => x.id === id)) rpStore(RP.KEY, local.filter(x => x.id !== id));
+            if (RP.serverOk) {
+                try {
+                    const out = await adminPost({ action: 'raporSil', id });
+                    if (out.status !== 'success') throw new Error(out.message || 'Hata');
+                } catch (e) { alert('Silinemedi: ' + (e.message || e)); return; }
+            }
+            await rpFetchList(); showToast('Rapor silindi');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('reportModal').classList.contains('hidden')) rpCloseModal(); });
+
+
+        // ---- Genel Özet: Excel puanları ----
+        let rateChartInstance = null;
+        function rpRenderDash(f) {
+            const s = { counts: rpCountRows(f) }, d = rpDerive(s), has = d.grand > 0;
+            $('statRpScore').textContent = has ? '%' + rpFmt(d.score, 2) : '-';
+            $('statRpScore').className = 'text-2xl font-black ' + (!has ? 'text-slate-900' : d.reached ? 'text-emerald-600' : 'text-rose-600');
+            $('statRpStatus').textContent = !has ? '-' : d.reached ? 'Hedefe ulaşılmıştır' : 'Hedefe ulaşılamamıştır';
+            $('statRpStatusSub').textContent = has ? 'Puan %' + rpFmt(d.score, 2) + ' / hedef %' + RP.TARGET : '';
+            $('statRpPos').textContent = has ? '%' + rpFmt(d.pct[0] + d.pct[1], 2) : '-';
+            const below = d.rate.filter(v => v < RP.TARGET).length;
+            $('statRpBelow').textContent = has ? below + ' / ' + RP.NQ : '-';
+            $('rpDashOpts').innerHTML = RP.OPTS.map((o, k) => `<tr><td class="p-2 font-semibold">${esc(o)}</td><td class="p-2 text-center">${d.tot[k]}</td><td class="p-2 text-center font-bold">%${rpFmt(d.pct[k], 2)}</td></tr>`).join('')
+                + `<tr class="bg-slate-50 font-extrabold"><td class="p-2">Toplam Cevap</td><td class="p-2 text-center">${d.grand}</td><td class="p-2 text-center">%${has ? '100,00' : '0,00'}</td></tr>`;
+            const rates = d.rate.map(v => +v.toFixed(1));
+            if (rateChartInstance) rateChartInstance.destroy();
+            rateChartInstance = new Chart($('rateChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: rates.map((_, i) => 'S' + (i + 1)),
+                    datasets: [
+                        { type: 'bar', label: 'Karşılanma Oranı (%)', data: rates, backgroundColor: rates.map(v => v >= RP.TARGET ? '#10b981' : '#f43f5e'), order: 2 },
+                        { type: 'line', label: 'Hedef (%' + RP.TARGET + ')', data: rates.map(() => RP.TARGET), borderColor: '#0f172a', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { min: 0, max: 100 } },
+                    plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } }, tooltip: { callbacks: { title: items => HEADERS[8 + items[0].dataIndex] || items[0].label } } }
+                }
+            });
+        }
+
+        // Background Animation
+        (function initPortalAnimation() {
+            const canvas = document.getElementById('animatedPortalBg');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize); resize();
+            const particles = [];
+            for (let i = 0; i < 40; i++) {
+                particles.push({ 
+                    x: Math.random() * width, 
+                    y: Math.random() * height, 
+                    size: Math.random() * 3 + 1, 
+                    speedX: (Math.random() - 0.5) * 0.3, 
+                    speedY: -Math.random() * 0.5 - 0.2, 
+                    opacity: Math.random() * 0.5 + 0.2 
+                });
+            }
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.x += p.speedX; p.y += p.speedY;
+                    if (p.y < -10) p.y = height + 10;
+                    ctx.save(); ctx.globalAlpha = p.opacity; ctx.fillStyle = '#94a3b8';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const key = sessionStorage.getItem('kdh_admin_key');
+            if (!key) return;
+            try {
+                const out = await fetchData(key);
+                if (out.status === "success") { loadPayload(out); showAdminInterface(); }
+                else sessionStorage.removeItem('kdh_admin_key');
+            } catch (e) { /* giriş ekranı açık kalır */ }
+        });
+    </script>
+</body>
+</html>

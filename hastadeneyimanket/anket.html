@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hasta Deneyim Anketi - Karapınar Devlet Hastanesi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>body{font-family:Inter,sans-serif}button{cursor:pointer;transition:transform .12s ease,filter .12s ease}button:hover:not(:disabled){filter:brightness(1.1)}button:active:not(:disabled){transform:scale(.96)}
+.lk{transition:all .15s}.lk:hover{transform:translateY(-1px)}.lk:active{transform:scale(.97)}
+.lk[data-s="5"] input:checked+span{background:#16a34a;border-color:#16a34a;color:#fff}.lk[data-s="4"] input:checked+span{background:#65a30d;border-color:#65a30d;color:#fff}
+.lk[data-s="3"] input:checked+span{background:#ca8a04;border-color:#ca8a04;color:#fff}.lk[data-s="2"] input:checked+span{background:#ea580c;border-color:#ea580c;color:#fff}
+.lk[data-s="1"] input:checked+span{background:#dc2626;border-color:#dc2626;color:#fff}
+.lk[data-s="5"]:hover span{background:#f0fdf4;border-color:#86efac}.lk[data-s="4"]:hover span{background:#f7fee7;border-color:#bef264}.lk[data-s="3"]:hover span{background:#fefce8;border-color:#fde047}.lk[data-s="2"]:hover span{background:#fff7ed;border-color:#fdba74}.lk[data-s="1"]:hover span{background:#fef2f2;border-color:#fca5a5}
+.lk input:checked+span{box-shadow:0 2px 8px rgba(0,0,0,.18)}</style></head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+<div class="max-w-2xl mx-auto p-4 space-y-4">
+ <div class="text-center space-y-1 pt-2"><img src="logo.png" class="w-20 h-20 object-contain mx-auto" alt="">
+  <div class="text-[11px] font-bold tracking-widest text-red-600 uppercase">T.C. Sağlık Bakanlığı</div>
+  <h1 class="text-lg font-extrabold">Karapınar Devlet Hastanesi</h1><p class="text-xs text-slate-500 font-semibold">Hasta Deneyim Anketi</p></div>
+ <div id="step1" class="bg-white rounded-2xl p-5 shadow border space-y-3">
+  <h2 class="text-sm font-extrabold">Hastanemizden hangi hizmeti aldınız?</h2><div id="turBtns" class="grid gap-2"></div></div>
+ <div id="step2" class="hidden space-y-4">
+  <div class="bg-white rounded-2xl p-5 shadow border space-y-3"><div class="flex justify-between items-center"><h2 id="turBaslik" class="text-sm font-extrabold"></h2>
+   <button onclick="geri()" class="text-xs font-bold text-slate-500">&larr; Değiştir</button></div><div id="alanlar" class="grid sm:grid-cols-2 gap-3"></div></div>
+  <div id="sorular" class="space-y-3"></div>
+  <div class="bg-white rounded-2xl p-5 shadow border space-y-2"><label class="text-xs font-bold">Varsa görüş ve önerileriniz</label>
+   <textarea id="gorus" rows="3" maxlength="1500" class="w-full p-2 border rounded-xl text-sm"></textarea>
+   <p id="hata" class="text-xs text-rose-600 font-bold hidden"></p>
+   <button id="gonder" onclick="gonder()" class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl text-sm">Anketi Gönder</button></div></div>
+ <div id="bitti" class="hidden bg-white rounded-2xl p-8 shadow border text-center space-y-3"><div class="text-5xl">✅</div>
+  <h2 class="text-base font-extrabold">Teşekkür ederiz</h2><p class="text-xs text-slate-500">Görüşleriniz kaydedildi.</p>
+  <button onclick="location.reload()" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">Yeni Anket</button></div>
+</div>
+<script>
+const LIKERT=["Tamamen Katılıyorum","Katılıyorum","Kararsızım","Katılmıyorum","Kesinlikle Katılmıyorum"];
+const TURLER={"yatan": {"ad": "Yatan Hasta", "kod": "HD.YD.06", "ekEt": "Yattığı Klinik", "katilan": true, "sure": true, "ek": ["Dahiliye Servisi", "Göğüs Servisi", "Ortopedi Servisi", "G. Cerrahi Servisi", "FTR Servisi", "Çocuk Servisi"], "q": ["Hastaneye ulaşımda zorluk yaşamadım.", "Danışma ve yönlendirme hizmetleri yeterliydi.", "Muayene ve tetkikler sırasında kişisel mahremiyetime özen gösterildi.", "Hastaneye yatış işlemleri için çok beklemedim.", "Doktorumun bana ayırdığı süre yeterliydi.", "Doktorum tarafından hastalığım ve tedavim ile ilgili yeterli bilgilendirme yapıldı.", "Hemşireler tarafından tedavim ve bakımım ile ilgili yeterli bilgilendirme yapıldı.", "İhtiyaç halinde sağlık personeline kolaylıkla ulaşabildim.", "Hastane personelinin bana karşı davranışları nezaket kurallarına uygundu.", "Hastane genel olarak temizdi.", "Odadaki eşyalar çalışır durumdaydı", "Yemek dağıtan personel temizlik kurallarına uygun davrandı (bone, eldiven, maske takması vb.).", "Hastaneden ayrılırken taburculuk sonrası süreç ile ilgili yeterli bilgilendirme yapıldı.", "Hastanenin sunmuş olduğu hizmetler beklentilerimi karşıladı.", "Bu hastaneyi aileme ve arkadaşlarıma tavsiye ederim."]}, "ayaktan": {"ad": "Ayaktan Hasta", "kod": "HD.YD.05", "ekEt": "Başvurduğu Poliklinik", "katilan": true, "sure": false, "ek": ["Dahiliye Polikliniği", "Genel Cerrahi Polikliniği", "Göz Hastalıkları Polikliniği", "Psikiyatri Polikliniği", "Nöroloji Polikliniği", "Çocuk Sağlığı ve Hastalıkları Polikliniği", "Kadın Hastalıkları ve Doğum Polikliniği", "Ortopedi Polikliniği", "Kardiyoloji Polikliniği", "Göğüs Hastalıkları Polikliniği", "Üroloji Polikliniği", "Radyoloji Polikliniği", "Kulak Burun Boğaz Hastalıkları Polikliniği", "Diş Hastalıkları Polikliniği", "Cildiye Polikliniği", "Fiziksel Tıp ve Rehabilitasyon Polikliniği"], "q": ["Hastaneye ulaşımda zorluk yaşamadım.", "Danışma ve yönlendirme hizmetleri yeterliydi.", "Hastane içinde ulaşmam gereken birimlere kolaylıkla ulaşabildim.", "Kayıt işlemleri için çok beklemedim.", "Muayene olacağım doktoru kendim seçtim.", "Bekleme alanının fiziki koşulları yeterliydi.", "Muayene olmak için beklediğim süre uygundu.", "Muayene odasının fiziki koşulları yeterliydi.", "Doktorumun bana ayırdığı süre yeterliydi.", "Tahlil ve tetkikler için verilen randevu süreleri uygundu.", "Tahlil ve tetkik sonuçlarımı belirtilen süre içerisinde aldım.", "Doktorum tarafından hastalığım ve tedavim ile ilgili yeterli bilgilendirme yapıldı.", "Muayene ve tetkikler sırasında kişisel mahremiyetime özen gösterildi.", "Hastane personelinin bana karşı davranışları nezaket kurallarına uygundu.", "Hastane genel olarak temizdi.", "Hastanenin sunmuş olduğu hizmetler beklentilerimi karşıladı.", "Bu hastaneden, hiç kimsenin yardımına ihtiyaç duymadan ve kolayca hizmet alabilirim.", "Bu hastaneyi aileme ve arkadaşlarıma tavsiye ederim."]}, "acil": {"ad": "Acil Servis Hasta", "kod": "HD.YD.04", "ekEt": "Acile Başvuru Şekli", "katilan": false, "sure": false, "ek": ["Kendi imkânları ile", "Ambulans ile"], "q": ["Hastaneye ulaşımda zorluk yaşamadım.", "Danışma ve yönlendirme hizmetleri yeterliydi.", "Acil Servis içinde ulaşmam gereken birimlere kolaylıkla ulaşabildim.", "Kayıt işlemleri için çok beklemedim.", "Bekleme alanının fiziki koşulları yeterliydi.", "Muayene ve müdahale için beklediğim süre uygundu.", "Muayene olduğum alanın fiziki koşulları yeterliydi.", "Doktorumun bana ayırdığı süre yeterliydi.", "Muayene ve tetkikler sırasında kişisel mahremiyetime özen gösterildi.", "Tahlil ve tetkikler için verilen randevu süreleri uygundu.", "Tahlil ve tetkik sonuçlarımı belirtilen süre içerisinde aldım.", "Doktorum tarafından hastalığım ve tedavim ile ilgili yeterli bilgilendirme yapıldı.", "İhtiyaç halinde gerekli sağlık personeline kolaylıkla ulaştım.", "Acil servis personeli nezaket kurallarına uygun davrandı.", "Acil servis genel olarak temizdi.", "Acil servisin sunmuş olduğu hizmetler beklentilerimi karşıladı.", "Acil servisten ayrılırken taburculuk sonrası süreç ile ilgili yeterli bilgilendirme yapıldı", "Bu acil servisi aileme ve arkadaşlarıma tavsiye ederim."]}};
+const YAS=["20’nin altında","20-29","30-39","40-49","50-59","60 üstü"];
+const EGITIM=["Okuryazar değil","Okuryazar","İlkokul","Ortaokul","Lise","Üniversite","Yüksek Lisans"];
+const SURE=["1-5 gün","6-10 gün","11 gün ve üzeri"];
+const API_URL="https://script.google.com/macros/s/AKfycbx06FXQLJJJQ9Sn2kkhXklQHi3kBaJfjIl9Aa2rx6fD5-PRJcGdNlVFi8lJxs94a_C-/exec";
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tur=null;
+const TCOL={yatan:'#2563eb',ayaktan:'#0d9488',acil:'#ea580c'},TICO={yatan:'fa-bed-pulse',ayaktan:'fa-stethoscope',acil:'fa-truck-medical'};
+$('turBtns').innerHTML=Object.keys(TURLER).map(k=>`<button onclick="sec('${k}')" style="background:${TCOL[k]}" class="py-4 text-white font-bold rounded-xl text-sm shadow flex items-center justify-center gap-2"><i class="fa-solid ${TICO[k]}"></i>${TURLER[k].ad}</button>`).join('');
+const sel=(id,et,list)=>`<div><label class="block text-[11px] font-bold text-slate-600 mb-1">${et} *</label><select id="${id}" class="w-full p-2.5 border rounded-xl text-sm bg-white"><option value="">Seçiniz</option>${list.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>`;
+function sec(k){tur=k;const T=TURLER[k];$('step1').classList.add('hidden');$('step2').classList.remove('hidden');$('turBaslik').textContent=T.ad+' Anketi';$('turBaslik').style.color=TCOL[k];$('gonder').style.background=TCOL[k];
+ $('alanlar').innerHTML=(T.katilan?sel('fKatilan','Ankete katılan',['Hasta','Hasta Yakını']):'')+sel('fEk',T.ekEt,T.ek)+(T.sure?sel('fSure','Yatış süresi',SURE):'')+sel('fCins','Cinsiyetiniz',['Kadın','Erkek'])+sel('fYas','Yaş kategoriniz',YAS)+sel('fEgitim','Eğitim durumunuz',EGITIM);
+ $('sorular').innerHTML=T.q.map((q,i)=>`<div class="bg-white rounded-2xl p-4 shadow border space-y-2"><div class="text-sm font-semibold"><span class="text-slate-400 font-extrabold mr-1">${i+1}.</span>${esc(q)}</div>
+  <div class="grid grid-cols-1 sm:grid-cols-5 gap-1.5">${LIKERT.map((L,k)=>`<label class="lk cursor-pointer" data-s="${5-k}"><input type="radio" name="q${i}" value="${k}" class="sr-only"><span class="block text-center text-[11px] font-bold p-2 border border-slate-300 rounded-lg bg-white text-slate-700">${L}</span></label>`).join('')}</div></div>`).join('');
+ scrollTo(0,0);}
+function geri(){location.reload();}
+async function gonder(){
+ const T=TURLER[tur],v=id=>$(id)?$(id).value:'',err=m=>{$('hata').textContent=m;$('hata').classList.remove('hidden');};
+ for(const id of ['fKatilan','fEk','fSure','fCins','fYas','fEgitim']) if($(id)&&!v(id)) return err('Lütfen tüm bilgi alanlarını doldurunuz.');
+ const answers=[];for(let i=0;i<T.q.length;i++){const r=document.querySelector(`input[name=q${i}]:checked`);if(!r) return err((i+1)+'. soru yanıtlanmadı.');answers.push(LIKERT[+r.value]);}
+ $('gonder').disabled=true;$('gonder').textContent='Gönderiliyor...';
+ try{const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({tur,katilan:v('fKatilan'),ek:v('fEk'),sure:v('fSure'),cinsiyet:v('fCins'),yas:v('fYas'),egitim:v('fEgitim'),answers,feedback:$('gorus').value})});
+  const o=await res.json();if(o.status!=='success')throw new Error(o.message||'Kayıt hatası');
+  $('step2').classList.add('hidden');$('bitti').classList.remove('hidden');scrollTo(0,0);
+ }catch(e){err('Gönderilemedi: '+e.message);$('gonder').disabled=false;$('gonder').textContent='Anketi Gönder';}}
+</script></body></html>
