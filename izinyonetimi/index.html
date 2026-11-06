@@ -6,6 +6,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Personel İzin Formu - Konya Karapınar Devlet Hastanesi</title>
+   <link rel="icon" type="image/png" href="../favicon.png">
+   <link rel="shortcut icon" href="../favicon.ico">
+   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -135,7 +138,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <div id="printArea"></div>
 
 <script>
-const API_URL='BURAYA_APPS_SCRIPT_WEB_APP_ADRESI';
+const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
 const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Hizmet','Birim','Surekli'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not'],Ayarlar:['Anahtar','Deger']};
 const S={pw:'',ad:'',rol:'',db:{}};let LS='Personel',ER=0,LOAD=0;
 const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
