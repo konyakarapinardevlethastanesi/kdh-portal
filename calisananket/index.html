@@ -4,13 +4,16 @@
     <meta name="kdh-back" content="1">
     <script src="../kdh-theme.js"></script>
     <script src="../kdh-auth.js"></script>
+<script>
+/* ../kdh-auth.js bulunamazsa (ör. klasörü tek başına bilgisayardan açınca) sayfa çökmesin */
+window.KDHAuth=window.KDHAuth||{init:function(){},who:function(){return{ad:'Yönetici',rol:'admin'};},history:function(id){var e=document.getElementById(id);if(e)e.innerHTML='<div class="p-6 text-xs text-slate-500 bg-white rounded-2xl border">İşlem geçmişi için ../kdh-auth.js dosyası bu klasörün bir üstünde bulunmalı.</div>';}};
+window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){return d;},saveMeta:function(){},init:function(o){M=document.getElementById(o.mount);if(M)M.innerHTML='<div class="text-[11px] font-bold text-slate-600 mb-1">İmza Alanı</div><div class="grid grid-cols-1 md:grid-cols-2 gap-2">'+[0,1,2].map(function(i){return '<input data-sn="'+i+'" placeholder="Ad Soyad" class="p-2 border border-slate-300 rounded-lg text-xs"><input data-st="'+i+'" placeholder="Unvan" class="p-2 border border-slate-300 rounded-lg text-xs">';}).join('')+'</div>';return Promise.resolve();},signers:function(){var r=[];[0,1,2].forEach(function(i){var n=M&&M.querySelector('[data-sn="'+i+'"]'),t=M&&M.querySelector('[data-st="'+i+'"]');if(n&&(n.value||t.value))r.push({name:n.value.trim(),title:t.value.trim()});});return r;}};})();
+</script>
     <script src="../kdh-sign.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cg fill='%23fff' fill-rule='evenodd'%3E%3Cpath transform='translate(3.2 18)' d='M0 0H5V12.2L11.4 0H17.4L9.6 14.1L17.8 28H11.6L5 16.4V28H0Z'/%3E%3Cpath transform='translate(23.4 18)' d='M0 0H8.2C14 0 17.4 5 17.4 14S14 28 8.2 28H0Z M5 4.8V23.2H7.6C10.8 23.2 12.3 19.6 12.3 14S10.8 4.8 7.6 4.8Z'/%3E%3Cpath transform='translate(43.6 18)' d='M0 0H5V11.4H12.4V0H17.4V28H12.4V16.2H5V28H0Z'/%3E%3C/g%3E%3C/svg%3E">
     <title>Yönetici Paneli - Konya Karapınar Devlet Hastanesi</title>
-        <link rel="icon" type="image/png" href="../favicon.png">
-        <link rel="shortcut icon" href="../favicon.ico">
-        <link rel="apple-touch-icon" href="../apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -74,6 +77,10 @@
         .rp-sig > div { flex: 1 1 0; min-width: 0; text-align: center; padding: 0 2mm; min-height: 12mm; }
         .rp-sig b { display: block; font-size: 9.5pt; line-height: 1.2; }
         .rp-sig span { display: block; font-size: 9pt; line-height: 1.2; margin-top: 1mm; }
+        .rp-sig-wrap { margin-top: 5mm; }
+        .rp-sig-wrap .rp-sig { margin-top: 0; }
+        .rp-sig-wrap .rp-sig.alt { justify-content: center; margin-top: 4mm; }
+        .rp-sig-wrap .rp-sig.alt > div { flex: 0 1 50%; }
         #reportModal .rp-scroll { background: #475569; }
         @media print {
             @page { size: A4 portrait; margin: 7mm; }
@@ -103,16 +110,16 @@
                 <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
                 <p class="text-[11px] text-slate-400 font-bold">Çalışan Memnuniyet Anketi · Analiz ve Raporlama</p>
             </div>
-            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
+            <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-700 space-y-4">
                 <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-3">
-                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-user-gear text-slate-900"></i> Yönetici Giriş Paneli
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-white border-b border-slate-700 pb-2">
+                        <i class="fa-solid fa-user-gear text-white"></i> Yönetici Giriş Paneli
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
-                        <input type="password" id="adminPasswordInputPortal" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-slate-900">
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
+                        <input type="password" id="adminPasswordInputPortal" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-600 bg-slate-800 text-white placeholder-slate-400 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
                         <i class="fa-solid fa-sliders"></i> Yönetici Paneline Giriş Yap
                     </button>
                     <p id="adminLoginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
@@ -376,31 +383,8 @@
 
             <!-- RAPORLAMA SEKMESİ -->
             <div id="tabRapor" class="hidden space-y-4 anim-fade">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
-                        <i class="fa-solid fa-file-pdf text-rose-600"></i> Rapor Oluştur — Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı
-                    </h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                        <div class="md:col-span-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Anket Yılı</label>
-                            <select id="rpYear" onchange="rpYearChanged()" class="w-full p-2 border border-slate-300 rounded-lg bg-white text-xs font-bold"></select>
-                            <p id="rpYearInfo" class="text-[10px] text-slate-400 font-semibold mt-1"></p>
-                        </div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doküman Kodu</label><input id="rpKod" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Yayın Tarihi</label><input id="rpYayin" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon No</label><input id="rpRevNo" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
-                        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon Tarihi</label><input id="rpRevTar" type="text" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"></div>
-                    </div>
-
-                    <div id="rpSigMount" class="space-y-1"></div>
-
-                    <div class="flex flex-wrap items-center justify-end gap-2 pt-2 border-t">
-                        <button onclick="rpOpenFromForm('view')" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizle</button>
-                        <button onclick="rpOpenFromForm('save')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Raporlarım'a Kaydet</button>
-                        <button onclick="rpOpenFromForm('print')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2"><i class="fa-solid fa-print"></i> PDF / Yazdır</button>
-                    </div>
-                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-3"><div class="text-xs font-bold text-slate-700"><i class="fa-solid fa-file-pdf text-rose-600 mr-1"></i> Çalışan geri bildirimi anketi analiz ve değerlendirme tutanağı</div>
+                    <button onclick="openRpForm()" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-rose-600 hover:bg-rose-700"><i class="fa-solid fa-plus"></i> Rapor Oluştur</button></div>
             </div>
 
             <!-- RAPORLARIM SEKMESİ -->
@@ -441,6 +425,27 @@
 
 
     <!-- RAPOR ÖNİZLEME MODALI -->
+<div id="rpForm" class="fixed inset-0 bg-slate-900/70 z-[70] hidden flex items-center justify-center p-3"><div class="bg-white rounded-2xl w-full max-w-4xl max-h-[94vh] overflow-auto p-5 space-y-5 shadow-2xl">
+ <div class="flex justify-between items-center border-b pb-2"><h3 class="text-xs font-bold text-slate-800"><i class="fa-solid fa-file-pdf text-rose-600 mr-1"></i> Rapor Oluştur — Çalışan Geri Bildirimi Anketi Analiz ve Değerlendirme Tutanağı</h3><button onclick="$('rpForm').classList.add('hidden')" class="text-slate-400 text-lg px-2">&times;</button></div>
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Anket Yılı</label><select id="rpYear" onchange="rpYearChanged()" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></select></div>
+  <div class="flex items-end md:col-span-3"><p id="rpYearInfo" class="text-[11px] font-semibold text-slate-400 pb-2"></p></div></div>
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Doküman Kodu</label><input id="rpKod" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div><div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Yayın Tarihi</label><input id="rpYayin" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div>
+  <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon No</label><input id="rpRevNo" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div><div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Revizyon Tarihi</label><input id="rpRevTar" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"></div></div>
+ <div class="space-y-3"><div class="flex items-center justify-between gap-3 flex-wrap"><div class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-signature text-slate-500 mr-1"></i> İmza Alanı <span class="font-semibold text-slate-400">(1. kişi en sağda; 4-5 imzada 1. kişi alt satırda ortada)</span></div>
+  <div class="flex items-center gap-2 text-[11px] font-bold text-slate-600">İmza sayısı: <select id="rpSigCount" onchange="rpSigRender()" class="p-1.5 border border-slate-300 rounded-lg bg-white text-xs font-bold"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div></div>
+  <div class="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5"><span class="text-[11px] font-bold text-slate-600">İmza şablonu:</span>
+   <select id="rpSab" onchange="rpSabSec()" class="p-1.5 border border-slate-300 rounded-lg bg-white text-xs font-bold min-w-[10rem]"></select>
+   <input id="rpSabAd" placeholder="Şablon adı" class="p-1.5 border border-slate-300 rounded-lg text-xs bg-white">
+   <button onclick="rpSabKaydet()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">Şablonu Kaydet</button>
+   <button onclick="rpSabSil()" class="px-3 py-1.5 bg-slate-200 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold">Sil</button></div>
+  <div id="rpSigFields" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div><datalist id="rpNameList"></datalist><datalist id="rpTitleList"></datalist>
+  <div><div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Raporda imza yerleşimi</div><div id="rpSigLayout" class="flex flex-row-reverse border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2"></div></div></div>
+ <div class="flex flex-wrap justify-end gap-2 pt-2 border-t">
+  <button onclick="rpOpenFromForm('view')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-slate-700 hover:bg-slate-800"><i class="fa-solid fa-eye"></i> Önizle</button>
+  <button onclick="rpOpenFromForm('save')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"><i class="fa-solid fa-floppy-disk"></i> Raporlarım'a Kaydet</button>
+  <button onclick="rpOpenFromForm('print')" class="px-4 py-2 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2 bg-rose-600 hover:bg-rose-700"><i class="fa-solid fa-print"></i> PDF / Yazdır</button></div></div></div>
     <div id="reportModal" class="fixed inset-0 bg-slate-900/80 z-[80] hidden flex items-center justify-center p-3 anim-fade">
         <div class="rp-shell bg-slate-700 rounded-2xl w-full max-w-[230mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="rp-toolbar px-4 py-3 bg-slate-900 flex flex-wrap items-center justify-between gap-2">
@@ -1113,7 +1118,7 @@
                 <tr><td>${esc(meta.kod)}</td><td>${esc(meta.yayin)}</td><td>${esc(meta.revNo)}</td><td>${esc(meta.revTar)}</td><td>${pageNo}</td></tr>
             </table>`;
         }
-        function rpSigHtml(sig) { return KDHSign.sigHtml(sig); }
+        /* rpSigHtml aşağıda */
         function rpRender(s) {
             const d = rpDerive(s), y = s.year, sc = rpFmt(d.score, 2);
             const th = (t, cls) => `<th><span class="rp-v ${cls || ''}">${t}</span></th>`;
@@ -1170,20 +1175,50 @@
             set.add(String(new Date().getFullYear()));
             return [...set].sort().reverse();
         }
+        function rxLo(x){return String(x).toLocaleLowerCase('tr-TR');}
+        const RX={tur:'',defMeta:{},tpl:[],metaKey:'',ready:false,get:null,set:null,toast:alert};
+        function rxMetaFill(m){$('rpKod').value=m.kod||'';$('rpYayin').value=m.yayin||'';$('rpRevNo').value=m.revNo||'';$('rpRevTar').value=m.revTar||'';}
+        function rxMetaSave(m){RX.set(RX.metaKey||('rapor_meta_'+RX.tur),m).catch(function(){});}
+        function rxInit(cfg){Object.assign(RX,cfg);if(RX.ready)return;RX.ready=true;rxMetaFill(RX.defMeta);rpSabListe();rpSigRender([]);rxLoad();}
+        async function rxLoad(){let ay={};try{ay=(await RX.get())||{};}catch(e){}
+         RX.tpl=Array.isArray(ay.imza_sablonlari)?ay.imza_sablonlari:[];
+         const mk=Object.keys(ay).find(k=>/meta/.test(k)&&k.indexOf(RX.tur)>=0);RX.metaKey=mk||('rapor_meta_'+RX.tur);
+         const m=ay[RX.metaKey];rxMetaFill(Object.assign({},RX.defMeta,(m&&typeof m==='object')?m:{}));rpSabListe();}
+        function rpSabListe(){$('rpSab').innerHTML='<option value="">— Şablon seçiniz —</option>'+RX.tpl.map(s=>`<option value="${esc(s.id)}">${esc(s.ad)}</option>`).join('');
+         const nm=new Set(),tt=new Set();RX.tpl.forEach(s=>s.signers.forEach(x=>{if(x.name)nm.add(x.name);if(x.title)tt.add(x.title);}));
+         $('rpNameList').innerHTML=[...nm].map(x=>`<option value="${esc(x)}">`).join('');$('rpTitleList').innerHTML=[...tt].map(x=>`<option value="${esc(x)}">`).join('');}
+        function rpSabSec(){const s=RX.tpl.find(x=>x.id===$('rpSab').value);if(!s)return;$('rpSigCount').value=String(s.signers.length);$('rpSabAd').value=s.ad;rpSigRender(s.signers);}
+        async function rpSabKaydet(){const ad=$('rpSabAd').value.trim(),sg=rpSigRead().filter(x=>x.name||x.title);if(!ad||!sg.length)return RX.toast('Şablon adı ve en az bir imzacı gerekli.');
+         const old=RX.tpl.slice(),ex=RX.tpl.find(x=>rxLo(x.ad)===rxLo(ad));
+         if(ex){ex.signers=sg;ex.ad=ad;}else RX.tpl.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),ad,signers:sg});
+         try{const o=await RX.set('imza_sablonlari',RX.tpl);if(o&&o.status&&o.status!=='success')throw new Error(o.message||'Hata');rpSabListe();$('rpSab').value=(RX.tpl.find(x=>rxLo(x.ad)===rxLo(ad))||{}).id||'';RX.toast('Şablon kaydedildi.');}catch(e){RX.tpl=old;rpSabListe();RX.toast('Şablon kaydedilemedi: '+e.message);}}
+        async function rpSabSil(){const id=$('rpSab').value;if(!id||!confirm('Seçili şablon silinsin mi?'))return;const old=RX.tpl.slice();RX.tpl=RX.tpl.filter(x=>x.id!==id);
+         try{const o=await RX.set('imza_sablonlari',RX.tpl);if(o&&o.status&&o.status!=='success')throw new Error(o.message||'Hata');rpSabListe();$('rpSabAd').value='';}catch(e){RX.tpl=old;rpSabListe();RX.toast('Silinemedi: '+e.message);}}
+        function rpSigRead(){const n=+$('rpSigCount').value;return Array.from({length:n},(_,i)=>({name:($('rpSigName'+i)?.value||'').trim(),title:($('rpSigTitle'+i)?.value||'').trim()}));}
+        function rpAutoTitle(i){const nm=$('rpSigName'+i).value.trim();if(!nm||$('rpSigTitle'+i).value.trim())return;for(const s of RX.tpl){const x=s.signers.find(y=>y.name===nm&&y.title);if(x){$('rpSigTitle'+i).value=x.title;return;}}}
+        function rpSigRender(list){const prev=list&&list.length?list:rpSigRead(),n=+$('rpSigCount').value;
+         $('rpSigFields').innerHTML=Array.from({length:n},(_,i)=>{const p=prev[i]||{};return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center"><div class="row-span-2 w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-black flex items-center justify-center">${i+1}</div>
+          <input id="rpSigName${i}" list="rpNameList" onchange="rpAutoTitle(${i})" placeholder="Ad Soyad" value="${esc(p.name||'')}" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"><input id="rpSigTitle${i}" list="rpTitleList" placeholder="Ünvan" value="${esc(p.title||'')}" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white"></div>`;}).join('');
+         const dot=i=>`<div class="flex-1 text-center"><span class="inline-flex w-6 h-6 rounded-full bg-slate-900 text-white text-[11px] font-black items-center justify-center">${i+1}</span><div class="text-[9px] text-slate-400 font-semibold mt-0.5">Adı soyadı</div></div>`,idx=Array.from({length:n},(_,i)=>i),lay=$('rpSigLayout');
+         if(n>=4){lay.className='flex flex-col border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2 gap-2';lay.innerHTML=`<div class="flex flex-row-reverse">${idx.slice(1).map(dot).join('')}</div><div class="flex justify-center"><div class="w-1/3">${dot(0)}</div></div>`;}
+         else{lay.className='flex flex-row-reverse border border-dashed border-slate-300 rounded-xl bg-slate-50 py-3 px-2';lay.innerHTML=idx.map(dot).join('');}}
+        
+        function rpSigHtml(sig){const list=(sig||[]).filter(x=>(x.name||'').trim()||(x.title||'').trim());if(!list.length)return '';const cell=x=>`<div><b>${esc(x.name)}</b><span>${esc(x.title)}</span></div>`;
+         if(list.length>=4)return `<div class="rp-sig-wrap"><div class="rp-sig">${list.slice(1).map(cell).join('')}</div><div class="rp-sig alt">${cell(list[0])}</div></div>`;return `<div class="rp-sig">${list.map(cell).join('')}</div>`;}
+        const MSG_OK='        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden tüm soruların hedef değer üzerinde olduğu görülmüş ve aynı şekilde uygulamaların yapılmasına karar verilmiştir.';
+        const MSG_BAD='        Soru bazında karşılanma oranları incelendiğinde soruların katılıyorum/kesinlikle katılıyorum cevapları baz alınarak hedefin %80 ve üzeri olması beklendiğinden hedef değer üzerinde uygunsuzluk olduğu görülmüş ve olumsuz konularda gerekli iyileştirme çalışmalarının yapılmasına karar verilmiştir.';
+        
+        
+        function openRpForm() { rpInitForm(); document.getElementById("rpForm").classList.remove("hidden"); }
         function rpInitForm() {
             const sel = $('rpYear'), keep = sel.value, years = rpYears();
             sel.innerHTML = years.map(y => `<option value="${esc(y)}">${esc(y)}</option>`).join('');
             const f = $('filterYil').value;
             const withData = years.find(y => ALL_ROWS.some(r => String(r[1]) === y));
             sel.value = years.includes(keep) ? keep : (f && f !== 'ALL' && years.includes(f) ? f : (withData || years[0]));
-            if (!$('rpKod').dataset.init) {
-                $('rpKod').dataset.init = '1';
-                const defMeta = { kod: 'HD.YD.03', yayin: '18.02.2026', revNo: '0', revTar: '0' };
-                const fillMeta = () => { const m = KDHSign.meta(defMeta); $('rpKod').value = m.kod; $('rpYayin').value = m.yayin; $('rpRevNo').value = m.revNo; $('rpRevTar').value = m.revTar; };
-                const initP = KDHSign.init({ api: API_URL, key: () => sessionStorage.getItem('kdh_admin_key') || '', tur: 'calisan', mount: 'rpSigMount' });
-                fillMeta();   // önce yerel değerler, sunucu cevabı gelince güncellenir
-                initP.then(fillMeta);
-            }
+            rxInit({ tur: 'calisan', defMeta: { kod: 'HD.YD.03', yayin: '18.02.2026', revNo: '0', revTar: '0' }, toast: showToast,
+                get: async () => { const r = await fetch(API_URL + '?' + new URLSearchParams({ islem: 'ayar', key: sessionStorage.getItem('kdh_admin_key') || '' })); const o = await r.json(); return o.ayar || {}; },
+                set: (k, v) => adminPost({ action: 'ayarKaydet', anahtar: k, deger: v }) });
             rpYearChanged();
         }
         function rpYearChanged() {
@@ -1191,13 +1226,13 @@
             $('rpYearInfo').textContent = n ? (n + ' anket yanıtı') : 'Bu yıl için yanıt yok';
             $('rpYearInfo').className = 'text-[10px] font-semibold mt-1 ' + (n ? 'text-slate-400' : 'text-rose-500');
         }
-        function rpSigRead() { return KDHSign.signers(); }
+        
         function rpSnapshotFromForm() {
             const year = $('rpYear').value, c = rpCompute(year);
             if (!c.n) { showToast(year + ' yılı için anket yanıtı yok, rapor oluşturulamadı'); return null; }
             const meta = { kod: $('rpKod').value.trim(), yayin: $('rpYayin').value.trim(), revNo: $('rpRevNo').value.trim(), revTar: $('rpRevTar').value.trim() };
             const signers = rpSigRead();
-            KDHSign.saveMeta(meta);   // doküman kodları sunucuda saklanır, değiştirene kadar aynı kalır
+            rxMetaSave(meta);   // doküman kodları sunucuda saklanır, değiştirene kadar aynı kalır
             return { v: 1, id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), year, createdAt: rpNow(), n: c.n, counts: c.counts, questions: c.questions, meta, signers };
         }
 
@@ -1215,6 +1250,7 @@
         function rpCloseModal() { $('reportModal').classList.add('hidden'); document.body.style.overflow = ''; }
         async function rpOpenFromForm(mode) {
             const s = rpSnapshotFromForm(); if (!s) return;
+            document.getElementById("rpForm").classList.add("hidden");
             if (mode === 'save') { const ok = await rpSaveSnapshot(s); rpOpenModal(s, ok); }
             else { rpOpenModal(s, false); if (mode === 'print') rpPrint(); }
         }
