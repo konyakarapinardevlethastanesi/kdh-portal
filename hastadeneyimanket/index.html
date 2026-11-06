@@ -538,7 +538,7 @@ function rpPaginate(host,stretch){
   for(let k=0;k<3&&rows.length;k++){const ex=T-pg.offsetHeight;if(ex<MM)break;const per=Math.min(ex/rows.length*.9,8*MM);rows.forEach(r=>{r.style.height=((r.offsetHeight+per)/MM)+'mm';});}}
 }
 function rpOpenModal(s,saved){CUR=s;$('rpPages').innerHTML=rpRender(s);const d=derive(s.counts);$('rpModalTitle').textContent=s.ay+' '+s.year+' · '+TURLER[s.tur].ad+' — Hasta Deneyim Anketi Analiz ve Değerlendirme Tutanağı';
- $('rpModalSub').textContent=s.n+' hasta · Memnuniyet %'+fmt(d.score,2)+' · '+rpDateTxt(s.createdAt)+(saved?' · Kayıtlı rapor':'');$('rpSaveBtn').classList.toggle('hidden',!!saved);$('reportModal').classList.remove('hidden');document.body.style.overflow='hidden';rpPaginate($('rpPages'),true);}
+ $('rpModalSub').textContent=s.n+' hasta · Memnuniyet %'+fmt(d.score,2)+' · '+rpDateTxt(s.createdAt)+(saved?' · Kayıtlı rapor':'')+' · düzen v3';$('rpSaveBtn').classList.toggle('hidden',!!saved);$('reportModal').classList.remove('hidden');document.body.style.overflow='hidden';rpPaginate($('rpPages'),true);}
 function rpCloseModal(){$('reportModal').classList.add('hidden');document.body.style.overflow='';}
 async function rpGo(mode){const s=rpSnapshot();if(!s)return;$('rpForm').classList.add('hidden');
  if(mode==='save'){const ok=await rpSaveSnap(s);rpOpenModal(s,ok);}else{rpOpenModal(s,false);if(mode==='print')rpPrint();}}

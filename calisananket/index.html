@@ -1260,7 +1260,7 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             const d = rpDerive(s);
             $('rpPages').innerHTML = rpRender(s);
             $('rpModalTitle').textContent = s.year + ' Yılı Çalışan Geri Bildirimi Anketi — Analiz ve Değerlendirme Tutanağı';
-            $('rpModalSub').textContent = s.n + ' çalışan · Memnuniyet %' + rpFmt(d.score, 2) + ' · ' + rpDateTxt(s.createdAt) + (saved ? ' · Kayıtlı rapor' : '');
+            $('rpModalSub').textContent = s.n + ' çalışan · Memnuniyet %' + rpFmt(d.score, 2) + ' · ' + rpDateTxt(s.createdAt) + (saved ? ' · Kayıtlı rapor' : '') + ' · düzen v3';
             $('rpSaveBtn').classList.toggle('hidden', !!saved);
             $('reportModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';

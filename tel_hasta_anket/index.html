@@ -1475,7 +1475,7 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             RPH.cur = s; RPH.curSaved = !!saved;
             $("rphPages").innerHTML = rphRender(s);
             $("rphModalTitle").textContent = "Telefonla Hasta Memnuniyeti — Analiz ve Değerlendirme Tutanağı";
-            $("rphModalSub").textContent = rphRangeTxt(s.from, s.to) + " · " + s.n + " görüşme · Memnuniyet %" + rphFmt(s.puan, 2) + (saved ? " · Kayıtlı rapor" : "");
+            $("rphModalSub").textContent = rphRangeTxt(s.from, s.to) + " · " + s.n + " görüşme · Memnuniyet %" + rphFmt(s.puan, 2) + (saved ? " · Kayıtlı rapor" : "") + " · düzen v3";
             $("rphSaveBtn").classList.toggle("hidden", !!saved);
             $("reportModal").classList.remove("hidden"); $("reportModal").classList.add("flex");
             document.body.style.overflow = "hidden";
