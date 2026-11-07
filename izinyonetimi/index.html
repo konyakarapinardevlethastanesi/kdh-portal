@@ -19,6 +19,13 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .lb{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:.25rem}
 .tab-on{background:#fff;color:#0f172a;border-color:#e2e8f0;box-shadow:0 1px 2px rgba(15,23,42,.08)}.tab-off{background:transparent;color:#64748b;border-color:transparent}.tab-off:hover{color:#1e293b}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}.anim-fade{animation:fadeIn .22s ease both}
+@keyframes popIn{0%{opacity:0;transform:scale(.7) translateY(24px)}60%{opacity:1;transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg)}30%{transform:rotate(11deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(6deg)}75%{transform:rotate(-3deg)}}
+@keyframes ring{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.8);opacity:0}}
+.anim-pop{animation:popIn .38s cubic-bezier(.2,.9,.3,1.2) both}.anim-shake{animation:shake .9s ease .3s both}
+.pulse-ring::before,.pulse-ring::after{content:"";position:absolute;inset:0;border-radius:9999px;background:rgba(244,63,94,.35);animation:ring 1.8s ease-out infinite}.pulse-ring::after{animation-delay:.9s}
+tr.row-removing{transition:all .45s ease;opacity:0;transform:translateX(40px);background:#fee2e2}
+@media (prefers-reduced-motion:reduce){.anim-pop,.anim-shake,.pulse-ring::before,.pulse-ring::after{animation:none}}
 #sec-editor .inp{padding:.8rem .95rem}
 .fm{display:grid;width:7.81in;background:#fff;font:8pt Calibri,Carlito,Arial,sans-serif;color:#000;
 grid-template-columns:4.1fr 5.5fr 1.6fr 3.1fr 6.9fr 5.5fr 4.5fr 12.2fr 2.5fr 2.5fr 6.9fr 5.9fr 4.5fr 3.9fr 8.6fr 4.5fr 5.9fr 3.2fr;
@@ -71,6 +78,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
     </div>
    </div>
    <div class="flex items-center space-x-3">
+    <button id="whoChip" onclick="S.rol=='admin'&&usrOpen()" title="Kullanıcılar" class="hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700"><i class="fa-solid fa-circle-user text-emerald-400"></i><span id="whoName"></span><span id="whoRol" class="text-amber-300"></span><i class="admin-only fa-solid fa-chevron-down text-[8px] text-slate-400"></i></button>
     <div class="text-right leading-tight shrink-0 hidden sm:block"><div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums"></div><div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums"></div></div>
     <div class="h-8 w-px bg-slate-700"></div>
     <button onclick="logout()" class="px-3 py-1.5 bg-slate-800 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
@@ -168,19 +176,20 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
  </div>
 </div>
 
-<!-- UYARI / ONAY -->
-<div id="dlg" class="hidden fixed inset-0 z-[90] bg-slate-900/60 items-center justify-center p-4">
- <div class="bg-white rounded-2xl p-5 w-full max-w-sm shadow-2xl"><p id="dlgMsg" class="text-sm font-semibold text-slate-800 mb-4"></p>
-  <div class="flex gap-2 justify-end"><button onclick="dlg(false)" class="px-4 py-2 text-xs bg-slate-200 text-slate-700 font-semibold rounded-lg">Vazgeç</button><button id="dlgOk" onclick="dlg(true)" class="px-4 py-2 text-xs bg-rose-600 text-white font-semibold rounded-lg">Sil</button></div></div>
+<!-- UYARI / ONAY (silme vb.) -->
+<div id="cfModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[90] items-center justify-center p-4 anim-fade">
+ <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl anim-pop space-y-4">
+  <div class="relative w-20 h-20 mx-auto flex items-center justify-center"><div class="pulse-ring absolute inset-0 rounded-full"></div><div id="cfIcon" class="relative w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-3xl anim-shake"><i class="fa-solid fa-triangle-exclamation"></i></div></div>
+  <h3 id="cfTitle" class="text-base font-extrabold text-slate-900"></h3>
+  <p id="cfText" class="text-xs text-slate-500 leading-relaxed"></p>
+  <div id="cfSummary" class="hidden text-left text-[11px] bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-0.5"></div>
+  <p id="cfErr" class="hidden text-xs text-rose-600 font-semibold"></p>
+  <div class="grid grid-cols-2 gap-2"><button onclick="cfAnswer(false)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button><button id="cfOk" onclick="cfAnswer(true)" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"></button></div>
+ </div>
 </div>
 <div id="toast" class="hidden"></div>
-<!-- KİM GİRİŞ YAPTI + KULLANICILAR -->
-<div id="whoBar" class="hidden fixed bottom-10 left-4 z-[60] flex items-center gap-2">
- <div class="px-4 py-2.5 rounded-full bg-slate-900 text-white text-xs font-extrabold shadow-xl flex items-center gap-2 border border-slate-700"><i class="fa-solid fa-user-shield"></i><span id="whoName"></span><span id="whoRol" class="text-[10px] font-semibold text-slate-400"></span></div>
- <button id="usrBtn" onclick="usrOpen()" class="hidden px-4 py-2.5 rounded-full bg-blue-600 text-white text-xs font-extrabold shadow-xl">Kullanıcılar</button>
-</div>
 <div id="usrM" class="hidden fixed inset-0 z-[85] bg-slate-900/50 backdrop-blur-sm items-start justify-center p-4 pt-12 overflow-auto" onclick="if(event.target==this)usrClose()">
- <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl space-y-4">
+ <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl space-y-4 anim-pop">
   <div class="flex items-center gap-3"><h3 class="text-lg font-extrabold text-slate-800 mr-auto">Kullanıcılar — Personel İzin Formu</h3><button onclick="usrClose()" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">Kapat</button></div>
   <p class="text-sm text-slate-500 -mt-2">Her kullanıcı kendi şifresiyle girer; yaptığı işlemler adıyla kaydedilir. Şifreler birbirinden ve yönetici şifresinden farklı olmalı.</p>
   <div id="usrList" class="space-y-2"></div>
@@ -200,15 +209,25 @@ const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>
 const p2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),tr=s=>s?String(s).slice(0,10).split('-').reverse().join('.'):'';
 const pd=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d)},nx=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
 async function api(o){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({...o,pw:S.pw})});return r.json()}
-function note(m,e){const t=$('toast');t.textContent=m;t.className='fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl text-xs font-bold text-white shadow-xl '+(e?'bg-rose-600':'bg-emerald-600');clearTimeout(t._t);t._t=setTimeout(()=>t.className='hidden',3500)}
-function ask(m,ok='Sil'){$('dlgMsg').textContent=m;$('dlgOk').textContent=ok;$('dlg').classList.replace('hidden','flex');return new Promise(r=>_res=r)}
-function dlg(v){$('dlg').classList.replace('flex','hidden');_res(v)}
+function note(m,e){const t=document.createElement('div');t.className='fixed bottom-4 right-4 z-[100] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 anim-fade '+(e?'bg-rose-600':'bg-slate-900');t.innerHTML='<i class="fa-solid '+(e?'fa-circle-exclamation':'fa-bell text-amber-400')+'"></i> '+E(m);document.body.appendChild(t);setTimeout(()=>t.remove(),4000)}
+let cfRes=null,cfAct=null;
+function askConfirm(o){return new Promise(res=>{cfRes=res;cfAct=o.action||null;const c=o.color||'rose',pal={rose:['bg-rose-100 text-rose-600','bg-rose-600 hover:bg-rose-700'],amber:['bg-amber-100 text-amber-600','bg-slate-900 hover:bg-slate-800']}[c];
+ $('cfIcon').className='relative w-16 h-16 rounded-full flex items-center justify-center text-3xl anim-shake '+pal[0];$('cfIcon').innerHTML='<i class="fa-solid '+(o.icon||'fa-triangle-exclamation')+'"></i>';
+ $('cfOk').className='py-2.5 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 '+pal[1];$('cfOk').innerHTML='<i class="fa-solid '+(c=='rose'?'fa-trash':'fa-check')+'"></i> '+E(o.ok||'Tamam');
+ $('cfTitle').textContent=o.title;$('cfText').textContent=o.text||'';const s=$('cfSummary');s.innerHTML=o.summary||'';s.classList.toggle('hidden',!o.summary);$('cfErr').classList.add('hidden');$('cfModal').classList.replace('hidden','flex')})}
+async function cfAnswer(yes){if(yes&&cfAct){const b=$('cfOk'),old=b.innerHTML;b.disabled=true;b.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+  try{await cfAct()}catch(x){$('cfErr').textContent='İşlem yapılamadı: '+(x.message||x);$('cfErr').classList.remove('hidden');b.disabled=false;b.innerHTML=old;return}b.disabled=false;b.innerHTML=old}
+ $('cfModal').classList.replace('flex','hidden');const r=cfRes;cfRes=null;cfAct=null;if(r)r(!!yes)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('cfModal').classList.contains('hidden'))cfAnswer(false)});
+// silinecek kaydın özeti (uyarı penceresinde gösterilir)
+function sumRow(sh,r){if(!r)return'';if(sh=='Kayitlar')return`<div><b>Personel:</b> ${E(r.Ad)}</div><div><b>İzin:</b> ${E([r.Tur,r.Detay].filter(Boolean).join(' - '))}</div><div><b>Tarih:</b> ${E(tr(r.Bas))}${r.Bit&&r.Bit!=r.Bas?' – '+E(tr(r.Bit)):''}</div>`;
+ return(COLS[sh]||[]).slice(0,3).filter(c=>r[c]!==undefined&&r[c]!=='').map(c=>`<div><b>${E(lab(sh,c))}:</b> ${E(r[c])}</div>`).join('')}
 
 /* GİRİŞ */
 document.addEventListener('click',e=>{const t=e.target;if(t&&t.type==='date'&&t.showPicker){try{t.showPicker()}catch(_){}}});
 const KEY='izin_key';
 function showApp(r){S.ad=r.ad;S.rol=r.rol;S.db=r.db;$('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.replace('hidden','flex');
- $('whoName').textContent=S.ad;$('whoRol').textContent=S.rol=='admin'?'Yönetici':'Kullanıcı';$('whoBar').classList.remove('hidden');if(S.rol=='admin')$('usrBtn').classList.remove('hidden');
+ $('whoName').textContent=S.ad;$('whoRol').textContent='· '+(S.rol=='admin'?'Yönetici':'Kullanıcı');$('whoChip').classList.remove('hidden');if(S.rol!='admin')$('whoChip').style.cursor='default';
  if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
  $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor');if(S.rol=='admin'){const w=tatilKontrol();if(w)setTimeout(()=>note(w,1),900)}}
 async function doLogin(first){const r=await api({a:'get',first:first?1:0});if(!r.ok)throw new Error(r.err||'unauthorized');showApp(r)}
@@ -299,7 +318,9 @@ function renderSaved(){const q=lc($('svSearch').value),t=$('svTur').value,u=$('s
  $('svBody').innerHTML=R.map(([r,i])=>`<tr class="border-t"><td class="p-2">${E(r.Zaman)}</td><td class="p-2">${E(r.Kullanici)}</td><td class="p-2 font-semibold">${E(r.Ad)}</td><td class="p-2">${E(r.Tur)} ${E(r.Detay)}</td><td class="p-2 whitespace-nowrap">${tr(r.Bas)} - ${tr(r.Bit)}</td><td class="p-2">${E(r.Gun)}</td>
  <td class="p-2 text-right whitespace-nowrap"><button onclick="openRec(${i})" class="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg font-semibold">Aç / Yazdır</button>${S.rol=='admin'?` <button onclick="delRow('Kayitlar',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button>`:''}</td></tr>`).join('')||'<tr><td class="p-4 text-slate-400" colspan="7">Kayıt yok.</td></tr>'}
 function openRec(i){const r=S.db.Kayitlar[i],F={};['Ad','Tur','Detay','Bas','Bit','Gun','Don','Adres','Acik','Kalan','BV','MV'].forEach(k=>F[k]=r[k]??'');pvOpen(F,0)}
-async function delRow(sh,r){if(!await ask('Bu kayıt silinsin mi? Bu işlem geri alınamaz.'))return;let x;try{x=await api({a:'del',sheet:sh,r})}catch(e){x={err:'Sunucuya ulaşılamadı'}}if(!x.ok)return note(x.err||'Silinemedi',1);note('Silindi.');await reload(1)}
+async function delRow(sh,r){const row=(S.db[sh]||[]).find(x=>x._r==r),tr=document.activeElement&&document.activeElement.closest?document.activeElement.closest('tr'):null;
+ const ok=await askConfirm({title:'Bu kayıt silinsin mi?',text:'Bu işlem geri alınamaz. Silinen kayıt İşlem Geçmişi\'ne yazılır.',ok:'Evet, Sil',summary:sumRow(sh,row),action:async()=>{let x;try{x=await api({a:'del',sheet:sh,r})}catch(e){throw new Error('Sunucuya ulaşılamadı')}if(!x.ok)throw new Error(x.err||'Silinemedi')}});
+ if(!ok)return;if(tr){tr.classList.add('row-removing');await new Promise(z=>setTimeout(z,450))}note('Silindi.');await reload(1)}
 
 /* LİSTELER (yönetici) */
 function sel(s,c){return{'Personel.Birim':S.db.Birimler.map(b=>[b.Birim,b.Birim]),'Personel.Istihdam':S.db.Istihdam.map(x=>[x.Istihdam,x.Istihdam]),
@@ -340,7 +361,9 @@ async function usrSave(row,r){let x;try{x=await api({a:'put',sheet:'Kullanicilar
 async function usrAdd(){const ad=$('usrAd').value.trim(),pw=$('usrPw').value.trim();if(!ad)return note('Ad Soyad boş olamaz.',1);const e=usrErr(pw,-1);if(e)return note(e,1);if(S.db.Kullanicilar.some(u=>lc(u.Ad)==lc(ad)))return note('Bu isimde bir kullanıcı zaten var.',1);
  if(await usrSave({Ad:ad,Sifre:pw},0)){$('usrAd').value=$('usrPw').value='';note('Kullanıcı eklendi.');usrRender()}}
 async function usrPw(i){const u=S.db.Kullanicilar[i],pw=$('usrNew').value.trim(),e=usrErr(pw,i);if(e)return note(e,1);if(await usrSave({Ad:u.Ad,Sifre:pw},u._r)){UE=-1;note('Şifre güncellendi.');usrRender()}}
-async function usrDel(i){const u=S.db.Kullanicilar[i];if(!await ask(u.Ad+' kullanıcısı silinsin mi?'))return;let x;try{x=await api({a:'del',sheet:'Kullanicilar',r:u._r})}catch(e){x={err:'Sunucuya ulaşılamadı'}}if(!x.ok)return note(x.err||'Silinemedi',1);note('Kullanıcı silindi.');await reload(1);usrRender()}
+async function usrDel(i){const u=S.db.Kullanicilar[i];
+ const ok=await askConfirm({title:'Kullanıcı silinsin mi?',text:'Bu kullanıcı artık şifresiyle giriş yapamaz. Yaptığı işlemler İşlem Geçmişi\'nde kalır.',ok:'Evet, Sil',summary:`<div><b>Kullanıcı:</b> ${E(u.Ad)}</div>`,action:async()=>{let x;try{x=await api({a:'del',sheet:'Kullanicilar',r:u._r})}catch(e){throw new Error('Sunucuya ulaşılamadı')}if(!x.ok)throw new Error(x.err||'Silinemedi')}});
+ if(!ok)return;note('Kullanıcı silindi.');await reload(1);usrRender()}
 </script>
 </body>
 </html>
