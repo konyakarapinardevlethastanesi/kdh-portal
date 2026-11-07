@@ -5,12 +5,13 @@
 <script src="../kdh-theme.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cg fill='%23fff' fill-rule='evenodd'%3E%3Cpath transform='translate(3.2 18)' d='M0 0H5V12.2L11.4 0H17.4L9.6 14.1L17.8 28H11.6L5 16.4V28H0Z'/%3E%3Cpath transform='translate(23.4 18)' d='M0 0H8.2C14 0 17.4 5 17.4 14S14 28 8.2 28H0Z M5 4.8V23.2H7.6C10.8 23.2 12.3 19.6 12.3 14S10.8 4.8 7.6 4.8Z'/%3E%3Cpath transform='translate(43.6 18)' d='M0 0H5V11.4H12.4V0H17.4V28H12.4V16.2H5V28H0Z'/%3E%3C/g%3E%3C/svg%3E">
 <title>Personel İzin Formu - Konya Karapınar Devlet Hastanesi</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-body{font-family:'Inter',sans-serif}
+body{font-family:'Inter',sans-serif}input,textarea,select{-webkit-user-select:text;user-select:text}
 button{cursor:pointer;transition:filter .15s,transform .12s}
 button:hover:not(:disabled){filter:brightness(1.08)}button:active:not(:disabled){transform:scale(.96)}button:disabled{opacity:.6;cursor:wait}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
@@ -42,13 +43,13 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
    <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
    <p class="text-[11px] text-slate-400 font-bold">Personel İzin Formu Sistemi</p>
   </div>
-  <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-700 space-y-4">
+  <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
-    <div class="flex items-center gap-1.5 text-xs font-bold text-white border-b border-slate-700 pb-2"><i class="fa-solid fa-user-gear text-white"></i> Kullanıcı / Yönetici Girişi</div>
-    <div><label class="block text-[11px] font-bold text-slate-300 mb-1">Şifre <span class="text-rose-500">*</span></label>
-    <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-600 bg-slate-800 text-white placeholder-slate-400 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-blue-500"></div>
-    <button id="loginBtn" type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
-    <p id="loginError" class="text-xs text-rose-400 hidden font-semibold text-center">Hatalı şifre!</p>
+    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2"><i class="fa-solid fa-user-gear text-slate-900"></i> Kullanıcı / Yönetici Girişi</div>
+    <div><label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
+    <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-blue-500"></div>
+    <button id="loginBtn" type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+    <p id="loginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
    </form>
   </div>
  </div>
@@ -87,15 +88,15 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 
   <!-- İZİN YAZ -->
   <section id="sec-editor" class="hidden">
-   <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4 max-w-4xl mx-auto" style="border-top:4px solid #dc2626">
-    <div class="relative">
-     <label class="lb">Personel</label>
-     <input id="kisi" class="inp pr-9" placeholder="Personel seçin veya ad yazarak arayın" autocomplete="off" oninput="cb()" onfocus="cb()" onblur="setTimeout(()=>$('kisiDd').classList.add('hidden'),150)">
-     <button id="kisiX" type="button" onclick="clrKisi()" title="Temizle" class="hidden absolute right-2 top-[2.05rem] w-6 h-6 rounded-full text-slate-400 hover:text-rose-600"><i class="fa-solid fa-xmark"></i></button>
-     <div id="kisiDd" class="hidden absolute z-30 mt-1 w-full max-h-64 overflow-auto bg-white border border-slate-200 rounded-xl shadow-xl"></div>
-     <p id="kisiInfo" class="text-xs text-slate-500 mt-1"></p>
-    </div>
-    <div class="grid sm:grid-cols-2 gap-4">
+   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-md" style="border-top:4px solid #dc2626">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 items-start">
+     <div class="relative md:col-span-2">
+      <label class="lb">Personel</label>
+      <input id="kisi" class="inp pr-9" placeholder="Personel seçin veya ad yazarak arayın" autocomplete="off" oninput="cb()" onfocus="cb()" onblur="setTimeout(()=>$('kisiDd').classList.add('hidden'),150)">
+      <button id="kisiX" type="button" onclick="clrKisi()" title="Temizle" class="hidden absolute right-2 top-[1.9rem] w-6 h-6 rounded-full text-slate-400 hover:text-rose-600"><i class="fa-solid fa-xmark"></i></button>
+      <div id="kisiDd" class="hidden absolute z-30 mt-1 w-full max-h-64 overflow-auto bg-white border border-slate-200 rounded-xl shadow-xl"></div>
+      <p id="kisiInfo" class="text-xs text-slate-500 mt-1"></p>
+     </div>
      <div><label class="lb">İzin Türü</label><select id="tur" class="inp" onchange="onTur()"></select></div>
      <div id="detayBox"><label class="lb">İzin Detay</label><select id="detay" class="inp" onchange="onTur(1)"></select></div>
      <div><label class="lb">Başlangıç Tarihi</label><input id="bas" type="date" class="inp" onchange="onBas()"></div>
@@ -104,23 +105,29 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
      <div><label class="lb">İşe Başlama Tarihi</label><input id="don" type="date" class="inp"></div>
      <div><label class="lb">Mevcut İzin (gün)</label><input id="mevcut" type="number" min="0" class="inp" oninput="updK()"><p id="kalanHint" class="text-xs text-slate-500 mt-1"></p></div>
      <div><label class="lb">İzinde Bulunulacak Adres</label><input id="adres" class="inp"></div>
-    </div>
-    <div><label class="lb">Açıklama</label><input id="acik" class="inp"></div>
-    <div class="grid sm:grid-cols-2 gap-4">
+     <div class="md:col-span-2"><label class="lb">Açıklama</label><input id="acik" class="inp"></div>
      <div><label class="lb">Başhekim Vekili</label><select id="bv" class="inp"></select></div>
      <div><label class="lb">Müdür Vekili</label><select id="mv" class="inp"></select></div>
-    </div>
-    <div class="flex flex-wrap gap-2 pt-2">
-     <button onclick="preview()" class="px-5 py-2.5 text-xs bg-slate-700 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizleme</button>
-     <button id="prBtn" onclick="doPrint()" class="px-5 py-2.5 text-xs bg-blue-600 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-print"></i> Yazdır (otomatik kaydeder)</button>
-     <button onclick="resetForm()" class="px-5 py-2.5 text-xs bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl flex items-center gap-2 ml-auto"><i class="fa-solid fa-eraser"></i> Formu Temizle</button>
+     <div class="md:col-span-2 flex flex-wrap gap-2 justify-end items-end self-end">
+      <button onclick="resetForm()" class="px-4 py-2.5 text-xs bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eraser"></i> Temizle</button>
+      <button onclick="preview()" class="px-5 py-2.5 text-xs bg-slate-700 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizleme</button>
+      <button id="prBtn" onclick="doPrint()" class="px-5 py-2.5 text-xs bg-blue-600 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-print"></i> Yazdır (otomatik kaydeder)</button>
+     </div>
     </div>
    </div>
   </section>
 
   <!-- KAYITLI İZİNLER -->
   <section id="sec-saved" class="hidden space-y-4">
-   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><input id="svSearch" oninput="renderSaved()" placeholder="Personel veya izin türü ara..." class="inp"></div>
+   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+    <div class="lg:col-span-2"><label class="lb">Ara</label><input id="svSearch" oninput="renderSaved()" placeholder="Personel veya izin türü..." class="inp"></div>
+    <div><label class="lb">İzin Türü</label><select id="svTur" onchange="renderSaved()" class="inp"></select></div>
+    <div><label class="lb">Kullanıcı</label><select id="svUser" onchange="renderSaved()" class="inp"></select></div>
+    <div><label class="lb">İzin başlangıcı (en erken)</label><input id="svFrom" type="date" onchange="renderSaved()" class="inp"></div>
+    <div><label class="lb">İzin başlangıcı (en geç)</label><input id="svTo" type="date" onchange="renderSaved()" class="inp"></div>
+    <div class="lg:col-span-2"><label class="lb">Sıralama</label><select id="svSort" onchange="renderSaved()" class="inp"><option value="kyeni">Kayıt tarihi: yeni → eski</option><option value="keski">Kayıt tarihi: eski → yeni</option><option value="byeni">İzin başlangıcı: yeni → eski</option><option value="beski">İzin başlangıcı: eski → yeni</option><option value="ad">Adı Soyadı: A → Z</option></select></div>
+    <div class="flex items-center gap-3 lg:col-span-2"><button onclick="svClear()" class="px-4 py-2.5 text-xs bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl">Filtreleri Temizle</button><span id="svCount" class="text-xs text-slate-500 font-semibold"></span></div>
+   </div>
    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr class="text-left"><th class="p-2">Kayıt</th><th class="p-2">Kullanıcı</th><th class="p-2">Personel</th><th class="p-2">İzin</th><th class="p-2">Tarih</th><th class="p-2">Gün</th><th class="p-2 text-right">İşlem</th></tr></thead><tbody id="svBody"></tbody></table></div>
   </section>
 
@@ -129,7 +136,16 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
    <div id="lsTabs" class="flex flex-wrap gap-2"></div>
    <p id="lsHelp" class="text-xs text-slate-500"></p>
    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><div id="lsForm" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end"></div></div>
-   <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm"><input id="lsQ" oninput="renderLists(1)" placeholder="Listede ara..." class="inp"></div>
+   <div id="tatilUyari" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs font-semibold text-amber-800"></div>
+   <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+    <div><label class="lb">Ara</label><input id="lsQ" oninput="renderLists(1)" placeholder="Listede ara..." class="inp"></div>
+    <div id="lsPers" class="contents">
+     <div><label class="lb">Birim</label><select id="lsBirim" onchange="LSF.birim=this.value;renderLists(1)" class="inp"></select></div>
+     <div><label class="lb">İstihdam Şekli</label><select id="lsIst" onchange="LSF.ist=this.value;renderLists(1)" class="inp"></select></div>
+     <div><label class="lb">Sıralama</label><select id="lsSort" onchange="LSF.sort=this.value;renderLists(1)" class="inp"><option value="yeni">Memuriyete başlama: yeni başlayan üstte</option><option value="eski">Memuriyete başlama: eski başlayan üstte</option><option value="ad">Adı Soyadı: A → Z</option><option value="birim">Birim: A → Z</option></select></div>
+    </div>
+    <div id="lsYilBox" class="contents"><div><label class="lb">Yıl</label><select id="lsYil" onchange="LSF.yil=this.value;renderLists(1)" class="inp"></select></div></div>
+   </div>
    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr id="lsHead" class="text-left"></tr></thead><tbody id="lsBody"></tbody></table></div>
   </section>
 
@@ -161,11 +177,11 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
 const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
-const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim','Surekli'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
-const HELP={Personel:'Sürekli işçi seçilirse izin gün hesabında pazar günleri sayılmaz. Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir.',Istihdam:'İstihdam şekli ve formun üstündeki "Dikkat" notu.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
-const CL={Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi mi?',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
+const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
+const HELP={Personel:'Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır. Liste, yeni başlayanlar üstte olacak şekilde sıralıdır. Sürekli işçi bilgisi personelin İstihdam Şekli üzerinden gelir.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir. Yılı üstteki filtreden seçin; her yıl başlamadan önce o yılın tatillerini ekleyin.',Istihdam:'İstihdam şekli ve formun üstündeki Dikkat notu. Sürekli işçidir kutusu işaretliyse bu istihdam şeklindeki personelin izin gün sayımında pazar günleri sayılmaz.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
+const CL={Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
 const lab=(s,c)=>s=='IzinTurleri'&&c=='Tur'?'İzin Türü':s=='Tatiller'&&c=='Tur'?'Tatil Türü':s=='Tatiller'&&c=='Ad'?'Tatil Adı':CL[c]||c;
-const S={pw:'',ad:'',rol:'kullanici',db:{}};let LS='Personel',ER=0,LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
+const S={pw:'',ad:'',rol:'kullanici',db:{}};let WARNED='',LSF={birim:'',ist:'',sort:'yeni',yil:String(new Date().getFullYear())},LS='Personel',ER=0,LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
 const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const p2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),tr=s=>s?String(s).slice(0,10).split('-').reverse().join('.'):'';
 const pd=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d)},nx=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
@@ -175,11 +191,12 @@ function ask(m,ok='Sil'){$('dlgMsg').textContent=m;$('dlgOk').textContent=ok;$('
 function dlg(v){$('dlg').classList.replace('flex','hidden');_res(v)}
 
 /* GİRİŞ */
+document.addEventListener('click',e=>{const t=e.target;if(t&&t.type==='date'&&t.showPicker){try{t.showPicker()}catch(_){}}});
 const KEY='izin_key';
 function showApp(r){S.ad=r.ad;S.rol=r.rol;S.db=r.db;$('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.replace('hidden','flex');
  $('roleChip').innerHTML='<i class="fa-solid fa-user"></i> '+E(S.ad)+(S.rol=='admin'?' (Yönetici)':'');
  if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
- $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor')}
+ $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor');if(S.rol=='admin'){const w=tatilKontrol();if(w)setTimeout(()=>note(w,1),900)}}
 async function doLogin(first){const r=await api({a:'get',first:first?1:0});if(!r.ok)throw new Error(r.err||'unauthorized');showApp(r)}
 async function handleLogin(e){e.preventDefault();const b=$('loginBtn'),o=b.innerHTML,sp='<i class="fa-solid fa-spinner fa-spin"></i> ',er=$('loginError');
  b.disabled=true;b.innerHTML=sp+'Giriş yapılıyor...';er.classList.add('hidden');S.pw=$('passwordInput').value;sessionStorage.setItem(KEY,S.pw);
@@ -193,12 +210,13 @@ window.addEventListener('DOMContentLoaded',async()=>{const k=sessionStorage.getI
  const P=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h,s:Math.random()*3+1,sx:(Math.random()-.5)*.3,sy:-Math.random()*.5-.2,o:Math.random()*.5+.2}));
  (function an(){x.clearRect(0,0,w,h);P.forEach(p=>{p.x+=p.sx;p.y+=p.sy;if(p.y<-10)p.y=h+10;x.save();x.globalAlpha=p.o;x.fillStyle='#94a3b8';x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();x.restore()});requestAnimationFrame(an)})()})();
 function clock(){const n=new Date();$('clockDate').textContent=tr(iso(n));$('clockTime').textContent=p2(n.getHours())+':'+p2(n.getMinutes())+':'+p2(n.getSeconds())}
-async function reload(q){const b=$('refBtn');b.disabled=true;try{const r=await api({a:'get'});if(r.ok){S.db=r.db;fillSel();$('tabCount').textContent=S.db.Kayitlar.length;if(cur=='saved')renderSaved();if(cur=='lists')renderLists();if(cur=='hist')renderHist();if(!q)note('Liste yenilendi.')}else note(r.err||'Yenilenemedi',1)}catch(x){note('Sunucuya ulaşılamadı',1)}b.disabled=false}
+async function reload(q){const b=$('refBtn');b.disabled=true;try{const r=await api({a:'get'});if(r.ok){S.db=r.db;fillSel();$('tabCount').textContent=S.db.Kayitlar.length;if(cur=='saved'){fillSv();renderSaved()}if(cur=='lists')renderLists();if(cur=='hist')renderHist();if(!q)note('Liste yenilendi.')}else note(r.err||'Yenilenemedi',1)}catch(x){note('Sunucuya ulaşılamadı',1)}b.disabled=false}
 function tabClick(n){cur=n;['editor','saved','lists','hist'].forEach(k=>{const b=$('btn-'+k),s=$('sec-'+k);if(b){b.className=b.className.replace(/tab-(on|off)/g,'')+' '+(k==n?'tab-on':'tab-off');s.classList.toggle('hidden',k!=n)}});
- $('tabCount').textContent=S.db.Kayitlar.length;if(n=='saved')renderSaved();if(n=='lists')renderLists();if(n=='hist')renderHist()}
+ $('tabCount').textContent=S.db.Kayitlar.length;if(n=='saved'){fillSv();renderSaved()}if(n=='lists')renderLists();if(n=='hist')renderHist()}
 
 /* İZİN YAZ */
 const K=()=>S.db.Personel.find(x=>x.Ad==$('kisi').value)||{};
+const surekli=()=>(S.db.Istihdam.find(x=>x.Istihdam==K().Istihdam)||{}).Surekli=='E';
 function fillSel(){const t=$('tur').value;$('tur').innerHTML=[...new Set(S.db.IzinTurleri.map(x=>x.Tur))].map(x=>`<option>${E(x)}</option>`).join('');if(t)$('tur').value=t;fillVek()}
 function fillVek(){const V=S.db.Vekalet,b=S.db.Birimler.find(x=>x.Birim==K().Birim)||{},o=r=>`<option value="${E(r.Ad+'|'+r.Unvan)}">${E(r.Ad+' — '+r.Unvan)}</option>`,e='<option value="">— Vekil yok —</option>',bv=$('bv').value,mv=$('mv').value;
  let M=V.filter(r=>r.Grup=='Müdür');const f=M.filter(r=>b.YetkiliUnvan&&String(r.Unvan).startsWith(b.YetkiliUnvan));if(f.length)M=f;
@@ -215,8 +233,8 @@ function onTur(d){const t=$('tur').value,dt=S.db.IzinTurleri.filter(x=>x.Tur==t&
  $('acik').value=[t,dt.length?$('detay').value:''].filter(Boolean).join(' - ');calc(+$('gun').value>1)}
 // Yıllık izinde hafta içine denk gelen tam gün resmi tatil sayılmaz; sürekli işçide pazar sayılmaz
 const hol=d=>S.db.Tatiller.some(t=>t.Tarih==iso(d)&&t.Tur=='Tam'),off=d=>d.getDay()%6==0||hol(d);
-function cnt(d){if($('tur').value=='Yıllık İzin'&&d.getDay()%6&&hol(d))return 0;return K().Surekli=='E'&&d.getDay()==0?0:1}
-function onBas(){const s=$('bas').value;if(!s)return;$('bit').min=s;if(+$('gun').value>1)calc(1);else{$('bit').value=s;calc(0)}try{$('bit').showPicker()}catch(e){}}
+function cnt(d){if($('tur').value=='Yıllık İzin'&&d.getDay()%6&&hol(d))return 0;return surekli()&&d.getDay()==0?0:1}
+function onBas(){const s=$('bas').value;if(!s)return;const yy=s.slice(0,4);if(!S.db.Tatiller.some(t=>String(t.Tarih).startsWith(yy))&&WARNED!=yy){WARNED=yy;note(yy+' yılı resmî tatilleri listede yok, gün sayısı eksik hesaplanabilir. Yöneticiye bildirin.',1)}$('bit').min=s;if(+$('gun').value>1)calc(1);else{$('bit').value=s;calc(0)}try{$('bit').showPicker()}catch(e){}}
 function calc(fromDays){const s=$('bas').value;if(!s)return updK();const a=pd(s);
  if(fromDays&&+$('gun').value>0){let d=a,c=0,n=+$('gun').value;for(;;){c+=cnt(d);if(c>=n)break;d=nx(d)}$('bit').value=iso(d)}
  else{if(!$('bit').value||$('bit').value<s)$('bit').value=s;let c=0;for(let d=a;d<=pd($('bit').value);d=nx(d))c+=cnt(d);$('gun').value=c}
@@ -258,23 +276,41 @@ async function doPrint(){const F=getF();if(!check(F))return;const key=JSON.strin
  render(F);window.print()}
 
 /* KAYITLI İZİNLER */
-function renderSaved(){const q=lc($('svSearch').value),R=S.db.Kayitlar.map((r,i)=>[r,i]).reverse().filter(([r])=>lc(r.Ad+' '+r.Tur).includes(q));
+function fillSv(){const R=S.db.Kayitlar,fo=(id,all,v)=>{const e=$(id),c=e.value;e.innerHTML=`<option value="">${all}</option>`+[...new Set(v)].filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr')).map(x=>`<option>${E(x)}</option>`).join('');e.value=c};fo('svTur','Tüm türler',R.map(r=>r.Tur));fo('svUser','Tüm kullanıcılar',R.map(r=>r.Kullanici))}
+function svClear(){['svSearch','svTur','svUser','svFrom','svTo'].forEach(i=>$(i).value='');$('svSort').value='kyeni';renderSaved()}
+function renderSaved(){const q=lc($('svSearch').value),t=$('svTur').value,u=$('svUser').value,f=$('svFrom').value,to=$('svTo').value,so=$('svSort').value,B=r=>String(r.Bas||'');
+ const R=S.db.Kayitlar.map((r,i)=>[r,i]).filter(([r])=>lc(r.Ad+' '+r.Tur+' '+r.Detay).includes(q)&&(!t||r.Tur==t)&&(!u||r.Kullanici==u)&&(!f||B(r)>=f)&&(!to||B(r)<=to));
+ R.sort((a,b)=>so=='kyeni'?b[1]-a[1]:so=='keski'?a[1]-b[1]:so=='byeni'?B(b[0]).localeCompare(B(a[0])):so=='beski'?B(a[0]).localeCompare(B(b[0])):String(a[0].Ad).localeCompare(b[0].Ad,'tr'));
+ $('svCount').textContent=R.length+' kayıt';
  $('svBody').innerHTML=R.map(([r,i])=>`<tr class="border-t"><td class="p-2">${E(r.Zaman)}</td><td class="p-2">${E(r.Kullanici)}</td><td class="p-2 font-semibold">${E(r.Ad)}</td><td class="p-2">${E(r.Tur)} ${E(r.Detay)}</td><td class="p-2 whitespace-nowrap">${tr(r.Bas)} - ${tr(r.Bit)}</td><td class="p-2">${E(r.Gun)}</td>
  <td class="p-2 text-right whitespace-nowrap"><button onclick="openRec(${i})" class="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg font-semibold">Aç / Yazdır</button>${S.rol=='admin'?` <button onclick="delRow('Kayitlar',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button>`:''}</td></tr>`).join('')||'<tr><td class="p-4 text-slate-400" colspan="7">Kayıt yok.</td></tr>'}
 function openRec(i){const r=S.db.Kayitlar[i],F={};['Ad','Tur','Detay','Bas','Bit','Gun','Don','Adres','Acik','Kalan','BV','MV'].forEach(k=>F[k]=r[k]??'');pvOpen(F,0)}
 async function delRow(sh,r){if(!await ask('Bu kayıt silinsin mi? Bu işlem geri alınamaz.'))return;let x;try{x=await api({a:'del',sheet:sh,r})}catch(e){x={err:'Sunucuya ulaşılamadı'}}if(!x.ok)return note(x.err||'Silinemedi',1);note('Silindi.');await reload(1)}
 
 /* LİSTELER (yönetici) */
-function sel(s,c){return{'Personel.Surekli':[['H','Hayır'],['E','Evet (pazar günleri izin sayılmaz)']],'Personel.Birim':S.db.Birimler.map(b=>[b.Birim,b.Birim]),'Personel.Istihdam':S.db.Istihdam.map(x=>[x.Istihdam,x.Istihdam]),
+function sel(s,c){return{'Personel.Birim':S.db.Birimler.map(b=>[b.Birim,b.Birim]),'Personel.Istihdam':S.db.Istihdam.map(x=>[x.Istihdam,x.Istihdam]),
  'IzinTurleri.Kutu':[['YILLIK','Yıllık'],['MAZARET','Mazeret'],['HASTALIK','Hastalık'],['UCRETSIZ','Ücretsiz'],['DIGER','Diğer']],'Tatiller.Tur':[['Tam','Tam gün (izinden sayılmaz)'],['Arife','Arife (izne dahil)']],'Vekalet.Grup':[['Başhekim','Başhekim vekili'],['Müdür','Müdür vekili']]}[s+'.'+c]}
+const nd=v=>/^\d{2}\.\d{2}\.\d{4}$/.test(v)?String(v).split('.').reverse().join('-'):String(v||'');
+function tatilKontrol(){const y=new Date().getFullYear(),m=new Date().getMonth(),has=Y=>S.db.Tatiller.some(t=>String(t.Tarih).startsWith(String(Y)));
+ if(!has(y))return y+' yılı resmî tatilleri eklenmemiş. Yıllık izin gün sayısı eksik hesaplanır.';
+ if(m>=9&&!has(y+1))return (y+1)+' yılı resmî tatilleri henüz eklenmemiş. Yeni yıl gelmeden Listeler > Resmî Tatiller bölümünden ekleyin.';return''}
+function opts(id,all,v,cur){const e=$(id);e.innerHTML=(all?`<option value="">${all}</option>`:'')+v.map(x=>`<option>${E(x)}</option>`).join('');e.value=cur}
 function renderLists(q){const c=COLS[LS];
  if(!q){$('lsTabs').innerHTML=Object.keys(COLS).map(k=>`<button onclick="LS='${k}';ER=0;$('lsQ').value='';renderLists()" class="px-3 py-1.5 rounded-lg text-xs font-bold ${k==LS?'bg-slate-900 text-white':'bg-white border'}">${LB[k]}</button>`).join('');$('lsHelp').textContent=HELP[LS];
-  $('lsForm').innerHTML=c.map(x=>{const o=sel(LS,x);return`<div><label class="lb">${lab(LS,x)}</label>`+(o?`<select id="f_${x}" class="inp">${o.map(a=>`<option value="${E(a[0])}">${E(a[1])}</option>`).join('')}</select>`:`<input id="f_${x}" type="${x=='Tarih'||x=='Baslama'?'date':'text'}" class="inp">`)+'</div>'}).join('')+'<button onclick="putRow()" class="px-4 py-2.5 bg-slate-900 text-white font-semibold rounded-xl text-xs">Kaydet</button>';
-  $('lsHead').innerHTML=c.map(x=>`<th class="p-2">${lab(LS,x)}</th>`).join('')+'<th></th>'}
- const f=lc($('lsQ').value);
- $('lsBody').innerHTML=S.db[LS].map((r,i)=>[r,i]).filter(([r])=>lc(c.map(x=>r[x]).join(' ')).includes(f)).map(([r,i])=>`<tr class="border-t">${c.map(x=>`<td class="p-2 max-w-xs truncate" title="${E(r[x])}">${E(x=='Baslama'?tr(r[x]):r[x])}</td>`).join('')}<td class="p-2 text-right whitespace-nowrap"><button onclick="editRow(${i})" class="px-2.5 py-1.5 bg-slate-700 text-white rounded-lg font-semibold">Düzenle</button> <button onclick="delRow('${LS}',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button></td></tr>`).join('')||`<tr><td class="p-4 text-slate-400" colspan="${c.length+1}">Kayıt yok.</td></tr>`}
-function editRow(i){const r=S.db[LS][i];ER=r._r;COLS[LS].forEach(x=>{let v=r[x]??'';if(x=='Baslama'&&/^\d{2}\.\d{2}\.\d{4}$/.test(v))v=v.split('.').reverse().join('-');$('f_'+x).value=v});$('f_'+COLS[LS][0]).focus();note('Düzenleme için bilgiler forma alındı. Değiştirip Kaydet\'e basın.')}
-async function putRow(){const row={};COLS[LS].forEach(x=>row[x]=$('f_'+x).value.trim());if(!row[COLS[LS][0]])return note(lab(LS,COLS[LS][0])+' boş olamaz.',1);
+  $('lsForm').innerHTML=c.map(x=>{if(x=='Surekli')return`<label class="flex items-center gap-2 text-xs font-bold text-slate-700 sm:col-span-2 pb-2"><input type="checkbox" id="f_Surekli" class="w-4 h-4"> Sürekli işçidir (izinde pazar günleri sayılmaz)</label>`;const o=sel(LS,x);return`<div><label class="lb">${lab(LS,x)}</label>`+(o?`<select id="f_${x}" class="inp">${o.map(a=>`<option value="${E(a[0])}">${E(a[1])}</option>`).join('')}</select>`:`<input id="f_${x}" type="${x=='Tarih'||x=='Baslama'?'date':'text'}" class="inp">`)+'</div>'}).join('')+'<button onclick="putRow()" class="px-4 py-2.5 bg-slate-900 text-white font-semibold rounded-xl text-xs">Kaydet</button>';
+  $('lsHead').innerHTML=c.map(x=>`<th class="p-2">${lab(LS,x)}</th>`).join('')+'<th></th>';
+  $('lsPers').classList.toggle('hidden',LS!='Personel');$('lsYilBox').classList.toggle('hidden',LS!='Tatiller');
+  if(LS=='Personel'){opts('lsBirim','Tüm birimler',S.db.Birimler.map(b=>b.Birim),LSF.birim);opts('lsIst','Tüm istihdam şekilleri',S.db.Istihdam.map(x=>x.Istihdam),LSF.ist);$('lsSort').value=LSF.sort}
+  if(LS=='Tatiller'){const cy=new Date().getFullYear();opts('lsYil','',[...new Set(S.db.Tatiller.map(t=>String(t.Tarih).slice(0,4)).concat([String(cy),String(cy+1)]))].filter(y=>/^\d{4}$/.test(y)).sort(),LSF.yil)}
+  const w=LS=='Tatiller'?tatilKontrol():'';$('tatilUyari').classList.toggle('hidden',!w);$('tatilUyari').textContent=w}
+ const f=lc($('lsQ').value);let R=S.db[LS].map((r,i)=>[r,i]).filter(([r])=>lc(c.map(x=>r[x]).join(' ')).includes(f));
+ if(LS=='Personel'){R=R.filter(([r])=>(!LSF.birim||r.Birim==LSF.birim)&&(!LSF.ist||r.Istihdam==LSF.ist));const k=r=>nd(r.Baslama),s=LSF.sort;
+  R.sort((a,b)=>s=='yeni'?k(b[0]).localeCompare(k(a[0])):s=='eski'?(k(a[0])||'9999').localeCompare(k(b[0])||'9999'):s=='birim'?String(a[0].Birim).localeCompare(b[0].Birim,'tr')||String(a[0].Ad).localeCompare(b[0].Ad,'tr'):String(a[0].Ad).localeCompare(b[0].Ad,'tr'))}
+ if(LS=='Tatiller'){R=R.filter(([r])=>String(r.Tarih).startsWith(LSF.yil));R.sort((a,b)=>nd(a[0].Tarih).localeCompare(nd(b[0].Tarih)))}
+ const show=(x,v)=>x=='Baslama'||x=='Tarih'?tr(nd(v)):x=='Surekli'?(v=='E'?'✓ Sürekli işçi':''):v;
+ $('lsBody').innerHTML=R.map(([r,i])=>`<tr class="border-t">${c.map(x=>`<td class="p-2 max-w-xs truncate" title="${E(r[x])}">${E(show(x,r[x]))}</td>`).join('')}<td class="p-2 text-right whitespace-nowrap"><button onclick="editRow(${i})" class="px-2.5 py-1.5 bg-slate-700 text-white rounded-lg font-semibold">Düzenle</button> <button onclick="delRow('${LS}',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button></td></tr>`).join('')||`<tr><td class="p-4 text-slate-400" colspan="${c.length+1}">Kayıt yok.</td></tr>`}
+function editRow(i){const r=S.db[LS][i];ER=r._r;COLS[LS].forEach(x=>{let v=r[x]??'';if(x=='Baslama'&&/^\d{2}\.\d{2}\.\d{4}$/.test(v))v=v.split('.').reverse().join('-');if(x=='Surekli')$('f_'+x).checked=v=='E';else $('f_'+x).value=v});$('f_'+COLS[LS][0]).focus();note('Düzenleme için bilgiler forma alındı. Değiştirip Kaydet\'e basın.')}
+async function putRow(){const row={};COLS[LS].forEach(x=>row[x]=x=='Surekli'?($('f_Surekli').checked?'E':''):$('f_'+x).value.trim());if(!row[COLS[LS][0]])return note(lab(LS,COLS[LS][0])+' boş olamaz.',1);
  let r;try{r=await api({a:'put',sheet:LS,row,r:ER})}catch(x){r={err:'Sunucuya ulaşılamadı'}}if(!r.ok)return note(r.err||'Kaydedilemedi',1);note('Kaydedildi.');ER=0;await reload(1);renderLists()}
 
 /* İŞLEM GEÇMİŞİ (yönetici) */
