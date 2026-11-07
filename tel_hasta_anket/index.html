@@ -245,6 +245,7 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             <section id="tab-geri" class="tabpane hidden space-y-3">
                 <div class="space-y-2">
                     <h3 class="text-xs font-extrabold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-violet-600"></i> Tema ve Duygu Özeti <span class="text-[10px] font-semibold text-slate-400">(elle yazılan yanıt ve ek görüşler anahtar kelimelerle otomatik sınıflandırılır; kontrol amaçlıdır)</span></h3>
+                    <div id="temaOzet"></div>
                     <div id="tblTema"></div>
                 </div>
                 <div class="bg-white p-3 rounded-2xl border shadow-sm flex flex-wrap items-center gap-2 text-xs">
@@ -734,8 +735,8 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
         // Olumsuzluk ("memnun değil", "iyi olmadı") olumlu kelimeyi olumsuza çevirir; "şikayetim yok" olumlu sayılır.
         // Sonuç kesin değildir: yönetici kontrolü içindir, listeler aşağıdaki sözlüklerden düzenlenebilir.
         const TEMALAR = [
-            ["Bekleme / Randevu", ["bekle", "sira", "randevu", "kuyruk", "gec kal", "gecik", "uzun sure", "kalabalik"]],
-            ["Hekim / Personel Tutumu", ["doktor", "hekim", "hemsire", "personel", "ilgi", "davran", "kaba", "guleryuz", "saygi", "iletisim", "sekreter", "ozen", "ilgilen"]],
+            ["Bekleme / Randevu", ["bekle", "sira", "randevu", "kuyruk", "gec kal", "gecik", "uzun sure", "kalabalik", "bekletti", "dakika", "saat"]],
+            ["Hekim / Personel Tutumu", ["doktor", "hekim", "hemsire", "personel", "ilgi", "davran", "kaba", "guleryuz", "saygi", "iletisim", "sekreter", "ozen", "ilgilen", "yardimci", "kibar", "nazik", "tavir", "hastabakici", "guvenlik"]],
             ["Temizlik / Hijyen", ["temiz", "hijyen", "kirli", "pis", "tuvalet", "koku", "cop", "banyo"]],
             ["Yemek", ["yemek", "kahvalti", "ogle", "aksam", "tatsiz", "porsiyon"]],
             ["Oda / Fiziki Şartlar", ["oda", "yatak", "klima", "kalorifer", "isitma", "gurultu", "asansor", "bina", "carsaf", "battaniye", "nevresim", "televizyon"]],
@@ -743,31 +744,41 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             ["Ulaşım / Otopark", ["ulasim", "otopark", "park yeri", "yol", "tabela", "otobus", "ambulans"]],
             ["Ücret / Ödeme", ["ucret", "para", "katki payi", "pahali", "odeme", "fark"]],
             ["Tetkik / Tedavi / Sonuç", ["tetkik", "tahlil", "goruntuleme", "mr", "tomografi", "rontgen", "ameliyat", "sonuc", "cihaz", "tedavi", "muayene", "teshis"]],
-            ["Teşekkür", ["tesekkur", "sagolun", "saol", "allah razi", "elinize saglik", "emeginiz", "eyvallah"]]
+            ["Teşekkür", ["tesekkur", "sagolun", "saol", "allah razi", "elinize saglik", "emeginiz", "eyvallah", "tebrik", "minnettar"]]
         ];
-        const POS_S = ["tesekkur", "sagolun", "saol", "guzel", "harika", "super", "mukemmel", "basarili", "ilgili", "guleryuz", "hizli", "temiz", "rahat", "sorunsuz", "bayil", "eyvallah", "allah razi", "elinize saglik", "kaliteli", "memnun", "iyi", "begen", "yeterli", "hos"];
+        const POS_S = ["tesekkur", "sagolun", "saol", "guzel", "harika", "super", "mukemmel", "basarili", "ilgili", "guleryuz", "hizli", "temiz", "rahat", "sorunsuz", "bayil", "eyvallah", "allah razi", "elinize saglik", "kaliteli", "memnun", "iyi", "begen", "yeterli", "hos", "tavsiye"];
         const NEG_S = ["kotu", "berbat", "rezalet", "yetersiz", "ilgisiz", "kaba", "saygisiz", "pis", "kirli", "sorun", "problem", "magdur", "rahatsiz", "gurultu", "memnuniyetsiz", "tatsiz", "eksik", "pahali", "ilgilenmedi", "ilgilenmiyor", "umursamadi", "bekletil", "bekledik", "gecikt", "sikayet", "hakaret", "azarla", "bagir", "uzun", "bekled", "bekleyen", "soguk", "lezzetsiz", "zor", "calismiyor", "calismadi", "ilgilenilmedi", "verilmedi", "yapilmadi", "kalabalik", "karisik", "vurdumduymaz", "mahrum"];
         const NEG_SONEK = ["medi", "madi", "medim", "madim", "miyor", "muyor", "miyordu", "muyordu"];   // "verilmedi", "calismiyordu" gibi olumsuz fiiller
-        const NEGASYON = ["degil", "degildi", "olmadi", "olmadim", "olmuyor", "kalmadim", "yok", "yoktu", "hic", "yetmiyor"];
+        const NEGASYON = ["degil", "degildi", "olmadi", "olmadim", "olmadik", "olmamis", "olmuyor", "olmaz", "kalmadim", "kalmadik", "kalmadi", "kalmamis", "yok", "yoktu", "yoktur", "hic", "yetmiyor"];
+        const NEG_IFADE = ["memnun degil", "memnun kalmadim", "memnun kalmadik", "memnun olmadim", "bir daha gelmem", "tavsiye etmem", "tavsiye etmiyorum", "tavsiye etmiyoruz"];   // kesin olumsuz ifadeler
+        const POS_FIIL = ["begen", "hosnut", "tavsiye", "sevdi"];   // "beğenmedim / beğenmiyormuş / beğenmemiş" gibi olumsuz çekimleri ayrıca yakalanır
+        const FIIL_OLUMSUZ = /^m(?:a(?!k)|e(?!k)|[iu]yor)/;
+        const NEG_REG = /m[ae](?:di|dim|dik|dilar|mis|yacak)$|m[iu]yor(?:um|uz|lar|du|mus)?$/;
+        const GENEL_S = ["memnun", "begen", "hosnut", "genel", "hizmet", "kalite", "tavsiye", "hastane", "iyi", "kotu", "berbat", "harika", "super", "mukemmel", "basarili", "guzel", "sikayet", "sorun", "yeterli"];
         const ONERI_S = ["oner", "olsa", "olmali", "olmasi", "lazim", "keske", "artirilsa", "yapilsa", "gerek", "rica", "istiyoruz", "talep", "daha iyi", "artirin", "arttirin", "duzeltil", "iyilestiril"];
         const OLUMLU_IFADE = ["sikayetim yok", "sikayet yok", "sorun yok", "problem yok", "gecmis olsun"];
         function yorumla(metin) {
             let t = " " + normTr(metin).replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim() + " ";
             let pos = 0, neg = 0;
+            t = t.split(" daha iyi ").join(" ");   // "daha iyi olmalı" bir öneridir, övgü sayılmaz
+            NEG_IFADE.forEach(p => { if (t.includes(" " + p)) { neg++; t = t.split(p).join(" "); } });
             OLUMLU_IFADE.forEach(p => { if (t.includes(" " + p)) { pos++; t = t.split(p).join(" "); } });
             const tk = t.trim().split(/\s+/).filter(Boolean);
             tk.forEach((w, i) => {
                 const negated = tk.slice(i + 1, i + 4).some(x => NEGASYON.some(n => x === n || x.startsWith(n)));
                 const negNear = tk.slice(i + 1, i + 2).some(x => NEGASYON.some(n => x === n || x.startsWith(n)));   // "sorun yok", "kötü değil" (yalnız hemen yanındaki olumsuzluk)
+                const st = POS_FIIL.find(f => w.startsWith(f));
+                if (st && FIIL_OLUMSUZ.test(w.slice(st.length))) { neg++; return; }   // "beğenmiyormuş" → olumsuz
+                if (w.startsWith("temizlik") || w.startsWith("temizlig")) return;   // "temizlik yetersiz": konu adı, övgü değil
                 if (POS_S.some(s => w.startsWith(s))) { if (negated) neg++; else pos++; }
                 else if (NEG_S.some(s => w.startsWith(s))) { if (negNear) pos++; else neg++; }
-                else if (w.length > 5 && NEG_SONEK.some(s => w.endsWith(s))) neg++;
+                else if (w.length > 5 && (NEG_SONEK.some(s => w.endsWith(s)) || NEG_REG.test(w))) neg++;
             });
-            const pad = " " + tk.join(" ") + " ";
+            const pad = " " + normTr(metin).replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim() + " ";   // tema/öneri için ifadeler silinmeden önceki metin
             const oneri = ONERI_S.some(s => pad.includes(" " + s));
             const temalar = TEMALAR.filter(([, keys]) => keys.some(k => pad.includes(" " + k))).map(([n]) => n);
             const duygu = pos > neg ? "Olumlu" : neg > pos ? "Olumsuz" : (pos > 0 ? "Karma" : "Nötr");
-            return { duygu, oneri, temalar: temalar.length ? temalar : ["Diğer"] };
+            return { duygu, oneri, temalar: temalar.length ? temalar : [GENEL_S.some(k => pad.includes(" " + k)) ? "Genel Değerlendirme" : "Diğer"] };
         }
         function geriItems(rows) {
             const items = [];
@@ -785,13 +796,29 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
         }
         function temaSayim(items) {
             const tm = new Map();
-            items.forEach(i => i.temalar.forEach(t => { const o = tm.get(t) || [0, 0, 0, 0, 0]; o[0]++; if (i.duygu === "Olumsuz") o[1]++; else if (i.duygu === "Olumlu") o[2]++; else o[3]++; if (i.oneri) o[4]++; tm.set(t, o); }));
+            items.forEach(i => i.temalar.forEach(t => { const o = tm.get(t) || [0, 0, 0, 0, 0, 0, 0]; o[0]++; if (i.duygu === "Olumsuz") o[1]++; else if (i.duygu === "Olumlu") o[2]++; else o[3]++; if (i.duygu === "Karma") o[5]++; else if (i.duygu === "Nötr") o[6]++; if (i.oneri) o[4]++; tm.set(t, o); }));
             return [...tm.entries()].sort((a, b) => b[1][0] - a[1][0]);
         }
         function specTema(items) {
-            const rows = temaSayim(items).map(([t, o]) => [t, o[0], o[1], o[2], o[3], o[4]]);
-            if (rows.length) rows.push(totRow(["TOPLAM KAYIT (bir kayıt birden çok temada olabilir)", items.length, items.filter(i => i.duygu === "Olumsuz").length, items.filter(i => i.duygu === "Olumlu").length, items.filter(i => i.duygu !== "Olumsuz" && i.duygu !== "Olumlu").length, items.filter(i => i.oneri).length]));
-            return { head: [H("Tema", "txt"), H("Kayıt", "int"), H("Olumsuz", "int"), H("Olumlu", "int"), H("Karma / Nötr", "int"), H("Öneri içeren", "int")], rows };
+            const rows = temaSayim(items).map(([t, o]) => [t, o[0], o[1], o[2], o[5], o[6], o[4]]);
+            if (rows.length) rows.push(totRow(["TOPLAM KAYIT (bir kayıt birden çok temada olabilir)", items.length, items.filter(i => i.duygu === "Olumsuz").length, items.filter(i => i.duygu === "Olumlu").length, items.filter(i => i.duygu === "Karma").length, items.filter(i => i.duygu === "Nötr").length, items.filter(i => i.oneri).length]));
+            return { head: [H("Tema", "txt"), H("Kayıt", "int"), H("Olumsuz", "int"), H("Olumlu", "int"), H("Karma", "int"), H("Nötr", "int"), H("Öneri içeren", "int")], rows };
+        }
+        function temaOzet(items) {
+            const n = items.length; if (!n) return "";
+            const c = { Olumlu: 0, Olumsuz: 0, Karma: 0, "Nötr": 0 }; items.forEach(i => c[i.duygu]++);
+            const oneri = items.filter(i => i.oneri).length, pc = v => (v * 100 / n).toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + "%";
+            const tm = temaSayim(items).filter(([t]) => t !== "Diğer");
+            const topNeg = tm.slice().sort((a, b) => b[1][1] - a[1][1])[0], topPos = tm.slice().sort((a, b) => b[1][2] - a[1][2])[0];
+            const chip = (lbl, v, cls) => `<div class="rounded-xl border px-3 py-2 ${cls}"><div class="text-[10px] font-bold uppercase opacity-70">${lbl}</div><div class="text-lg font-black leading-tight">${v}</div><div class="text-[10px] font-semibold opacity-70">${pc(v)}</div></div>`;
+            const seg = (v, bg) => v ? `<div style="width:${v * 100 / n}%" class="${bg}" title="${v}"></div>` : "";
+            return `<div class="bg-white rounded-2xl border shadow-sm p-3 space-y-3">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">${chip("Olumlu", c.Olumlu, "bg-emerald-50 border-emerald-200 text-emerald-700")}${chip("Olumsuz", c["Olumsuz"], "bg-rose-50 border-rose-200 text-rose-700")}${chip("Karma", c.Karma, "bg-amber-50 border-amber-200 text-amber-700")}${chip("Nötr", c["Nötr"], "bg-slate-50 border-slate-200 text-slate-600")}${chip("Öneri içeren", oneri, "bg-blue-50 border-blue-200 text-blue-700")}</div>
+                <div class="flex h-2.5 rounded-full overflow-hidden bg-slate-100">${seg(c.Olumlu, "bg-emerald-500")}${seg(c.Karma, "bg-amber-400")}${seg(c["Nötr"], "bg-slate-300")}${seg(c["Olumsuz"], "bg-rose-500")}</div>
+                <div class="flex flex-wrap gap-x-6 gap-y-1 text-[11px] font-semibold text-slate-600">
+                    ${topNeg && topNeg[1][1] ? `<span><i class="fa-solid fa-arrow-trend-down text-rose-500 mr-1"></i>En çok olumsuz tema: <b class="text-slate-800">${esc(topNeg[0])}</b> (${topNeg[1][1]} kayıt)</span>` : ""}
+                    ${topPos && topPos[1][2] ? `<span><i class="fa-solid fa-arrow-trend-up text-emerald-500 mr-1"></i>En çok olumlu tema: <b class="text-slate-800">${esc(topPos[0])}</b> (${topPos[1][2]} kayıt)</span>` : ""}
+                    <span class="text-slate-400">Toplam ${n} kayıt</span></div></div>`;
         }
 
         // ====== GÖSTERGELER ======
@@ -884,6 +911,7 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             const q = normTr($("geriSearch").value.trim()), tur = $("geriTur").value;
             let items = geriItems(FILTERED);
             $("geriCount").textContent = items.length;
+            $("temaOzet").innerHTML = temaOzet(items);
             renderTable("tblTema", specTema(items));
             if (tur) items = items.filter(i => i.tur === tur);
             if (q) items = items.filter(i => normTr([i.metin, i.soru, ...i.base.slice(1)].join(" ")).includes(q));
