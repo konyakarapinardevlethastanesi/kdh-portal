@@ -51,7 +51,7 @@
              Şu an: üst 8mm, sağ 5mm, alt 14mm (sayfa numarası için), sol 5mm
              Yazıcı kenarı keserse sağ ve sol değerini biraz artırın (örnek: 6mm).
            ==================================================================== */
-        :root { --rapor-yazi-tipi: Times New Roman, Helvetica, sans-serif; --rapor-punto: 10pt; --rapor-cizgi: #0b1f4d; --rapor-cizgi-kalinlik: .3mm; }
+        :root { --rapor-yazi-tipi: Arial, Helvetica, sans-serif; --rapor-punto: 11pt; --rapor-cizgi: #0b1f4d; --rapor-cizgi-kalinlik: .3mm; }
         @page { size: A4 portrait; margin: 8mm 5mm 14mm 5mm; /* ÜST SAĞ ALT SOL */
             @bottom-center { content: "Sayfa " counter(page) "/" counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #475569; } }
 
@@ -146,7 +146,23 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span id="roleChip" class="px-2.5 py-1 rounded-full bg-slate-800 text-[10px] font-bold text-amber-300 flex items-center gap-1.5"></span>
+                    <div id="uw" class="hidden relative">
+                    <button id="uwChip" onclick="uwToggle()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700">
+                        <i class="fa-solid fa-circle-user text-emerald-400"></i><span id="uwName"></span><span id="uwRole" class="text-amber-300"></span><i id="uwCaret" class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                    </button>
+                        <div id="uwPanel" class="hidden absolute right-0 top-full mt-2 w-72 max-h-[75vh] overflow-y-auto bg-white text-slate-800 rounded-xl border border-slate-200 shadow-2xl p-3 space-y-2.5 text-left z-50">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-users text-slate-600 text-xs"></i><h4 class="flex-1 text-xs font-extrabold text-slate-800">Kullanıcılar</h4><button onclick="uwToggle()" class="w-6 h-6 rounded-md text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-xmark text-xs"></i></button></div>
+                            <div id="uwList" class="max-h-44 overflow-y-auto"></div>
+                            <div class="space-y-1.5 border-t border-slate-100 pt-2.5">
+                                <input id="uwAd" type="text" maxlength="40" placeholder="Ad Soyad" class="ed">
+                                <input id="uwSifre" type="text" maxlength="40" autocomplete="off" placeholder="Şifre (en az 4 karakter)" class="ed">
+                                <div class="flex gap-1.5"><select id="uwYetki" class="ed"><option value="Kullanıcı">Kullanıcı</option><option value="Yönetici">Yönetici</option></select>
+                                <button id="uwEkle" onclick="uwAdd()" class="shrink-0 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-user-plus"></i> Ekle</button></div>
+                                <p id="uwErr" class="hidden text-[11px] text-rose-600 font-semibold"></p>
+                                <p class="text-[10px] text-slate-400 leading-snug">Giriş sadece şifreyle yapılır; şifre kimin girdiğini belirler. Ana yönetici ve ortak kullanıcı şifreleri Apps Script özelliklerinde tanımlıdır.</p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="text-right leading-tight shrink-0 hidden sm:block">
                         <div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</div>
                         <div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</div>
@@ -411,9 +427,9 @@
         const fmtD = s => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? `${m[3]}.${m[2]}.${m[1]}` : (s || ''); };
         const fmtDT = s => { const d = new Date(s); return isNaN(d) ? '-' : `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
         const fmtN = n => String(n).replace('.', ',');
-        const who = () => ROLE === 'yonetici' ? 'Yönetici' : 'Kullanıcı';       // şifre yetkiyi belirler; ayrıca kullanıcı adı sorulmaz
+        const who = () => USER || (ROLE === 'yonetici' ? 'Yönetici' : 'Kullanıcı');       // şifre yetkiyi belirler; ayrıca kullanıcı adı sorulmaz
 
-        let ROLE = '', REPORTS = [], STATUSES = [], HOLIDAYS = [], IZINTUR = [], LOG = [], logLoaded = false, HFULL = new Set(), HARIFE = new Set();
+        let ROLE = '', USER = '', REPORTS = [], STATUSES = [], HOLIDAYS = [], IZINTUR = [], LOG = [], logLoaded = false, HFULL = new Set(), HARIFE = new Set();
         const rebuildH = () => { HFULL = new Set(HOLIDAYS.filter(x => x.tur !== 'Arife').map(x => x.d)); HARIFE = new Set(HOLIDAYS.filter(x => x.tur === 'Arife').map(x => x.d)); };
         let lastSig = '', refreshing = false;
         const cur = { yil: 0, ay: 0, data: null, dirty: false, savedId: null };
@@ -431,10 +447,10 @@
         }
         async function fetchAll(key) {
             const [r, d, t, z] = await Promise.all([fetchSheet('Raporlar', key), fetchSheet('DurumBasliklari', key), fetchSheet('Tatiller', key), fetchSheet('IzinTurleri', key).catch(() => ({ rows: null }))]);
-            return { role: r.role, r: r.rows || [], d: d.rows || [], t: t.rows || [], z: z.rows };
+            return { role: r.role, user: r.user, r: r.rows || [], d: d.rows || [], t: t.rows || [], z: z.rows };
         }
         function applyData(data) {
-            ROLE = data.role || ROLE;
+            ROLE = data.role || ROLE; USER = data.user || USER;
             REPORTS = data.r.map(x => ({ id: String(x.col0 ?? ''), yil: +x.col1, ay: +x.col2, ad: String(x.col3 ?? ''), veri: String(x.col4 ?? ''), created: String(x.col5 ?? ''), updated: String(x.col6 ?? ''), by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => x.id);
             STATUSES = data.d.map(x => ({ id: String(x.col0 ?? ''), ad: String(x.col1 ?? '').trim(), by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => x.ad);
             HOLIDAYS = data.t.map(x => ({ id: String(x.col0 ?? ''), d: String(x.col1 ?? '').trim().slice(0, 10), ac: String(x.col2 ?? '').trim(), tur: /arife/i.test(String(x.col3 ?? '')) ? 'Arife' : 'Tam', by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.d));
@@ -474,10 +490,10 @@
             } finally { btn.disabled = false; btn.innerHTML = old; }
         }
         function showApp() {
+            uwInit();
             $('mainAuthPortal').classList.add('hidden');
             $('adminInterface').classList.remove('hidden'); $('adminInterface').classList.add('flex');
             $('currentYearSpan').textContent = new Date().getFullYear();
-            $('roleChip').innerHTML = (isAdmin() ? '<i class="fa-solid fa-user-shield"></i> Yönetici' : '<i class="fa-solid fa-user"></i> Kullanıcı');
             document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
             initPeriodSelects();
             const n = new Date();
@@ -1154,6 +1170,48 @@
             const { i, t } = smCtx, r = cur.data.sut[i];
             Object.assign(r, { bas: t.bas || '', ayr: t.ayr || '', ayrM: !!t.ayrM, arife: !!t.arife, h: t.h, j: t.j, saat: t.saat, izinler: t.izinler.filter(x => x.bas).map(x => ({ tur: (x.tur || 'Yıllık İzin').trim(), bas: x.bas, bit: x.bit || x.bas, gun: workdays(x.bas, x.bit || x.bas) })) });
             smClose(); markDirty(); refreshSut();
+        }
+
+        // ---- Sol alt kullanıcı alanı ----
+        let UW = { open: false, users: [] };
+        function uwInit() { $('uwName').textContent = who(); $('uwRole').textContent = '· ' + (isAdmin() ? 'Yönetici' : 'Kullanıcı'); $('uwCaret').classList.toggle('hidden', !isAdmin()); $('uw').classList.remove('hidden'); }
+        async function uwToggle() {
+            if (!isAdmin()) return;
+            UW.open = !UW.open; $('uwPanel').classList.toggle('hidden', !UW.open);
+            $('uwCaret').className = 'fa-solid fa-chevron-' + (UW.open ? 'up' : 'down') + ' text-[8px] text-slate-400';
+            if (UW.open) await uwLoad();
+        }
+        async function uwLoad() {
+            $('uwList').innerHTML = '<div class="text-[11px] text-slate-400 font-semibold p-2">Yükleniyor...</div>';
+            try { const out = await fetchSheet('Kullanicilar', sessionStorage.getItem('kdh_ab_key') || ''); UW.users = (out.rows || []).map(x => ({ id: String(x.col0), ad: String(x.col1), yetki: String(x.col2) })); uwRender(); }
+            catch (x) { $('uwList').innerHTML = `<div class="text-[11px] text-rose-600 font-semibold p-2">Kullanıcılar okunamadı: ${esc(x.bad ? 'Apps Script yeni sürüm olarak yayınlanmamış olabilir' : x.message)}</div>`; }
+        }
+        function uwRender() {
+            $('uwList').innerHTML = UW.users.length ? UW.users.map(u => `<div class="flex items-center gap-1.5 py-1 border-b border-slate-100">
+                <span class="flex-1 min-w-0 text-[11px] font-bold text-slate-800 truncate" title="${esc(u.ad)}">${esc(u.ad)}</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold ${u.yetki === 'Yönetici' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}">${esc(u.yetki)}</span>
+                <button onclick="uwPass('${esc(u.id)}')" title="Şifreyi değiştir" class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-key text-[10px]"></i></button>
+                <button onclick="uwDel('${esc(u.id)}')" title="Sil" class="w-6 h-6 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash text-[10px]"></i></button></div>`).join('')
+                : '<div class="text-[11px] text-slate-400 font-semibold p-2">Henüz kullanıcı eklenmedi.</div>';
+        }
+        async function uwAdd() {
+            const ad = $('uwAd').value.trim(), sifre = $('uwSifre').value, yetki = $('uwYetki').value, err = $('uwErr'), btn = $('uwEkle'), old = btn.innerHTML;
+            err.classList.add('hidden');
+            if (ad.length < 2) { err.textContent = 'Ad soyad yazın.'; return err.classList.remove('hidden'); }
+            if (sifre.length < 4) { err.textContent = 'Şifre en az 4 karakter olmalı.'; return err.classList.remove('hidden'); }
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            try { const out = await post({ action: 'kullanici_ekle', ad, sifre, yetki }); UW.users.push({ id: out.id, ad, yetki }); $('uwAd').value = ''; $('uwSifre').value = ''; uwRender(); showToast('Kullanıcı eklendi'); }
+            catch (x) { err.textContent = x.message; err.classList.remove('hidden'); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+        async function uwDel(id) {
+            const u = UW.users.find(x => x.id === id); if (!u) return;
+            const ok = await askConfirm({ title: 'Kullanıcı silinsin mi?', text: 'Bu kullanıcı artık şifresiyle giriş yapamaz. Eski işlem kayıtları işlem geçmişinde kalır.', ok: 'Evet, Sil', icon: 'fa-triangle-exclamation', color: 'rose', summary: `<div><b>Kullanıcı:</b> ${esc(u.ad)}</div><div><b>Yetki:</b> ${esc(u.yetki)}</div>`, action: () => post({ action: 'kullanici_sil', id }) });
+            if (!ok) return; UW.users = UW.users.filter(x => x.id !== id); uwRender(); showToast('Kullanıcı silindi');
+        }
+        function uwPass(id) {
+            const u = UW.users.find(x => x.id === id); if (!u) return;
+            openEditModal({ title: 'Şifreyi Değiştir · ' + u.ad, l1: 'Yeni şifre (en az 4 karakter)', t1: 'text', v1: '', save: async v1 => { if (v1.length < 4) throw new Error('Şifre en az 4 karakter olmalı.'); await post({ action: 'kullanici_sifre', id, sifre: v1 }); } });
         }
 
         function tickClock() { const n = new Date(); $('clockDate').textContent = n.toLocaleDateString('tr-TR'); $('clockTime').textContent = n.toLocaleTimeString('tr-TR', { hourCycle: 'h23' }); }
