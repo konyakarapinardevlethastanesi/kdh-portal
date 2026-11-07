@@ -101,12 +101,12 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             </div>
             <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80">
                 <form onsubmit="handleAdminLogin(event)" class="space-y-3">
-                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2"><i class="fa-solid fa-user-gear"></i> Yönetici Giriş Paneli</div>
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2"><i class="fa-solid fa-user-gear"></i> Kullanıcı / Yönetici Girişi</div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
                         <input type="password" id="adminPwd" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold">
                     </div>
-                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-sliders"></i> Rapor Paneline Giriş Yap</button>
+                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
                     <p id="adminLoginError" class="text-xs text-rose-600 hidden font-semibold text-center"></p>
                 </form>
             </div>
@@ -1645,7 +1645,7 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             $("mainAuthPortal").classList.add("hidden");
             $("adminInterface").classList.remove("hidden"); $("adminInterface").classList.add("flex");
             $("currentYear").textContent = new Date().getFullYear();
-            applyFilters(); setLastUpdate(); loadPersonel();
+            quickRange("month"); setLastUpdate(); loadPersonel();   // açılışta bu ay seçili
             showTab(sessionStorage.getItem("kdh_hasta_tab") || "dash");
         }
         function logout() { sessionStorage.removeItem(KEY); location.reload(); }
