@@ -17,7 +17,9 @@ button:hover:not(:disabled){filter:brightness(1.08)}button:active:not(:disabled)
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
 .inp{width:100%;padding:.6rem .75rem;border:1px solid #cbd5e1;border-radius:.7rem;font-size:.85rem;background:#fff}
 .lb{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:.25rem}
-.tab-on{background:#fff;color:#0f172a;border-color:#cbd5e1;border-bottom-color:#fff}.tab-off{background:#e2e8f0;color:#475569}
+.tab-on{background:#fff;color:#0f172a;border-color:#e2e8f0;box-shadow:0 1px 2px rgba(15,23,42,.08)}.tab-off{background:transparent;color:#64748b;border-color:transparent}.tab-off:hover{color:#1e293b}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}.anim-fade{animation:fadeIn .22s ease both}
+#sec-editor .inp{padding:.8rem .95rem}
 .fm{display:grid;width:7.81in;background:#fff;font:8pt Calibri,Carlito,Arial,sans-serif;color:#000;
 grid-template-columns:4.1fr 5.5fr 1.6fr 3.1fr 6.9fr 5.5fr 4.5fr 12.2fr 2.5fr 2.5fr 6.9fr 5.9fr 4.5fr 3.9fr 8.6fr 4.5fr 5.9fr 3.2fr;
 grid-template-rows:11.76pt 14.89pt 0 18.03pt 18.81pt 14.89pt 14.11pt 19.59pt 20.38pt 19.44pt 16.46pt 18.18pt 18.18pt 18.81pt 16.30pt 15.67pt 18.65pt 18.65pt 16.62pt 16.62pt 16.62pt 16.30pt 16.30pt 16.30pt 16.30pt 16.30pt}
@@ -78,7 +80,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
  </header>
 
  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
-  <div class="flex gap-2 border-b border-slate-300 overflow-x-auto items-end">
+  <div class="flex flex-wrap gap-2 border-b border-slate-300 items-end">
    <button id="btn-editor" onclick="tabClick('editor')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-file-pen"></i> İzin Yaz</button>
    <button id="btn-saved" onclick="tabClick('saved')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-folder-open"></i> Kayıtlı İzinler <span id="tabCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
    <button id="btn-lists" onclick="tabClick('lists')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-list-ul"></i> Listeler</button>
@@ -87,9 +89,9 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
   </div>
 
   <!-- İZİN YAZ -->
-  <section id="sec-editor" class="hidden">
-   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-md" style="border-top:4px solid #dc2626">
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 items-start">
+  <section id="sec-editor" class="anim-fade hidden">
+   <div class="bg-white p-7 rounded-2xl border border-slate-200 shadow-md" style="border-top:4px solid #dc2626">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-6 items-start">
      <div class="relative md:col-span-2">
       <label class="lb">Personel</label>
       <input id="kisi" class="inp pr-9" placeholder="Personel seçin veya ad yazarak arayın" autocomplete="off" oninput="cb()" onfocus="cb()" onblur="setTimeout(()=>$('kisiDd').classList.add('hidden'),150)">
@@ -109,16 +111,16 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
      <div><label class="lb">Başhekim Vekili</label><select id="bv" class="inp"></select></div>
      <div><label class="lb">Müdür Vekili</label><select id="mv" class="inp"></select></div>
      <div class="md:col-span-2 flex flex-wrap gap-2 justify-end items-end self-end">
-      <button onclick="resetForm()" class="px-4 py-2.5 text-xs bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eraser"></i> Temizle</button>
-      <button onclick="preview()" class="px-5 py-2.5 text-xs bg-slate-700 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizleme</button>
-      <button id="prBtn" onclick="doPrint()" class="px-5 py-2.5 text-xs bg-blue-600 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-print"></i> Yazdır (otomatik kaydeder)</button>
+      <button onclick="resetForm()" class="px-5 py-3 text-xs bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eraser"></i> Temizle</button>
+      <button onclick="preview()" class="px-6 py-3 text-xs bg-slate-700 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizleme</button>
+      <button id="prBtn" onclick="doPrint()" class="px-6 py-3 text-xs bg-blue-600 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-print"></i> Yazdır (otomatik kaydeder)</button>
      </div>
     </div>
    </div>
   </section>
 
   <!-- KAYITLI İZİNLER -->
-  <section id="sec-saved" class="hidden space-y-4">
+  <section id="sec-saved" class="anim-fade hidden space-y-4">
    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
     <div class="lg:col-span-2"><label class="lb">Ara</label><input id="svSearch" oninput="renderSaved()" placeholder="Personel veya izin türü..." class="inp"></div>
     <div><label class="lb">İzin Türü</label><select id="svTur" onchange="renderSaved()" class="inp"></select></div>
@@ -132,7 +134,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
   </section>
 
   <!-- LİSTELER (yönetici) -->
-  <section id="sec-lists" class="hidden space-y-4">
+  <section id="sec-lists" class="anim-fade hidden space-y-4">
    <div id="lsTabs" class="flex flex-wrap gap-2"></div>
    <p id="lsHelp" class="text-xs text-slate-500"></p>
    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><div id="lsForm" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end"></div></div>
@@ -150,7 +152,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
   </section>
 
   <!-- İŞLEM GEÇMİŞİ (yönetici) -->
-  <section id="sec-hist" class="hidden"><div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr class="text-left"><th class="p-2">Zaman</th><th class="p-2">Kullanıcı</th><th class="p-2">İşlem</th><th class="p-2">Sayfa</th><th class="p-2">Ayrıntı</th></tr></thead><tbody id="hiBody"></tbody></table></div></section>
+  <section id="sec-hist" class="anim-fade hidden"><div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr class="text-left"><th class="p-2">Zaman</th><th class="p-2">Kullanıcı</th><th class="p-2">İşlem</th><th class="p-2">Sayfa</th><th class="p-2">Ayrıntı</th></tr></thead><tbody id="hiBody"></tbody></table></div></section>
  </main>
  <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800"><p>Konya Karapınar Devlet Hastanesi <span id="currentYearSpan"></span> © Tüm Hakları Saklıdır.</p></footer>
 </div>
@@ -176,10 +178,10 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <div id="printArea"></div>
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
-const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
-const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
-const HELP={Personel:'Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır. Liste, yeni başlayanlar üstte olacak şekilde sıralıdır. Sürekli işçi bilgisi personelin İstihdam Şekli üzerinden gelir.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir. Yılı üstteki filtreden seçin; her yıl başlamadan önce o yılın tatillerini ekleyin.',Istihdam:'İstihdam şekli ve formun üstündeki Dikkat notu. Sürekli işçidir kutusu işaretliyse bu istihdam şeklindeki personelin izin gün sayımında pazar günleri sayılmaz.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
-const CL={Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
+const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet',Kullanicilar:'Kullanıcılar'};
+const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup'],Kullanicilar:['Ad','Sifre']};
+const HELP={Personel:'Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır. Liste, yeni başlayanlar üstte olacak şekilde sıralıdır. Sürekli işçi bilgisi personelin İstihdam Şekli üzerinden gelir.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir. Yılı üstteki filtreden seçin; her yıl başlamadan önce o yılın tatillerini ekleyin.',Istihdam:'İstihdam şekli ve formun üstündeki Dikkat notu. Sürekli işçidir kutusu işaretliyse bu istihdam şeklindeki personelin izin gün sayımında pazar günleri sayılmaz.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Kullanicilar:'Giriş yapabilecek kullanıcılar. Her kullanıcının şifresi farklı olmalı ve yönetici şifresiyle aynı olmamalı. Yönetici şifresi Apps Script komut dosyası özelliklerinde tutulur.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
+const CL={Sifre:'Şifre',Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
 const lab=(s,c)=>s=='IzinTurleri'&&c=='Tur'?'İzin Türü':s=='Tatiller'&&c=='Tur'?'Tatil Türü':s=='Tatiller'&&c=='Ad'?'Tatil Adı':CL[c]||c;
 const S={pw:'',ad:'',rol:'kullanici',db:{}};let WARNED='',LSF={birim:'',ist:'',sort:'yeni',yil:String(new Date().getFullYear())},LS='Personel',ER=0,LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
 const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -229,7 +231,7 @@ function pick(a){$('kisi').value=a;$('kisiDd').classList.add('hidden');$('kisiX'
 function clrKisi(){$('kisi').value='';$('kisiX').classList.add('hidden');onKisi();cb();$('kisi').focus()}
 function onKisi(q){const k=K();$('kisiInfo').textContent=k.Ad?[k.Unvan,k.Birim,k.Surekli=='E'?'Sürekli işçi':''].filter(Boolean).join(' · '):'';if(!q){fillVek();calc(+$('gun').value>1)}}
 function onTur(d){const t=$('tur').value,dt=S.db.IzinTurleri.filter(x=>x.Tur==t&&x.Detay);
- if(!d){$('detay').innerHTML=dt.map(x=>`<option>${E(x.Detay)}</option>`).join('');$('detayBox').style.display=dt.length?'':'none'}
+ if(!d){$('detay').innerHTML=dt.map(x=>`<option>${E(x.Detay)}</option>`).join('');$('detayBox').style.visibility=dt.length?'':'hidden'}
  $('acik').value=[t,dt.length?$('detay').value:''].filter(Boolean).join(' - ');calc(+$('gun').value>1)}
 // Yıllık izinde hafta içine denk gelen tam gün resmi tatil sayılmaz; sürekli işçide pazar sayılmaz
 const hol=d=>S.db.Tatiller.some(t=>t.Tarih==iso(d)&&t.Tur=='Tam'),off=d=>d.getDay()%6==0||hol(d);
@@ -241,7 +243,7 @@ function calc(fromDays){const s=$('bas').value;if(!s)return updK();const a=pd(s)
  let r=nx(pd($('bit').value));while(off(r))r=nx(r);$('don').value=iso(r);updK()}
 const kalan=F=>F.Mevcut===''||F.Mevcut==null?'':F.Tur=='Yıllık İzin'?F.Mevcut-(+F.Gun||0):+F.Mevcut;
 function updK(){const k=kalan(getF());$('kalanHint').textContent=k===''?'':'Kalan izin: '+k+' gün'+($('tur').value=='Yıllık İzin'?' (mevcut − izin günü)':'')}
-const getF=()=>{const F={Ad:$('kisi').value,Tur:$('tur').value,Detay:$('detayBox').style.display=='none'?'':$('detay').value,Bas:$('bas').value,Bit:$('bit').value,Gun:$('gun').value,Don:$('don').value,Adres:$('adres').value,Acik:$('acik').value,Mevcut:$('mevcut').value,BV:$('bv').value,MV:$('mv').value};F.Kalan=kalan(F);return F};
+const getF=()=>{const F={Ad:$('kisi').value,Tur:$('tur').value,Detay:$('detayBox').style.visibility=='hidden'?'':$('detay').value,Bas:$('bas').value,Bit:$('bit').value,Gun:$('gun').value,Don:$('don').value,Adres:$('adres').value,Acik:$('acik').value,Mevcut:$('mevcut').value,BV:$('bv').value,MV:$('mv').value};F.Kalan=kalan(F);return F};
 function resetForm(){['kisi','bas','bit','gun','don','adres','mevcut'].forEach(i=>$(i).value='');$('bv').value='';$('mv').value='';$('kisiX').classList.add('hidden');LAST='';onKisi();onTur();$('kalanHint').textContent=''}
 
 /* FORM (Excel B41:S66 ile aynı yerleşim) */
@@ -311,6 +313,7 @@ function renderLists(q){const c=COLS[LS];
  $('lsBody').innerHTML=R.map(([r,i])=>`<tr class="border-t">${c.map(x=>`<td class="p-2 max-w-xs truncate" title="${E(r[x])}">${E(show(x,r[x]))}</td>`).join('')}<td class="p-2 text-right whitespace-nowrap"><button onclick="editRow(${i})" class="px-2.5 py-1.5 bg-slate-700 text-white rounded-lg font-semibold">Düzenle</button> <button onclick="delRow('${LS}',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button></td></tr>`).join('')||`<tr><td class="p-4 text-slate-400" colspan="${c.length+1}">Kayıt yok.</td></tr>`}
 function editRow(i){const r=S.db[LS][i];ER=r._r;COLS[LS].forEach(x=>{let v=r[x]??'';if(x=='Baslama'&&/^\d{2}\.\d{2}\.\d{4}$/.test(v))v=v.split('.').reverse().join('-');if(x=='Surekli')$('f_'+x).checked=v=='E';else $('f_'+x).value=v});$('f_'+COLS[LS][0]).focus();note('Düzenleme için bilgiler forma alındı. Değiştirip Kaydet\'e basın.')}
 async function putRow(){const row={};COLS[LS].forEach(x=>row[x]=x=='Surekli'?($('f_Surekli').checked?'E':''):$('f_'+x).value.trim());if(!row[COLS[LS][0]])return note(lab(LS,COLS[LS][0])+' boş olamaz.',1);
+ if(LS=='Kullanicilar'){if(row.Sifre.length<4)return note('Şifre en az 4 karakter olmalı.',1);if(S.db.Kullanicilar.some(u=>u._r!=ER&&String(u.Sifre)==row.Sifre))return note('Bu şifre başka bir kullanıcıda kayıtlı. Her kullanıcının şifresi farklı olmalı.',1)}
  let r;try{r=await api({a:'put',sheet:LS,row,r:ER})}catch(x){r={err:'Sunucuya ulaşılamadı'}}if(!r.ok)return note(r.err||'Kaydedilemedi',1);note('Kaydedildi.');ER=0;await reload(1);renderLists()}
 
 /* İŞLEM GEÇMİŞİ (yönetici) */
