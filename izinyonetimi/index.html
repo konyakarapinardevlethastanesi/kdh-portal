@@ -71,7 +71,6 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
     </div>
    </div>
    <div class="flex items-center space-x-3">
-    <span id="roleChip" class="px-2.5 py-1 rounded-full bg-slate-800 text-[10px] font-bold text-amber-300"></span>
     <div class="text-right leading-tight shrink-0 hidden sm:block"><div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums"></div><div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums"></div></div>
     <div class="h-8 w-px bg-slate-700"></div>
     <button onclick="logout()" class="px-3 py-1.5 bg-slate-800 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
@@ -175,12 +174,25 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
   <div class="flex gap-2 justify-end"><button onclick="dlg(false)" class="px-4 py-2 text-xs bg-slate-200 text-slate-700 font-semibold rounded-lg">Vazgeç</button><button id="dlgOk" onclick="dlg(true)" class="px-4 py-2 text-xs bg-rose-600 text-white font-semibold rounded-lg">Sil</button></div></div>
 </div>
 <div id="toast" class="hidden"></div>
+<!-- KİM GİRİŞ YAPTI + KULLANICILAR -->
+<div id="whoBar" class="hidden fixed bottom-10 left-4 z-[60] flex items-center gap-2">
+ <div class="px-4 py-2.5 rounded-full bg-slate-900 text-white text-xs font-extrabold shadow-xl flex items-center gap-2 border border-slate-700"><i class="fa-solid fa-user-shield"></i><span id="whoName"></span><span id="whoRol" class="text-[10px] font-semibold text-slate-400"></span></div>
+ <button id="usrBtn" onclick="usrOpen()" class="hidden px-4 py-2.5 rounded-full bg-blue-600 text-white text-xs font-extrabold shadow-xl">Kullanıcılar</button>
+</div>
+<div id="usrM" class="hidden fixed inset-0 z-[85] bg-slate-900/50 backdrop-blur-sm items-start justify-center p-4 pt-12 overflow-auto" onclick="if(event.target==this)usrClose()">
+ <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl space-y-4">
+  <div class="flex items-center gap-3"><h3 class="text-lg font-extrabold text-slate-800 mr-auto">Kullanıcılar — Personel İzin Formu</h3><button onclick="usrClose()" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">Kapat</button></div>
+  <p class="text-sm text-slate-500 -mt-2">Her kullanıcı kendi şifresiyle girer; yaptığı işlemler adıyla kaydedilir. Şifreler birbirinden ve yönetici şifresinden farklı olmalı.</p>
+  <div id="usrList" class="space-y-2"></div>
+  <div class="flex gap-3 items-center"><input id="usrAd" class="inp" placeholder="Ad Soyad"><input id="usrPw" class="inp" placeholder="Şifre (en az 4 karakter)" onkeydown="if(event.key=='Enter')usrAdd()"><button onclick="usrAdd()" class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold">Ekle</button></div>
+ </div>
+</div>
 <div id="printArea"></div>
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
-const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet',Kullanicilar:'Kullanıcılar'};
-const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup'],Kullanicilar:['Ad','Sifre']};
-const HELP={Personel:'Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır. Liste, yeni başlayanlar üstte olacak şekilde sıralıdır. Sürekli işçi bilgisi personelin İstihdam Şekli üzerinden gelir.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir. Yılı üstteki filtreden seçin; her yıl başlamadan önce o yılın tatillerini ekleyin.',Istihdam:'İstihdam şekli ve formun üstündeki Dikkat notu. Sürekli işçidir kutusu işaretliyse bu istihdam şeklindeki personelin izin gün sayımında pazar günleri sayılmaz.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Kullanicilar:'Giriş yapabilecek kullanıcılar. Her kullanıcının şifresi farklı olmalı ve yönetici şifresiyle aynı olmamalı. Yönetici şifresi Apps Script komut dosyası özelliklerinde tutulur.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
+const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
+const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
+const HELP={Personel:'Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır. Liste, yeni başlayanlar üstte olacak şekilde sıralıdır. Sürekli işçi bilgisi personelin İstihdam Şekli üzerinden gelir.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir. Yılı üstteki filtreden seçin; her yıl başlamadan önce o yılın tatillerini ekleyin.',Istihdam:'İstihdam şekli ve formun üstündeki Dikkat notu. Sürekli işçidir kutusu işaretliyse bu istihdam şeklindeki personelin izin gün sayımında pazar günleri sayılmaz.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
 const CL={Sifre:'Şifre',Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
 const lab=(s,c)=>s=='IzinTurleri'&&c=='Tur'?'İzin Türü':s=='Tatiller'&&c=='Tur'?'Tatil Türü':s=='Tatiller'&&c=='Ad'?'Tatil Adı':CL[c]||c;
 const S={pw:'',ad:'',rol:'kullanici',db:{}};let WARNED='',LSF={birim:'',ist:'',sort:'yeni',yil:String(new Date().getFullYear())},LS='Personel',ER=0,LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
@@ -196,7 +208,7 @@ function dlg(v){$('dlg').classList.replace('flex','hidden');_res(v)}
 document.addEventListener('click',e=>{const t=e.target;if(t&&t.type==='date'&&t.showPicker){try{t.showPicker()}catch(_){}}});
 const KEY='izin_key';
 function showApp(r){S.ad=r.ad;S.rol=r.rol;S.db=r.db;$('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.replace('hidden','flex');
- $('roleChip').innerHTML='<i class="fa-solid fa-user"></i> '+E(S.ad)+(S.rol=='admin'?' (Yönetici)':'');
+ $('whoName').textContent=S.ad;$('whoRol').textContent=S.rol=='admin'?'Yönetici':'Kullanıcı';$('whoBar').classList.remove('hidden');if(S.rol=='admin')$('usrBtn').classList.remove('hidden');
  if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
  $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor');if(S.rol=='admin'){const w=tatilKontrol();if(w)setTimeout(()=>note(w,1),900)}}
 async function doLogin(first){const r=await api({a:'get',first:first?1:0});if(!r.ok)throw new Error(r.err||'unauthorized');showApp(r)}
@@ -313,11 +325,22 @@ function renderLists(q){const c=COLS[LS];
  $('lsBody').innerHTML=R.map(([r,i])=>`<tr class="border-t">${c.map(x=>`<td class="p-2 max-w-xs truncate" title="${E(r[x])}">${E(show(x,r[x]))}</td>`).join('')}<td class="p-2 text-right whitespace-nowrap"><button onclick="editRow(${i})" class="px-2.5 py-1.5 bg-slate-700 text-white rounded-lg font-semibold">Düzenle</button> <button onclick="delRow('${LS}',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button></td></tr>`).join('')||`<tr><td class="p-4 text-slate-400" colspan="${c.length+1}">Kayıt yok.</td></tr>`}
 function editRow(i){const r=S.db[LS][i];ER=r._r;COLS[LS].forEach(x=>{let v=r[x]??'';if(x=='Baslama'&&/^\d{2}\.\d{2}\.\d{4}$/.test(v))v=v.split('.').reverse().join('-');if(x=='Surekli')$('f_'+x).checked=v=='E';else $('f_'+x).value=v});$('f_'+COLS[LS][0]).focus();note('Düzenleme için bilgiler forma alındı. Değiştirip Kaydet\'e basın.')}
 async function putRow(){const row={};COLS[LS].forEach(x=>row[x]=x=='Surekli'?($('f_Surekli').checked?'E':''):$('f_'+x).value.trim());if(!row[COLS[LS][0]])return note(lab(LS,COLS[LS][0])+' boş olamaz.',1);
- if(LS=='Kullanicilar'){if(row.Sifre.length<4)return note('Şifre en az 4 karakter olmalı.',1);if(S.db.Kullanicilar.some(u=>u._r!=ER&&String(u.Sifre)==row.Sifre))return note('Bu şifre başka bir kullanıcıda kayıtlı. Her kullanıcının şifresi farklı olmalı.',1)}
  let r;try{r=await api({a:'put',sheet:LS,row,r:ER})}catch(x){r={err:'Sunucuya ulaşılamadı'}}if(!r.ok)return note(r.err||'Kaydedilemedi',1);note('Kaydedildi.');ER=0;await reload(1);renderLists()}
 
 /* İŞLEM GEÇMİŞİ (yönetici) */
 function renderHist(){$('hiBody').innerHTML=(S.db.IslemGunlugu||[]).map(r=>`<tr class="border-t"><td class="p-2 whitespace-nowrap">${E(r.Zaman)}</td><td class="p-2">${E(r.Kullanici)}</td><td class="p-2 font-semibold">${E(r.Islem)}</td><td class="p-2">${E(r.Sayfa)}</td><td class="p-2 max-w-md truncate" title="${E(r.Detay)}">${E(String(r.Detay).slice(0,140))}</td></tr>`).join('')||'<tr><td class="p-4 text-slate-400" colspan="5">Kayıt yok.</td></tr>'}
+
+/* KULLANICILAR (yönetici penceresi) */
+let UE=-1;
+const usrErr=(pw,i)=>pw.length<4?'Şifre en az 4 karakter olmalı.':S.db.Kullanicilar.some((u,k)=>k!=i&&String(u.Sifre)==pw)?'Bu şifre başka bir kullanıcıda kayıtlı. Şifreler birbirinden farklı olmalı.':'';
+function usrOpen(){UE=-1;$('usrM').classList.replace('hidden','flex');usrRender()}
+function usrClose(){$('usrM').classList.replace('flex','hidden')}
+function usrRender(){$('usrList').innerHTML=(S.db.Kullanicilar||[]).map((u,i)=>`<div class="flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200"><b class="text-sm text-slate-800 mr-auto">${E(u.Ad)}</b>`+(UE==i?`<input id="usrNew" class="inp" style="width:9rem;padding:.4rem .6rem" placeholder="Yeni şifre" onkeydown="if(event.key=='Enter')usrPw(${i})"><button onclick="usrPw(${i})" class="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-bold">Kaydet</button><button onclick="UE=-1;usrRender()" class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold">Vazgeç</button>`:`<span class="px-2 py-1 rounded-lg bg-white border border-slate-200 text-xs font-mono text-slate-700">${E(u.Sifre)}</span><button onclick="UE=${i};usrRender();$('usrNew').focus()" class="px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-bold">Şifre</button><button onclick="usrDel(${i})" class="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-700 text-xs font-bold">Sil</button>`)+'</div>').join('')||'<p class="text-xs text-slate-400 py-2">Henüz kullanıcı yok.</p>'}
+async function usrSave(row,r){let x;try{x=await api({a:'put',sheet:'Kullanicilar',row,r})}catch(e){x={err:'Sunucuya ulaşılamadı'}}if(!x.ok){note(x.err||'Kaydedilemedi',1);return false}await reload(1);return true}
+async function usrAdd(){const ad=$('usrAd').value.trim(),pw=$('usrPw').value.trim();if(!ad)return note('Ad Soyad boş olamaz.',1);const e=usrErr(pw,-1);if(e)return note(e,1);if(S.db.Kullanicilar.some(u=>lc(u.Ad)==lc(ad)))return note('Bu isimde bir kullanıcı zaten var.',1);
+ if(await usrSave({Ad:ad,Sifre:pw},0)){$('usrAd').value=$('usrPw').value='';note('Kullanıcı eklendi.');usrRender()}}
+async function usrPw(i){const u=S.db.Kullanicilar[i],pw=$('usrNew').value.trim(),e=usrErr(pw,i);if(e)return note(e,1);if(await usrSave({Ad:u.Ad,Sifre:pw},u._r)){UE=-1;note('Şifre güncellendi.');usrRender()}}
+async function usrDel(i){const u=S.db.Kullanicilar[i];if(!await ask(u.Ad+' kullanıcısı silinsin mi?'))return;let x;try{x=await api({a:'del',sheet:'Kullanicilar',r:u._r})}catch(e){x={err:'Sunucuya ulaşılamadı'}}if(!x.ok)return note(x.err||'Silinemedi',1);note('Kullanıcı silindi.');await reload(1);usrRender()}
 </script>
 </body>
 </html>
