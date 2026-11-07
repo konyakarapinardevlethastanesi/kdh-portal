@@ -23,6 +23,23 @@
         .pill input:checked + div { background-color: #0f172a; border-color: #0f172a; color: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); }
         .pill div { transition: all .15s ease; }
         .pill:hover div { border-color: #94a3b8; }
+        /* Cinsiyet: erkek mavi, kadın soluk pembe */
+        .pill.cins-erkek div { border-color: #bfdbfe; }
+        .pill.cins-erkek:hover div { border-color: #60a5fa; background-color: #eff6ff; }
+        .pill.cins-erkek input:checked + div { background-color: #2563eb; border-color: #2563eb; color: #fff; }
+        .pill.cins-kadin div { border-color: #fbcfe8; }
+        .pill.cins-kadin:hover div { border-color: #f9a8d4; background-color: #fdf2f8; }
+        .pill.cins-kadin input:checked + div { background-color: #fbcfe8; border-color: #f472b6; color: #9d174d; }
+        /* Sağlık hizmeti alınan bölüm: poliklinik yeşil, servis mavi, yoğun bakım kırmızı */
+        .pill.bolum-pol div { border-color: #a7f3d0; background-color: #ecfdf5; color: #047857; }
+        .pill.bolum-pol:hover div { border-color: #34d399; }
+        .pill.bolum-pol input:checked + div { background-color: #059669; border-color: #059669; color: #fff; }
+        .pill.bolum-ser div { border-color: #bfdbfe; background-color: #eff6ff; color: #1d4ed8; }
+        .pill.bolum-ser:hover div { border-color: #60a5fa; }
+        .pill.bolum-ser input:checked + div { background-color: #2563eb; border-color: #2563eb; color: #fff; }
+        .pill.bolum-yb div { border-color: #fecaca; background-color: #fef2f2; color: #b91c1c; }
+        .pill.bolum-yb:hover div { border-color: #f87171; }
+        .pill.bolum-yb input:checked + div { background-color: #dc2626; border-color: #dc2626; color: #fff; }
         .opt input:checked + div { background-color: #0f172a; border-color: #0f172a; color: #fff; }
         .opt input:checked + div .dot { background: #fff; border-color: #fff; box-shadow: inset 0 0 0 3px #0f172a; }
         .opt:hover div { border-color: #94a3b8; }
@@ -102,8 +119,8 @@
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Cinsiyet <span class="text-rose-500">*</span></label>
                             <div class="grid grid-cols-2 gap-2">
-                                <label class="pill cursor-pointer"><input type="radio" name="fCins" value="Kadın" required class="sr-only"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Kadın</div></label>
-                                <label class="pill cursor-pointer"><input type="radio" name="fCins" value="Erkek" required class="sr-only"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Erkek</div></label>
+                                <label class="pill cins-kadin cursor-pointer"><input type="radio" name="fCins" value="Kadın" required class="sr-only"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Kadın</div></label>
+                                <label class="pill cins-erkek cursor-pointer"><input type="radio" name="fCins" value="Erkek" required class="sr-only"><div class="py-2.5 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700">Erkek</div></label>
                             </div>
                         </div>
                         <div>
@@ -150,9 +167,9 @@
                 <div class="space-y-3">
                     <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-hospital text-blue-600"></i><span>Sağlık Hizmeti Alınan Bölüm</span></div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                        <label class="pill cursor-pointer"><input type="radio" name="fBolum" value="Poliklinik" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-stethoscope mr-1.5"></i>Poliklinik</div></label>
-                        <label class="pill cursor-pointer"><input type="radio" name="fBolum" value="Servis" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-bed-pulse mr-1.5"></i>Servis</div></label>
-                        <label class="pill cursor-pointer"><input type="radio" name="fBolum" value="Yoğun Bakım" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-heart-pulse mr-1.5"></i>Yoğun Bakım</div></label>
+                        <label class="pill bolum-pol cursor-pointer"><input type="radio" name="fBolum" value="Poliklinik" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-stethoscope mr-1.5"></i>Poliklinik</div></label>
+                        <label class="pill bolum-ser cursor-pointer"><input type="radio" name="fBolum" value="Servis" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-bed-pulse mr-1.5"></i>Servis</div></label>
+                        <label class="pill bolum-yb cursor-pointer"><input type="radio" name="fBolum" value="Yoğun Bakım" required class="sr-only" onchange="applyBranching()"><div class="py-3 rounded-xl border border-slate-300 bg-white text-center font-bold text-slate-700"><i class="fa-solid fa-heart-pulse mr-1.5"></i>Yoğun Bakım</div></label>
                     </div>
                 </div>
 
@@ -168,7 +185,7 @@
 
                 <!-- SERVİS -->
                 <fieldset id="secServis" class="hidden anim-fade space-y-4">
-                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-bed-pulse text-emerald-600"></i><span>Servis Değerlendirmesi</span></div>
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-bed-pulse text-blue-600"></i><span>Servis Değerlendirmesi</span></div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Yatış Yapılan Servis <span class="text-rose-500">*</span></label>
@@ -188,7 +205,7 @@
 
                 <!-- YOĞUN BAKIM -->
                 <fieldset id="secYB" class="hidden anim-fade space-y-4">
-                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-heart-pulse text-emerald-600"></i><span>Yoğun Bakım Değerlendirmesi</span></div>
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-heart-pulse text-rose-600"></i><span>Yoğun Bakım Değerlendirmesi</span></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Yatış Tarihi <span class="text-rose-500">*</span></label>
@@ -334,7 +351,17 @@
             $("fGorTarih").value = t; $("fGorTarih").max = t;
             ["fYatisS", "fTaburcuS", "fYatisY", "fTaburcuY"].forEach(id => { $(id).value = ""; $(id).max = t; });
             [["fYatisS", "fTaburcuS"], ["fYatisY", "fTaburcuY"]].forEach(([a, b]) => {
-                $(a).onchange = () => { $(b).min = $(a).value || ""; if ($(b).value && $(a).value && $(b).value < $(a).value) $(b).value = ""; };
+                $(a).onchange = () => { $(b).min = $(a).value || ""; if ($(b).value && $(a).value && $(b).value < $(a).value) $(b).value = "";
+                    if ($(a).value) setTimeout(() => { try { $(b).focus(); $(b).showPicker(); } catch (e) { } }, 150);   /* taburcu takvimi otomatik açılır */ };
+            });
+        }
+
+        // Hasta / hasta yakını adı: rakam girilemez (yazarken, yapıştırırken ve kayıtta engellenir)
+        function setupNames() {
+            ["fHasta", "fYakinAd"].forEach(id => {
+                const el = $(id);
+                el.addEventListener("keydown", e => { if (/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault(); });
+                el.addEventListener("input", () => { const v = el.value.replace(/[0-9]/g, ""); if (v !== el.value) el.value = v; });
             });
         }
 
@@ -418,7 +445,7 @@
             const s = getSession(); if (!s) return;
             $("loginScreen").classList.add("hidden");
             $("appScreen").classList.remove("hidden");
-            $("whoName").textContent = s.ad;
+            $("whoName").textContent = "Sn. " + s.ad;
             $("todayCount").textContent = "-";
             try {
                 const out = await api("GET", { anket: "hasta", islem: "bugun", token: s.token });
@@ -462,6 +489,7 @@
         function handleSubmit(e) {
             e.preventDefault();
             $("formError").classList.add("hidden");
+            ["fHasta", "fYakinAd"].forEach(id => { const el = $(id); if (el) el.setCustomValidity(/[0-9]/.test(el.value) ? "Ad soyad alanında rakam kullanılamaz." : ""); });
             const tel = $("fTel"), digits = tel.value.replace(/\D/g, "");
             tel.setCustomValidity(/^0?\d{10}$/.test(digits) ? "" : "Telefon numarası 10 veya 11 haneli olmalıdır.");
             const form = $("gForm");
@@ -537,7 +565,7 @@
         window.addEventListener("DOMContentLoaded", () => {
             $("currentYear").textContent = new Date().getFullYear();
             fillSelect("fEgitim", EGITIM); fillSelect("fYakinlik", YAKINLIK); fillSelect("fServis", SERVISLER); fillSelect("fBrans", [...BRANSLAR].sort((a, b) => a.localeCompare(b, "tr")));
-            renderQuestions(); setupDates(); applyBranching(); setupTel();
+            renderQuestions(); setupDates(); applyBranching(); setupTel(); setupNames();
             if (getSession()) showApp(); else loadPersonel();
         });
     </script>
