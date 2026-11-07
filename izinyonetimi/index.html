@@ -159,7 +159,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <div id="toast" class="hidden"></div>
 <div id="printArea"></div>
 <script>
-const API_URL='BURAYA_APPS_SCRIPT_WEB_APP_ADRESI';
+const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
 const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
 const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim','Surekli'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
 const HELP={Personel:'Sürekli işçi seçilirse izin gün hesabında pazar günleri sayılmaz. Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir.',Istihdam:'İstihdam şekli ve formun üstündeki "Dikkat" notu.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
