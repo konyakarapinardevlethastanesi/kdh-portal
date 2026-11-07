@@ -111,14 +111,14 @@ window.KDHSign=window.KDHSign||(function(){var M=null;return{meta:function(d){re
             <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
                 <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-3">
                     <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-user-gear text-slate-900"></i> Yönetici Giriş Paneli
+                        <i class="fa-solid fa-user-gear text-slate-900"></i> Kullanıcı / Yönetici Girişi
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
                         <input type="password" id="adminPasswordInputPortal" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-slate-900">
                     </div>
                     <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-sliders"></i> Yönetici Paneline Giriş Yap
+                        <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
                     </button>
                     <p id="adminLoginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
                 </form>
@@ -411,6 +411,7 @@ function showAdmin(){KDHAuth.init({api:API_URL,key:function(){return sessionStor
  const yl=[...new Set(ROWS.map(r=>r[2]).filter(Boolean).concat(String(new Date().getFullYear())))].sort().reverse();
  $('fYil').innerHTML='<option value="">Tüm Yıllar</option>'+yl.map(y=>`<option>${y}</option>`).join('');
  $('fAy').innerHTML='<option value="">Tüm Aylar</option>'+AYLAR.map(a=>`<option>${a}</option>`).join('');
+ $('fYil').value=String(new Date().getFullYear());$('fAy').value=AYLAR[new Date().getMonth()];
  showTab('dash');setInterval(()=>{const d=new Date();$('clockDate').textContent=d.toLocaleDateString('tr-TR');$('clockTime').textContent=d.toLocaleTimeString('tr-TR');},1000);}
 function showTab(t){const T=['dash','list','rap','gecmis'];if(t==='gecmis'&&!(window.KDHAuth&&KDHAuth.who()&&KDHAuth.who().rol==='admin'))t='dash';
  const on='bg-white text-slate-900 border-slate-200 shadow-sm',off='bg-transparent text-slate-500 border-transparent hover:text-slate-800';
