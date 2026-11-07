@@ -32,7 +32,8 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <body class="bg-slate-100 min-h-screen flex flex-col">
 
 <!-- 1. GİRİŞ -->
-<div id="mainAuthPortal" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden select-none" style="background:radial-gradient(ellipse at 20% 10%,#1e293b,#020617 70%)">
+<div id="mainAuthPortal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden select-none">
+ <canvas id="animatedPortalBg" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
  <div class="max-w-md w-full space-y-5 my-auto relative z-10">
   <div class="text-center space-y-2">
    <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto"><img src="logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-lg"></div>
@@ -41,16 +42,13 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
    <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
    <p class="text-[11px] text-slate-400 font-bold">Personel İzin Formu Sistemi</p>
   </div>
-  <div class="bg-white/95 rounded-2xl p-6 shadow-2xl border border-slate-200/80">
+  <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-700 space-y-4">
    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
-    <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl">
-     <button type="button" id="rb-kullanici" onclick="setRol('kullanici')" class="py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-user"></i> Kullanıcı</button>
-     <button type="button" id="rb-admin" onclick="setRol('admin')" class="py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-user-shield"></i> Yönetici</button>
-    </div>
-    <div><label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
-    <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold"></div>
-    <button id="loginBtn" type="submit" class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl text-xs shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
-    <p id="loginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
+    <div class="flex items-center gap-1.5 text-xs font-bold text-white border-b border-slate-700 pb-2"><i class="fa-solid fa-user-gear text-white"></i> Kullanıcı / Yönetici Girişi</div>
+    <div><label class="block text-[11px] font-bold text-slate-300 mb-1">Şifre <span class="text-rose-500">*</span></label>
+    <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-600 bg-slate-800 text-white placeholder-slate-400 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-blue-500"></div>
+    <button id="loginBtn" type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+    <p id="loginError" class="text-xs text-rose-400 hidden font-semibold text-center">Hatalı şifre!</p>
    </form>
   </div>
  </div>
@@ -73,7 +71,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
     <span id="roleChip" class="px-2.5 py-1 rounded-full bg-slate-800 text-[10px] font-bold text-amber-300"></span>
     <div class="text-right leading-tight shrink-0 hidden sm:block"><div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums"></div><div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums"></div></div>
     <div class="h-8 w-px bg-slate-700"></div>
-    <button onclick="location.reload()" class="px-3 py-1.5 bg-slate-800 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
+    <button onclick="logout()" class="px-3 py-1.5 bg-slate-800 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
    </div>
   </div>
  </header>
@@ -161,34 +159,39 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <div id="toast" class="hidden"></div>
 <div id="printArea"></div>
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
+const API_URL='BURAYA_APPS_SCRIPT_WEB_APP_ADRESI';
 const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
 const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim','Surekli'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
 const HELP={Personel:'Sürekli işçi seçilirse izin gün hesabında pazar günleri sayılmaz. Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir.',Istihdam:'İstihdam şekli ve formun üstündeki "Dikkat" notu.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
 const CL={Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi mi?',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
 const lab=(s,c)=>s=='IzinTurleri'&&c=='Tur'?'İzin Türü':s=='Tatiller'&&c=='Tur'?'Tatil Türü':s=='Tatiller'&&c=='Ad'?'Tatil Adı':CL[c]||c;
-const S={pw:'',ad:'',rol:'kullanici',db:{}};let LS='Personel',ER=0,ROL='kullanici',LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
+const S={pw:'',ad:'',rol:'kullanici',db:{}};let LS='Personel',ER=0,LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
 const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const p2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),tr=s=>s?String(s).slice(0,10).split('-').reverse().join('.'):'';
 const pd=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d)},nx=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
-async function api(o){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({...o,pw:S.pw,rol:S.rol})});return r.json()}
+async function api(o){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({...o,pw:S.pw})});return r.json()}
 function note(m,e){const t=$('toast');t.textContent=m;t.className='fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl text-xs font-bold text-white shadow-xl '+(e?'bg-rose-600':'bg-emerald-600');clearTimeout(t._t);t._t=setTimeout(()=>t.className='hidden',3500)}
 function ask(m,ok='Sil'){$('dlgMsg').textContent=m;$('dlgOk').textContent=ok;$('dlg').classList.replace('hidden','flex');return new Promise(r=>_res=r)}
 function dlg(v){$('dlg').classList.replace('flex','hidden');_res(v)}
 
 /* GİRİŞ */
-function setRol(r){ROL=r;['kullanici','admin'].forEach(k=>$('rb-'+k).className='py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 '+(k==r?'bg-slate-900 text-white shadow':'text-slate-600'))}
-setRol('kullanici');
-async function handleLogin(e){e.preventDefault();const b=$('loginBtn'),o=b.innerHTML,sp='<i class="fa-solid fa-spinner fa-spin"></i> ';
- S.pw=$('passwordInput').value;S.rol=ROL;b.disabled=true;b.innerHTML=sp+'Giriş yapılıyor...';$('loginError').classList.add('hidden');
+const KEY='izin_key';
+function showApp(r){S.ad=r.ad;S.rol=r.rol;S.db=r.db;$('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.replace('hidden','flex');
+ $('roleChip').innerHTML='<i class="fa-solid fa-user"></i> '+E(S.ad)+(S.rol=='admin'?' (Yönetici)':'');
+ if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
+ $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor')}
+async function doLogin(first){const r=await api({a:'get',first:first?1:0});if(!r.ok)throw new Error(r.err||'unauthorized');showApp(r)}
+async function handleLogin(e){e.preventDefault();const b=$('loginBtn'),o=b.innerHTML,sp='<i class="fa-solid fa-spinner fa-spin"></i> ',er=$('loginError');
+ b.disabled=true;b.innerHTML=sp+'Giriş yapılıyor...';er.classList.add('hidden');S.pw=$('passwordInput').value;sessionStorage.setItem(KEY,S.pw);
  const t=setTimeout(()=>b.innerHTML=sp+'Veriler yükleniyor...',2500);
- try{const r=await api({a:'get',first:1});if(!r.ok)throw r.err||'Hatalı şifre!';S.ad=r.ad;S.rol=r.rol;S.db=r.db;
-  $('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.replace('hidden','flex');
-  $('roleChip').innerHTML='<i class="fa-solid fa-user"></i> '+E(S.ad)+(S.rol=='admin'?' (Yönetici)':'');
-  if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
-  $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor');
- }catch(x){$('loginError').textContent=typeof x=='string'?x:'Sunucuya ulaşılamadı: API_URL adresini ve dağıtım erişimini (Herkes) kontrol edin.';$('loginError').classList.remove('hidden');S.pw=''}
+ try{await doLogin(1)}catch(x){sessionStorage.removeItem(KEY);S.pw='';const m=x.message;
+  er.textContent=m==='unauthorized'?'Hatalı şifre!':x instanceof SyntaxError?'Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir.':m==='Failed to fetch'?'Sunucuya ulaşılamadı. Bağlantınızı ve API_URL adresini kontrol edin.':m;er.classList.remove('hidden')}
  clearTimeout(t);b.disabled=false;b.innerHTML=o}
+function logout(){sessionStorage.removeItem(KEY);location.reload()}
+window.addEventListener('DOMContentLoaded',async()=>{const k=sessionStorage.getItem(KEY);if(!k)return;S.pw=k;try{await doLogin(0)}catch(x){sessionStorage.removeItem(KEY);S.pw=''}});
+(function(){const c=$('animatedPortalBg');if(!c)return;const x=c.getContext('2d');let w,h;const rs=()=>{w=c.width=innerWidth;h=c.height=innerHeight};addEventListener('resize',rs);rs();
+ const P=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h,s:Math.random()*3+1,sx:(Math.random()-.5)*.3,sy:-Math.random()*.5-.2,o:Math.random()*.5+.2}));
+ (function an(){x.clearRect(0,0,w,h);P.forEach(p=>{p.x+=p.sx;p.y+=p.sy;if(p.y<-10)p.y=h+10;x.save();x.globalAlpha=p.o;x.fillStyle='#94a3b8';x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();x.restore()});requestAnimationFrame(an)})()})();
 function clock(){const n=new Date();$('clockDate').textContent=tr(iso(n));$('clockTime').textContent=p2(n.getHours())+':'+p2(n.getMinutes())+':'+p2(n.getSeconds())}
 async function reload(q){const b=$('refBtn');b.disabled=true;try{const r=await api({a:'get'});if(r.ok){S.db=r.db;fillSel();$('tabCount').textContent=S.db.Kayitlar.length;if(cur=='saved')renderSaved();if(cur=='lists')renderLists();if(cur=='hist')renderHist();if(!q)note('Liste yenilendi.')}else note(r.err||'Yenilenemedi',1)}catch(x){note('Sunucuya ulaşılamadı',1)}b.disabled=false}
 function tabClick(n){cur=n;['editor','saved','lists','hist'].forEach(k=>{const b=$('btn-'+k),s=$('sec-'+k);if(b){b.className=b.className.replace(/tab-(on|off)/g,'')+' '+(k==n?'tab-on':'tab-off');s.classList.toggle('hidden',k!=n)}});
