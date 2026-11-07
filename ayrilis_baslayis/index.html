@@ -1,1196 +1,281 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta name="kdh-back" content="1">
-    <script src="../kdh-theme.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayrılış-Başlayış Raporları - Konya Karapınar Devlet Hastanesi</title>
-        <link rel="icon" type="image/png" href="../favicon.png">
-        <link rel="shortcut icon" href="../favicon.ico">
-        <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        input, textarea, select { -webkit-user-select: text; user-select: text; }
-        button { cursor: pointer; position: relative; overflow: hidden; transition: transform .16s cubic-bezier(.3,1.5,.5,1), filter .15s ease, background-color .15s ease, box-shadow .18s ease; -webkit-tap-highlight-color: transparent; }
-        button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 7px 14px -7px rgba(15,23,42,.5); }
-        button:active:not(:disabled) { transform: translateY(1px) scale(.94); filter: brightness(.86); box-shadow: inset 0 3px 8px rgba(0,0,0,.28); transition-duration: .06s; }
-        .ripple { position: absolute; border-radius: 9999px; background: currentColor; opacity: .3; transform: scale(0); animation: rip .55s ease-out forwards; pointer-events: none; }
-        @keyframes rip { to { transform: scale(3); opacity: 0; } }
-        @media (prefers-reduced-motion: reduce) { .ripple { display: none; } button:hover:not(:disabled), button:active:not(:disabled) { transform: none; } }
-        button:disabled { opacity: .75; cursor: wait; }
-        button:focus-visible, select:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
-        select { cursor: pointer; }
-
-        @keyframes popIn { 0% { opacity: 0; transform: scale(.7) translateY(24px); } 60% { opacity: 1; transform: scale(1.04); } 100% { transform: scale(1); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes shake { 0%,100% { transform: rotate(0); } 15% { transform: rotate(-14deg); } 30% { transform: rotate(11deg); } 45% { transform: rotate(-8deg); } 60% { transform: rotate(6deg); } 75% { transform: rotate(-3deg); } }
-        @keyframes ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.8); opacity: 0; } }
-        .anim-pop { animation: popIn .38s cubic-bezier(.2,.9,.3,1.2) both; }
-        .anim-fade { animation: fadeIn .22s ease both; }
-        .anim-shake { animation: shake .9s ease .3s both; }
-        .pulse-ring::before, .pulse-ring::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: rgba(244,63,94,.35); animation: ring 1.8s ease-out infinite; }
-        .pulse-ring::after { animation-delay: .9s; }
-        tr.row-removing { transition: all .45s ease; opacity: 0; transform: translateX(40px); background: #fee2e2; }
-        @media (prefers-reduced-motion: reduce) { .anim-pop, .anim-shake, .pulse-ring::before, .pulse-ring::after { animation: none; } }
-
-        /* ---------- Düzenleme alanı ---------- */
-        .ed { width: 100%; min-width: 0; padding: .4rem .5rem; border: 1px solid #cbd5e1; border-radius: .4rem; font-size: .75rem; background: #fff; color: #0f172a; }
-        .ed:focus { outline: none; box-shadow: 0 0 0 2px #0f172a; }
-        textarea.ed { resize: vertical; line-height: 1.3; }
-        .th { padding: .55rem .5rem; text-align: left; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; color: #475569; background: #f1f5f9; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
-        .td { padding: .35rem .4rem; vertical-align: top; }
-
-        /* ====================================================================
-           RAPOR AYARLARI (Önizleme ve Yazdırma) — SADECE BURADAN DEĞİŞTİRİN
-             --rapor-yazi-tipi : yazı tipi          (örnek: Arial, 'Times New Roman', Calibri)
-             --rapor-punto     : yazı boyutu        (örnek: 10pt, 11pt, 12pt)
-             --rapor-cizgi     : tablo çizgi rengi  (koyu lacivert)
-             --rapor-cizgi-kalinlik : çizgi kalınlığı (örnek: .25mm, .3mm, .4mm)
-           SAYFA KENAR BOŞLUKLARI: aşağıdaki "margin" satırı; sıra = ÜST SAĞ ALT SOL (mm)
-             Şu an: üst 8mm, sağ 5mm, alt 12mm (sayfa numarası için), sol 5mm
-             Yazıcı kenarı keserse sağ ve sol değerini biraz artırın (örnek: 6mm).
-           ==================================================================== */
-        :root { --rapor-yazi-tipi: Times New Roman, Helvetica, sans-serif; --rapor-punto: 10pt; --rapor-cizgi: #0b1f4d; --rapor-cizgi-kalinlik: .3mm; }
-        @page { size: A4 portrait; margin: 8mm 5mm 12mm 5mm; /* ÜST SAĞ ALT SOL */
-            @bottom-center { content: "Sayfa " counter(page) "/" counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #475569; } }
-
-        /* ---------- RAPOR (ekranda önizleme + yazdırma aynı görünüm; A4 dikey) ---------- */
-        #printArea { display: none; }
-        .rp { font-family: var(--rapor-yazi-tipi); color: #111827; background: #fff; width: 100%; box-sizing: border-box; padding: 0 1mm; font-size: var(--rapor-punto); line-height: 1.2; }
-        .rp table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
-        .rp table + table { margin-top: 2.2mm; }
-        /* Dış tablo: <thead> içindeki başlık (logo + T.C. + kırmızı çizgi) yazdırmada 2., 3., 4. ... her sayfada tekrar eder */
-        .rp table.rpw { border-collapse: separate; border-spacing: 0; }
-        .rp table.rpw > thead > tr > td, .rp table.rpw > tbody > tr > td { border: none; padding: 0; text-align: left; vertical-align: top; white-space: normal; }
-        .rp table.rpw > thead > tr > td { padding-bottom: 2.2mm; }
-        .rp td, .rp th { border: var(--rapor-cizgi-kalinlik) solid var(--rapor-cizgi); padding: 1mm 1.3mm; text-align: center; vertical-align: middle; overflow-wrap: break-word; white-space: pre-line; }
-        .rp .t-gec { --c: #1d4ed8; --t: #dbeafe; } .rp .t-bas { --c: #15803d; --t: #dcfce7; } .rp .t-ayr { --c: #b91c1c; --t: #fee2e2; }
-        .rp .t-ist { --c: #b45309; --t: #fef3c7; } .rp .t-sut { --c: #0f766e; --t: #ccfbf1; }
-        .rp .ttl { background: var(--c); color: #fff; font-weight: 700; font-size: var(--rapor-punto); padding: 1.4mm; }
-        .rp .ttl.none { background: var(--t); color: var(--c); }
-        .rp th { background: var(--t); color: var(--c); font-weight: 700; font-size: var(--rapor-punto); text-transform: uppercase; }
-        .rp .z tr.r:nth-child(even) td { background: #f8fafc; }
-        .rp .r td { height: 7mm; }
-        .rp .rg td { height: 10mm; }
-        .rp .tl { text-align: left; }
-        .rp .calc { background: var(--t); color: var(--c); font-weight: 700; font-size: var(--rapor-punto); text-align: center; height: auto !important; }
-        .rp .head td { border: none; border-bottom: 1.2mm solid #dc2626; height: 25mm; padding: 0 2mm; }
-        .rp .head .hl { text-align: left; } .rp .head .hl img { height: 20mm; width: auto; }
-        .rp .head .ho { font-weight: 700; line-height: 1.4; color: #111827; }
-        .rp .head .c1, .rp .head .c2, .rp .head .c3, .rp .head .c4 { font-size: var(--rapor-punto); color: #111827; }
-        .rp .head .hr { text-align: right; } .rp .head .pl { font-size: var(--rapor-punto); font-weight: 700; color: #475569; } .rp .head .pv { font-size: var(--rapor-punto); font-weight: 700; color: #dc2626; }
-        #pvPage { width: 794px; box-sizing: border-box; background: #fff; padding: 8mm 10mm; box-shadow: 0 6px 30px rgba(0,0,0,.35); transform-origin: top center; }
-        @media print {
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            html, body { margin: 0 !important; padding: 0 !important; }
-            body.print-report { display: block !important; min-height: 0 !important; height: auto !important; background: #fff !important; }
-            body.print-report > *:not(#printArea) { display: none !important; }
-            body.print-report #printArea { display: block !important; }
-            .rp table { break-inside: auto; }
-            .rp .kp, .rp table.head { break-inside: avoid; page-break-inside: avoid; }
-            .rp thead { display: table-header-group; }
-            .rp thead tr { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
-            .rp tbody.g { break-inside: avoid; page-break-inside: avoid; }
-            .rp tr { break-inside: avoid; page-break-inside: avoid; }
-            .rp tr.wrow { break-inside: auto !important; page-break-inside: auto !important; }   /* içerik sayfalara bölünebilsin */
-        }
-    </style>
+<meta name="kdh-back" content="1">
+<script src="../kdh-theme.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personel İzin Formu - Konya Karapınar Devlet Hastanesi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Inter',sans-serif}
+button{cursor:pointer;transition:filter .15s,transform .12s}
+button:hover:not(:disabled){filter:brightness(1.08)}button:active:not(:disabled){transform:scale(.96)}button:disabled{opacity:.6;cursor:wait}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+.inp{width:100%;padding:.6rem .75rem;border:1px solid #cbd5e1;border-radius:.7rem;font-size:.85rem;background:#fff}
+.lb{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:.25rem}
+.tab-on{background:#fff;color:#0f172a;border-color:#cbd5e1;border-bottom-color:#fff}.tab-off{background:#e2e8f0;color:#475569}
+.fm{display:grid;width:7.81in;background:#fff;font:8pt Calibri,Carlito,Arial,sans-serif;color:#000;
+grid-template-columns:4.1fr 5.5fr 1.6fr 3.1fr 6.9fr 5.5fr 4.5fr 12.2fr 2.5fr 2.5fr 6.9fr 5.9fr 4.5fr 3.9fr 8.6fr 4.5fr 5.9fr 3.2fr;
+grid-template-rows:11.76pt 14.89pt 0 18.03pt 18.81pt 14.89pt 14.11pt 19.59pt 20.38pt 19.44pt 16.46pt 18.18pt 18.18pt 18.81pt 16.30pt 15.67pt 18.65pt 18.65pt 16.62pt 16.62pt 16.62pt 16.30pt 16.30pt 16.30pt 16.30pt 16.30pt}
+.fm>div{display:flex;align-items:flex-end;overflow:hidden;white-space:pre-wrap;padding:0 3px 1px;line-height:1.38}
+.fm .top{align-items:flex-start}.fm .mid{align-items:center}.fm .c{justify-content:center;text-align:center}.fm .r{justify-content:flex-end;text-align:right}
+.fm .t7{font-size:7pt}.fm .box{border:2px solid #000}.fm .in{padding-left:16px}
+.fm .bt{border-top:1px solid #000}.fm .bb{border-bottom:1px solid #000}.fm .bl{border-left:1px solid #000}.fm .br{border-right:1px solid #000}
+#printArea{display:none}
+@media print{html,body{margin:0!important}@page{size:A4 portrait;margin:1.55in .16in .75in .16in}
+body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
+</style>
 </head>
-<body class="bg-gradient-to-b from-slate-100 to-sky-50 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+<body class="bg-slate-100 min-h-screen flex flex-col">
 
-    <!-- ==================== 1. GİRİŞ ==================== -->
-    <div id="mainAuthPortal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden select-none">
-        <canvas id="animatedPortalBg" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
-        <div class="max-w-md w-full space-y-5 my-auto relative z-10">
-            <div class="text-center space-y-2">
-                <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto drop-shadow-2xl">
-                    <img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-lg">
-                </div>
-                <div class="text-[12px] font-bold tracking-widest text-red-500 uppercase">T.C. Sağlık Bakanlığı</div>
-                <div class="text-[12px] font-semibold text-slate-200">Konya İl Sağlık Müdürlüğü</div>
-                <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
-                <p class="text-[11px] text-slate-400 font-bold">Ayrılış - Başlayış Rapor Sistemi</p>
-            </div>
-            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
-                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
-                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-user-gear text-slate-900"></i> Kullanıcı / Yönetici Girişi
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
-                        <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-slate-900">
-                    </div>
-                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
-                    </button>
-                    <p id="loginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
-                </form>
-            </div>
-        </div>
+<!-- 1. GİRİŞ -->
+<div id="mainAuthPortal" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden select-none" style="background:radial-gradient(ellipse at 20% 10%,#1e293b,#020617 70%)">
+ <div class="max-w-md w-full space-y-5 my-auto relative z-10">
+  <div class="text-center space-y-2">
+   <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto"><img src="logo.png" alt="Logo" class="w-full h-full object-contain drop-shadow-lg"></div>
+   <div class="text-[12px] font-bold tracking-widest text-red-500 uppercase">T.C. Sağlık Bakanlığı</div>
+   <div class="text-[12px] font-semibold text-slate-200">Konya İl Sağlık Müdürlüğü</div>
+   <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
+   <p class="text-[11px] text-slate-400 font-bold">Personel İzin Formu Sistemi</p>
+  </div>
+  <div class="bg-white/95 rounded-2xl p-6 shadow-2xl border border-slate-200/80">
+   <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
+    <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl">
+     <button type="button" id="rb-kullanici" onclick="setRol('kullanici')" class="py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-user"></i> Kullanıcı</button>
+     <button type="button" id="rb-admin" onclick="setRol('admin')" class="py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-user-shield"></i> Yönetici</button>
     </div>
+    <div><label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
+    <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold"></div>
+    <button id="loginBtn" type="submit" class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl text-xs shadow-lg flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+    <p id="loginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
+   </form>
+  </div>
+ </div>
+</div>
 
-    <!-- ==================== 2. PANEL ==================== -->
-    <div id="adminInterface" class="hidden flex-col flex-grow">
-        <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-[56px] h-[56px] flex items-center justify-center shrink-0">
-                        <img src="logo.png" alt="Logo" class="w-full h-full object-contain">
-                    </div>
-                    <div class="flex flex-col justify-center leading-tight">
-                        <div class="text-[11px] font-extrabold text-red-500 uppercase tracking-wide">T.C. Sağlık Bakanlığı</div>
-                        <div class="text-[10.5px] font-semibold text-slate-200 mt-0.5">Konya İl Sağlık Müdürlüğü</div>
-                        <h1 class="text-sm font-extrabold text-white mt-0.5">Karapınar Devlet Hastanesi</h1>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Ayrılış - Başlayış Rapor Paneli</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <span id="roleChip" class="px-2.5 py-1 rounded-full bg-slate-800 text-[10px] font-bold text-amber-300 flex items-center gap-1.5"></span>
-                    <div class="text-right leading-tight shrink-0 hidden sm:block">
-                        <div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</div>
-                        <div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</div>
-                    </div>
-                    <div class="h-8 w-px bg-slate-700"></div>
-                    <button onclick="logoutClick()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-right-from-bracket"></i> Çıkış
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
-
-            <!-- SEKMELER -->
-            <div class="flex gap-2 border-b border-slate-300 overflow-x-auto items-end">
-                <button id="btn-editor" onclick="tabClick('editor')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-file-pen"></i> Aylık Rapor</button>
-                <button id="btn-saved" onclick="tabClick('saved')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-folder-open"></i> Kayıtlı Raporlar <span id="tabCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
-                <button id="btn-lists" onclick="tabClick('lists')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-list-ul"></i> Durum Başlıkları ve Tatiller</button>
-                <button id="btn-log" onclick="tabClick('log')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</button>
-                <div class="ml-auto self-center flex items-center gap-2 pb-1">
-                    <span id="lastUpdate" class="text-[10px] text-slate-400 font-semibold whitespace-nowrap"></span>
-                    <button id="refreshBtn" onclick="refreshData(true)" title="Yenile" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg text-xs flex items-center gap-1.5"><i id="refreshIcon" class="fa-solid fa-rotate"></i> Yenile</button>
-                </div>
-            </div>
-
-            <!-- ===== SEKME 1: AYLIK RAPOR ===== -->
-            <section id="sec-editor" class="hidden space-y-4 anim-fade">
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-md space-y-3" style="border-top:4px solid #dc2626">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex items-center gap-2 text-xs font-bold text-slate-700 mr-1"><i class="fa-solid fa-calendar-days text-slate-500"></i> Rapor Dönemi</div>
-                        <select id="edYil" onchange="changePeriod()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                        <select id="edAy" onchange="changePeriod()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                        <span id="edBadge" class="px-2.5 py-1 rounded-full text-[10px] font-bold"></span>
-                        <div class="ml-auto flex flex-wrap items-center gap-2">
-                            <button onclick="previewCurrent()" class="text-xs bg-slate-700 hover:bg-slate-800 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-eye"></i> Önizleme</button>
-                            <button onclick="printCurrent()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-print"></i> Yazdır</button>
-                            <button id="nextBtn" onclick="carryNext()" title="Geçici görev ve süt izni kayıtlarını sonraki aya taslak olarak aktarır" class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-forward"></i> Sonraki Aya Aktar</button>
-                            <button id="saveBtn" onclick="saveReport()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-floppy-disk"></i> Raporu Kaydet</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <h2 id="edTitle" class="text-sm font-extrabold text-slate-800"></h2>
-                        <button id="carryBtn" onclick="carryOver()" class="hidden text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2.5 py-1 rounded-lg items-center gap-1.5"><i class="fa-solid fa-clone"></i> Önceki Aydan Aktar (Geçici Görev + Süt İzni)</button>
-                    </div>
-                    <p id="edHint" class="hidden text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-2.5"></p>
-                </div>
-                <div id="edSections" class="space-y-4"></div>
-            </section>
-
-            <!-- ===== SEKME 2: KAYITLI RAPORLAR ===== -->
-            <section id="sec-saved" class="hidden space-y-4 anim-fade">
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-2">
-                    <div class="relative flex-1 min-w-[180px]">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                        <input type="text" id="svSearch" oninput="renderSaved()" placeholder="Rapor adı ara..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900">
-                    </div>
-                    <select id="svYil" onchange="renderSaved()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                    <select id="svAy" onchange="renderSaved()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                    <span id="svInfo" class="text-[11px] text-slate-500 font-semibold"></span>
-                </div>
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs">
-                            <thead><tr>
-                                <th class="th w-10">#</th><th class="th">Rapor Adı</th><th class="th">Özet</th><th class="th">Son Kayıt</th><th class="th">İşlemi Yapan</th><th class="th text-right">İşlem</th>
-                            </tr></thead>
-                            <tbody id="svBody" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== SEKME 3: DURUM BAŞLIKLARI VE TATİLLER ===== -->
-            <section id="sec-lists" class="hidden space-y-6 anim-fade">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-tags text-slate-600"></i> Durum Başlıkları <span class="text-[10px] font-semibold text-slate-400">(Başlayış / Ayrılış / İstihdam durumu listesi)</span></h2>
-                        <form class="admin-only flex gap-2" onsubmit="addStatus(event)">
-                            <input type="text" id="newStatus" required placeholder="Örn: ASKERLİK" class="flex-1 p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800">
-                            <button id="statusSaveBtn" type="submit" class="px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center gap-2"><i class="fa-solid fa-plus"></i> Ekle</button>
-                        </form>
-                        <div class="overflow-y-auto max-h-[28rem]"><table class="w-full text-xs"><tbody id="statusBody" class="divide-y"></tbody></table></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-xmark text-slate-600"></i> Resmî Tatiller <span class="text-[10px] font-semibold text-slate-400">(Tam gün tatil mesai sayılmaz; arife günü yarım gün, 5 saat mesaidir)</span></h2>
-                        <form class="admin-only flex flex-wrap items-center gap-2" onsubmit="addHoliday(event)">
-                            <input type="date" id="newHolDate" required class="w-40 p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800">
-                            <input type="text" id="newHolName" placeholder="Açıklama (Örn: Cumhuriyet Bayramı)" class="flex-1 min-w-[10rem] p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800">
-                            <select id="newHolTur" class="p-2 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"><option value="Tam">Tam gün tatil</option><option value="Arife">Arife (yarım gün, 5 saat mesai)</option></select>
-                            <button id="holSaveBtn" type="submit" class="shrink-0 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center gap-2"><i class="fa-solid fa-plus"></i> Ekle</button>
-                        </form>
-                        <div class="flex items-center gap-2"><label class="text-[11px] font-bold text-slate-500">Yıl:</label><select id="holYil" onchange="renderLists()" class="px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select></div>
-                        <div class="overflow-y-auto max-h-[24rem]"><table class="w-full text-xs"><tbody id="holBody" class="divide-y"></tbody></table></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-calendar-minus text-slate-600"></i> İzin Türleri <span class="text-[10px] font-semibold text-slate-400">(İzin detayı açılır listesi)</span></h2>
-                        <form class="admin-only flex gap-2" onsubmit="addIzin(event)">
-                            <input type="text" id="newIzin" required placeholder="Örn: Yıllık İzin" class="flex-1 min-w-0 p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800">
-                            <button id="izinSaveBtn" type="submit" class="shrink-0 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center gap-2"><i class="fa-solid fa-plus"></i> Ekle</button>
-                        </form>
-                        <div class="overflow-y-auto max-h-[28rem]"><table class="w-full text-xs"><tbody id="izinBody" class="divide-y"></tbody></table></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== SEKME 4: İŞLEM GEÇMİŞİ (sadece yönetici) ===== -->
-            <section id="sec-log" class="hidden space-y-4 anim-fade">
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-2">
-                    <div class="relative flex-1 min-w-[180px]">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                        <input type="text" id="lgSearch" oninput="renderLog()" placeholder="Kayıt veya ayrıntı ara..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900">
-                    </div>
-                    <select id="lgUser" onchange="renderLog()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                    <select id="lgIslem" onchange="renderLog()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700"></select>
-                    <span id="lgInfo" class="text-[11px] text-slate-500 font-semibold"></span>
-                </div>
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto"><table class="w-full text-xs">
-                        <thead><tr><th class="th">Tarih</th><th class="th">Kullanıcı</th><th class="th">Yetki</th><th class="th">İşlem</th><th class="th">Kayıt</th><th class="th">Ayrıntı</th></tr></thead>
-                        <tbody id="lgBody" class="divide-y"></tbody>
-                    </table></div>
-                </div>
-                <p class="text-[11px] text-slate-400 font-semibold">Son 1000 işlem gösterilir. Silinen ve düzenlenen kayıtların eski hali Google Tablosundaki IslemGunlugu sayfasında durur.</p>
-            </section>
-        </main>
-
-        <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800">
-            <p>Konya Karapınar Devlet Hastanesi <span id="currentYearSpan"></span> © Tüm Hakları Saklıdır.</p>
-        </footer>
+<!-- 2. PANEL -->
+<div id="adminInterface" class="hidden flex-col flex-grow">
+ <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+   <div class="flex items-center gap-3">
+    <div class="w-[56px] h-[56px] flex items-center justify-center shrink-0"><img src="logo.png" alt="Logo" class="w-full h-full object-contain"></div>
+    <div class="flex flex-col justify-center leading-tight">
+     <div class="text-[11px] font-extrabold text-red-500 uppercase tracking-wide">T.C. Sağlık Bakanlığı</div>
+     <div class="text-[10.5px] font-semibold text-slate-200 mt-0.5">Konya İl Sağlık Müdürlüğü</div>
+     <h1 class="text-sm font-extrabold mt-0.5">Karapınar Devlet Hastanesi</h1>
+     <p class="text-[10px] text-slate-400 mt-0.5">Personel İzin Formu Paneli</p>
     </div>
+   </div>
+   <div class="flex items-center space-x-3">
+    <span id="roleChip" class="px-2.5 py-1 rounded-full bg-slate-800 text-[10px] font-bold text-amber-300"></span>
+    <div class="text-right leading-tight shrink-0 hidden sm:block"><div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums"></div><div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums"></div></div>
+    <div class="h-8 w-px bg-slate-700"></div>
+    <button onclick="location.reload()" class="px-3 py-1.5 bg-slate-800 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
+   </div>
+  </div>
+ </header>
 
-    <!-- YAZDIRMA ALANI (sadece yazdırırken görünür; doğrudan body çocuğu olmalı) -->
-    <div id="printArea"></div>
+ <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
+  <div class="flex gap-2 border-b border-slate-300 overflow-x-auto items-end">
+   <button id="btn-editor" onclick="tabClick('editor')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-file-pen"></i> İzin Yaz</button>
+   <button id="btn-saved" onclick="tabClick('saved')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-folder-open"></i> Kayıtlı İzinler <span id="tabCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+   <button id="btn-lists" onclick="tabClick('lists')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-list-ul"></i> Listeler</button>
+   <button id="btn-hist" onclick="tabClick('hist')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</button>
+   <div class="ml-auto self-center pb-1"><button id="refBtn" onclick="reload()" class="px-3 py-1.5 bg-slate-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5"><i class="fa-solid fa-rotate"></i> Yenile</button></div>
+  </div>
 
-    <!-- ÖNİZLEME -->
-    <div id="pvModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] hidden flex-col anim-fade">
-        <div class="bg-slate-900 text-white px-4 py-2.5 flex flex-wrap items-center gap-2 shadow-lg">
-            <i class="fa-solid fa-eye text-amber-400"></i>
-            <h3 id="pvTitle" class="text-sm font-extrabold flex-1 min-w-[180px]">Önizleme</h3>
-            <button onclick="printPreview()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-print"></i> Yazdır</button>
-            <button onclick="closePreview()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-xmark"></i> Kapat</button>
-        </div>
-        <div id="pvScroll" class="flex-1 overflow-auto p-4 flex justify-center items-start">
-            <div id="pvOuter"><div id="pvPage" class="rp"></div></div>
-        </div>
+  <!-- İZİN YAZ -->
+  <section id="sec-editor" class="hidden">
+   <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-4 max-w-4xl mx-auto" style="border-top:4px solid #dc2626">
+    <div class="relative">
+     <label class="lb">Personel</label>
+     <input id="kisi" class="inp pr-9" placeholder="Personel seçin veya ad yazarak arayın" autocomplete="off" oninput="cb()" onfocus="cb()" onblur="setTimeout(()=>$('kisiDd').classList.add('hidden'),150)">
+     <button id="kisiX" type="button" onclick="clrKisi()" title="Temizle" class="hidden absolute right-2 top-[2.05rem] w-6 h-6 rounded-full text-slate-400 hover:text-rose-600"><i class="fa-solid fa-xmark"></i></button>
+     <div id="kisiDd" class="hidden absolute z-30 mt-1 w-full max-h-64 overflow-auto bg-white border border-slate-200 rounded-xl shadow-xl"></div>
+     <p id="kisiInfo" class="text-xs text-slate-500 mt-1"></p>
     </div>
-
-    <!-- EKSİK GÜN (İZİN) MODALI -->
-    <div id="lvModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 anim-fade">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl anim-pop space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-calendar-minus text-blue-600"></i> <span>İzin Detayı</span></h3>
-            <p id="lvWho" class="text-[11px] text-slate-500 font-semibold"></p>
-            <div id="lvList" class="space-y-2"></div>
-            <button onclick="lvAdd()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> İzin Satırı Ekle</button>
-            <p class="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-2.5 leading-relaxed">Gün sayısı takvim gününe göre hesaplanır: hafta sonları dahildir, hafta içine denk gelen resmî tatiller sayılmaz. Gerekirse elle değiştirebilirsiniz.</p>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="lvClose()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
-                <button onclick="lvSave()" class="py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-check"></i> Tamam</button>
-            </div>
-        </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+     <div><label class="lb">İzin Türü</label><select id="tur" class="inp" onchange="onTur()"></select></div>
+     <div id="detayBox"><label class="lb">İzin Detay</label><select id="detay" class="inp" onchange="onTur(1)"></select></div>
+     <div><label class="lb">Başlangıç Tarihi</label><input id="bas" type="date" class="inp" onchange="onBas()"></div>
+     <div><label class="lb">Bitiş Tarihi</label><input id="bit" type="date" class="inp" onchange="calc(0)"></div>
+     <div><label class="lb">İzin Gün Sayısı</label><input id="gun" type="number" min="1" class="inp" onchange="calc(1)"></div>
+     <div><label class="lb">İşe Başlama Tarihi</label><input id="don" type="date" class="inp"></div>
+     <div><label class="lb">Mevcut İzin (gün)</label><input id="mevcut" type="number" min="0" class="inp" oninput="updK()"><p id="kalanHint" class="text-xs text-slate-500 mt-1"></p></div>
+     <div><label class="lb">İzinde Bulunulacak Adres</label><input id="adres" class="inp"></div>
     </div>
-    <!-- SÜT İZNİ DETAY MODALI -->
-    <div id="smModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 anim-fade">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl anim-pop space-y-4 max-h-[92vh] overflow-y-auto">
-            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-baby text-blue-600"></i> <span>Süt İzni · Başlayış / Ayrılış / İzin</span></h3>
-            <p id="smWho" class="text-[11px] text-slate-500 font-semibold"></p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label class="block text-xs font-bold text-slate-700 mb-1">Hastaneye Başlayış Tarihi</label><input type="date" id="smBas" class="ed" onchange="smSet('bas', this.value)"></div>
-                <div><label class="block text-xs font-bold text-slate-700 mb-1">Ayrılış Tarihi</label><input type="date" id="smAyr" class="ed" onchange="smSet('ayr', this.value)">
-                    <label class="flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-slate-600"><input type="checkbox" id="smAyrM" onchange="smSet('ayrM', this.checked)"> Mesai bitimi (ayrılış günü de sayılır)</label></div>
-            </div>
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
-                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700"><input type="checkbox" id="smArife" onchange="smSet('arife', this.checked)"> Arife günü süt iznini sabah kullanıyor</label>
-                <p class="text-[11px] text-slate-500 leading-relaxed">İşaretliyse arife günü normal gün gibi sayılır (3 ya da 1,5 saat). İşaretli değilse (iş çıkışında/öğleden sonra kullanıyorsa) arife günü sayılmaz, çünkü o gün 5 saat mesaidir.</p>
-                <p id="smArifeInfo" class="text-[11px] font-bold text-amber-700"></p>
-            </div>
-            <div>
-                <div class="text-xs font-bold text-slate-700 mb-1.5">İzin Kayıtları <span class="font-semibold text-slate-400">(izin günleri hesaptan düşülür)</span></div>
-                <div id="smIzList" class="space-y-2"></div>
-                <button onclick="smIzAdd()" class="mt-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> İzin Satırı Ekle</button>
-            </div>
-            <div class="border-t border-slate-100 pt-3">
-                <div class="text-xs font-bold text-slate-700 mb-1.5">Elle Düzeltme <span class="font-semibold text-slate-400">(boş bırakılırsa otomatik; kişi izni 2 parça kullandıysa buradan düzeltin)</span></div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">İlk 6 ay (gün ×3)</label><input type="number" min="0" id="smH" class="ed" oninput="smNum('h', this.value)"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">Son 6 ay (gün ×1,5)</label><input type="number" min="0" id="smJ" class="ed" oninput="smNum('j', this.value)"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">Aylık toplam saat</label><input type="number" min="0" step="0.5" id="smSaat" class="ed" oninput="smNum('saat', this.value)"></div>
-                </div>
-            </div>
-            <p id="smSum" class="text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg p-3 leading-relaxed"></p>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="smClose()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
-                <button onclick="smSave()" class="py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-check"></i> Tamam</button>
-            </div>
-        </div>
+    <div><label class="lb">Açıklama</label><input id="acik" class="inp"></div>
+    <div class="grid sm:grid-cols-2 gap-4">
+     <div><label class="lb">Başhekim Vekili</label><select id="bv" class="inp"></select></div>
+     <div><label class="lb">Müdür Vekili</label><select id="mv" class="inp"></select></div>
     </div>
-
-    <!-- KAYDEDİLMEMİŞ DEĞİŞİKLİK UYARISI -->
-    <div id="ugModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[85] hidden flex items-center justify-center p-4 anim-fade">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl anim-pop space-y-4">
-            <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
-                <div class="pulse-ring absolute inset-0 rounded-full" style="--pr: rgba(245,158,11,.35)"></div>
-                <div class="relative w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-3xl anim-shake"><i class="fa-solid fa-floppy-disk"></i></div>
-            </div>
-            <h3 class="text-base font-extrabold text-slate-900">Kaydedilmemiş değişiklikler var</h3>
-            <p id="ugText" class="text-xs text-slate-500 leading-relaxed"></p>
-            <p id="ugErr" class="hidden text-xs text-rose-600 font-semibold"></p>
-            <div class="space-y-2">
-                <button id="ugSave" onclick="ugAnswer('save')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet ve Devam Et</button>
-                <button onclick="ugAnswer('discard')" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs">Kaydetmeden Devam Et</button>
-                <button onclick="ugAnswer('cancel')" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
-            </div>
-        </div>
+    <div class="flex flex-wrap gap-2 pt-2">
+     <button onclick="preview()" class="px-5 py-2.5 text-xs bg-slate-700 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-eye"></i> Önizleme</button>
+     <button id="prBtn" onclick="doPrint()" class="px-5 py-2.5 text-xs bg-blue-600 text-white font-semibold rounded-xl flex items-center gap-2"><i class="fa-solid fa-print"></i> Yazdır (otomatik kaydeder)</button>
+     <button onclick="resetForm()" class="px-5 py-2.5 text-xs bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl flex items-center gap-2 ml-auto"><i class="fa-solid fa-eraser"></i> Formu Temizle</button>
     </div>
+   </div>
+  </section>
 
-    <!-- ONAY / SİLME UYARI MODALI -->
-    <div id="cfModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4 anim-fade">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl anim-pop space-y-4">
-            <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
-                <div id="cfRing" class="pulse-ring absolute inset-0 rounded-full"></div>
-                <div id="cfIcon" class="relative w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-3xl anim-shake"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            </div>
-            <h3 id="cfTitle" class="text-base font-extrabold text-slate-900"></h3>
-            <p id="cfText" class="text-xs text-slate-500 leading-relaxed"></p>
-            <div id="cfSummary" class="hidden text-left text-[11px] bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-0.5"></div>
-            <p id="cfErr" class="hidden text-xs text-rose-600 font-semibold"></p>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="cfAnswer(false)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
-                <button id="cfOk" onclick="cfAnswer(true)" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"></button>
-            </div>
-        </div>
-    </div>
+  <!-- KAYITLI İZİNLER -->
+  <section id="sec-saved" class="hidden space-y-4">
+   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><input id="svSearch" oninput="renderSaved()" placeholder="Personel veya izin türü ara..." class="inp"></div>
+   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr class="text-left"><th class="p-2">Kayıt</th><th class="p-2">Kullanıcı</th><th class="p-2">Personel</th><th class="p-2">İzin</th><th class="p-2">Tarih</th><th class="p-2">Gün</th><th class="p-2 text-right">İşlem</th></tr></thead><tbody id="svBody"></tbody></table></div>
+  </section>
 
-    <!-- DÜZENLEME MODALI (durum / tatil) -->
-    <div id="editModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 anim-fade">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl anim-pop space-y-4">
-            <h3 id="editTitle" class="text-base font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-blue-600"></i> <span>Düzenle</span></h3>
-            <div><label id="editLabel1" class="block text-xs font-bold text-slate-700 mb-1"></label><input type="text" id="editInput1" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800"></div>
-            <div id="editRow2"><label id="editLabel2" class="block text-xs font-bold text-slate-700 mb-1"></label><input type="text" id="editInput2" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800"></div>
-            <div id="editRow3" class="hidden"><label id="editLabel3" class="block text-xs font-bold text-slate-700 mb-1"></label><select id="editSel3" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm"><option value="Tam">Tam gün tatil</option><option value="Arife">Arife (yarım gün, 5 saat mesai)</option></select></div>
-            <p id="editErr" class="hidden text-xs text-rose-600 font-semibold"></p>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="closeEdit()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
-                <button id="editSaveBtn" onclick="saveEdit()" class="py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
-            </div>
-        </div>
-    </div>
+  <!-- LİSTELER (yönetici) -->
+  <section id="sec-lists" class="hidden space-y-4">
+   <div id="lsTabs" class="flex flex-wrap gap-2"></div>
+   <p id="lsHelp" class="text-xs text-slate-500"></p>
+   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><div id="lsForm" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end"></div></div>
+   <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm"><input id="lsQ" oninput="renderLists(1)" placeholder="Listede ara..." class="inp"></div>
+   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr id="lsHead" class="text-left"></tr></thead><tbody id="lsBody"></tbody></table></div>
+  </section>
 
-    <script>
-        // Apps Script web uygulaması linki (yeni tabloya bağlı komut dosyasını yayınlayınca buraya yapıştırın)
-        const API_URL = "https://script.google.com/macros/s/AKfycbwOMUqKJmAj_DjGJ9vXGzVEAyKX5G6dB299J8eHZNdVV9A8s9mBzj4jUgqHUQSO5q4dOg/exec";
+  <!-- İŞLEM GEÇMİŞİ (yönetici) -->
+  <section id="sec-hist" class="hidden"><div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"><table class="w-full text-xs"><thead class="bg-slate-50"><tr class="text-left"><th class="p-2">Zaman</th><th class="p-2">Kullanıcı</th><th class="p-2">İşlem</th><th class="p-2">Sayfa</th><th class="p-2">Ayrıntı</th></tr></thead><tbody id="hiBody"></tbody></table></div></section>
+ </main>
+ <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800"><p>Konya Karapınar Devlet Hastanesi <span id="currentYearSpan"></span> © Tüm Hakları Saklıdır.</p></footer>
+</div>
 
-        const $ = id => document.getElementById(id);
-        const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-        const pad = n => String(n).padStart(2, '0');
-        const UP = s => String(s ?? '').toLocaleUpperCase('tr');
-        const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-        const TABS = ['editor', 'saved', 'lists', 'log'];
-        const IZIN_DEF = ['Yıllık İzin', 'Mazeret İzni', 'Hastalık Raporu', 'Aylıksız İzin', 'Doğum İzni', 'Evlilik İzni', 'Ölüm İzni', 'Diğer'];
-        const fmtD = s => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? `${m[3]}.${m[2]}.${m[1]}` : (s || ''); };
-        const fmtDT = s => { const d = new Date(s); return isNaN(d) ? '-' : `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-        const fmtN = n => String(n).replace('.', ',');
-        const who = () => ROLE === 'yonetici' ? 'Yönetici' : 'Kullanıcı';       // şifre yetkiyi belirler; ayrıca kullanıcı adı sorulmaz
+<!-- ÖNİZLEME -->
+<div id="pv" class="hidden fixed inset-0 z-[80] bg-slate-900/70 items-start justify-center p-4 overflow-auto">
+ <div class="bg-white rounded-2xl shadow-2xl p-4 max-w-full">
+  <div class="flex items-center gap-2 mb-3">
+   <h3 class="text-sm font-extrabold text-slate-800 mr-auto">İzin Formu Önizleme</h3>
+   <button onclick="pvPrint()" class="px-4 py-2 text-xs bg-blue-600 text-white font-semibold rounded-lg flex items-center gap-2"><i class="fa-solid fa-print"></i> Yazdır</button>
+   <button onclick="pvClose()" class="px-4 py-2 text-xs bg-slate-200 text-slate-700 font-semibold rounded-lg">Kapat</button>
+  </div>
+  <div class="overflow-x-auto border border-slate-200"><div id="pvForm" class="fm"></div></div>
+ </div>
+</div>
 
-        let ROLE = '', REPORTS = [], STATUSES = [], HOLIDAYS = [], IZINTUR = [], LOG = [], logLoaded = false, HFULL = new Set(), HARIFE = new Set();
-        const rebuildH = () => { HFULL = new Set(HOLIDAYS.filter(x => x.tur !== 'Arife').map(x => x.d)); HARIFE = new Set(HOLIDAYS.filter(x => x.tur === 'Arife').map(x => x.d)); };
-        let lastSig = '', refreshing = false;
-        const cur = { yil: 0, ay: 0, data: null, dirty: false, savedId: null };
-        const isAdmin = () => ROLE === 'yonetici';
-        const reportName = (y, m) => `${y} Yılı ${MONTHS[m - 1]} Ayı Ayrılış-Başlayış Raporu`;
-        const rid = (y, m) => `${y}-${pad(m)}`;
+<!-- UYARI / ONAY -->
+<div id="dlg" class="hidden fixed inset-0 z-[90] bg-slate-900/60 items-center justify-center p-4">
+ <div class="bg-white rounded-2xl p-5 w-full max-w-sm shadow-2xl"><p id="dlgMsg" class="text-sm font-semibold text-slate-800 mb-4"></p>
+  <div class="flex gap-2 justify-end"><button onclick="dlg(false)" class="px-4 py-2 text-xs bg-slate-200 text-slate-700 font-semibold rounded-lg">Vazgeç</button><button id="dlgOk" onclick="dlg(true)" class="px-4 py-2 text-xs bg-rose-600 text-white font-semibold rounded-lg">Sil</button></div></div>
+</div>
+<div id="toast" class="hidden"></div>
+<div id="printArea"></div>
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
+const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
+const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim','Surekli'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
+const HELP={Personel:'Sürekli işçi seçilirse izin gün hesabında pazar günleri sayılmaz. Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir.',Istihdam:'İstihdam şekli ve formun üstündeki "Dikkat" notu.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
+const CL={Ad:'Adı Soyadı',TC:'T.C. Kimlik No',Sicil:'Sicil No',Unvan:'Ünvan',Kadro:'Kadro Birimi',Istihdam:'İstihdam Şekli',Baslama:'Memuriyete Başlama Tarihi',Birim:'Birim',Surekli:'Sürekli işçi mi?',Yetkili:'Birim Yetkilisi (Müdür) Adı',YetkiliUnvan:'Yetkili Ünvanı',Tur:'Tür',Detay:'Detay',Kutu:'Forma işaretlenecek kutu',Tarih:'Tarih',Not:'Form Notu',Grup:'Hangi vekil listesi?'};
+const lab=(s,c)=>s=='IzinTurleri'&&c=='Tur'?'İzin Türü':s=='Tatiller'&&c=='Tur'?'Tatil Türü':s=='Tatiller'&&c=='Ad'?'Tatil Adı':CL[c]||c;
+const S={pw:'',ad:'',rol:'kullanici',db:{}};let LS='Personel',ER=0,ROL='kullanici',LAST='',PVF=null,PVSAVE=0,_res,cur='editor';
+const $=id=>document.getElementById(id),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const p2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),tr=s=>s?String(s).slice(0,10).split('-').reverse().join('.'):'';
+const pd=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d)},nx=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
+async function api(o){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify({...o,pw:S.pw,rol:S.rol})});return r.json()}
+function note(m,e){const t=$('toast');t.textContent=m;t.className='fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl text-xs font-bold text-white shadow-xl '+(e?'bg-rose-600':'bg-emerald-600');clearTimeout(t._t);t._t=setTimeout(()=>t.className='hidden',3500)}
+function ask(m,ok='Sil'){$('dlgMsg').textContent=m;$('dlgOk').textContent=ok;$('dlg').classList.replace('hidden','flex');return new Promise(r=>_res=r)}
+function dlg(v){$('dlg').classList.replace('flex','hidden');_res(v)}
 
-        // ==================== VERİ ====================
-        async function fetchSheet(sheet, key) {
-            const res = await fetch(API_URL + "?sheet=" + sheet + "&key=" + encodeURIComponent(key));
-            const txt = await res.text();
-            let out; try { out = JSON.parse(txt); } catch (e) { const er = new Error('bad_json'); er.bad = true; throw er; }
-            if (out.status !== 'success') throw new Error(out.message || 'Hata');
-            return out;
-        }
-        async function fetchAll(key) {
-            const [r, d, t, z] = await Promise.all([fetchSheet('Raporlar', key), fetchSheet('DurumBasliklari', key), fetchSheet('Tatiller', key), fetchSheet('IzinTurleri', key).catch(() => ({ rows: null }))]);
-            return { role: r.role, r: r.rows || [], d: d.rows || [], t: t.rows || [], z: z.rows };
-        }
-        function applyData(data) {
-            ROLE = data.role || ROLE;
-            REPORTS = data.r.map(x => ({ id: String(x.col0 ?? ''), yil: +x.col1, ay: +x.col2, ad: String(x.col3 ?? ''), veri: String(x.col4 ?? ''), created: String(x.col5 ?? ''), updated: String(x.col6 ?? ''), by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => x.id);
-            STATUSES = data.d.map(x => ({ id: String(x.col0 ?? ''), ad: String(x.col1 ?? '').trim(), by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => x.ad);
-            HOLIDAYS = data.t.map(x => ({ id: String(x.col0 ?? ''), d: String(x.col1 ?? '').trim().slice(0, 10), ac: String(x.col2 ?? '').trim(), tur: /arife/i.test(String(x.col3 ?? '')) ? 'Arife' : 'Tam', by: String(x['İşlemi Yapan'] ?? '').trim() })).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x.d));
-            IZINTUR = data.z ? data.z.map(x => ({ id: String(x.col0 ?? ''), ad: String(x.col1 ?? '').trim() })).filter(x => x.ad) : IZIN_DEF.map((ad, i) => ({ id: 'def' + i, ad }));
-            { const k = IZINTUR.findIndex(isLockedIzin); if (k > 0) IZINTUR.unshift(IZINTUR.splice(k, 1)[0]); else if (k < 0) IZINTUR.unshift({ id: 'sabit', ad: 'Yıllık İzin' }); }   // Yıllık İzin her zaman en başta
-            rebuildH();
-            lastSig = JSON.stringify(data);
-        }
-        async function post(payload) {
-            const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...payload, key: sessionStorage.getItem('kdh_ab_key') || '', by: who() }) });
-            const out = await res.json();
-            if (out.message === 'unauthorized') { logoutToPortal(); throw new Error('Oturum geçersiz'); }
-            if (out.status !== 'success') throw new Error(out.message === 'forbidden' ? 'Bu işlem için yönetici yetkisi gerekir' : (out.message || 'Hata'));
-            logLoaded = false;
-            return out;
-        }
+/* GİRİŞ */
+function setRol(r){ROL=r;['kullanici','admin'].forEach(k=>$('rb-'+k).className='py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 '+(k==r?'bg-slate-900 text-white shadow':'text-slate-600'))}
+setRol('kullanici');
+async function handleLogin(e){e.preventDefault();const b=$('loginBtn'),o=b.innerHTML,sp='<i class="fa-solid fa-spinner fa-spin"></i> ';
+ S.pw=$('passwordInput').value;S.rol=ROL;b.disabled=true;b.innerHTML=sp+'Giriş yapılıyor...';$('loginError').classList.add('hidden');
+ const t=setTimeout(()=>b.innerHTML=sp+'Veriler yükleniyor...',2500);
+ try{const r=await api({a:'get',first:1});if(!r.ok)throw r.err||'Hatalı şifre!';S.ad=r.ad;S.rol=r.rol;S.db=r.db;
+  $('mainAuthPortal').classList.add('hidden');$('adminInterface').classList.replace('hidden','flex');
+  $('roleChip').innerHTML='<i class="fa-solid fa-user"></i> '+E(S.ad)+(S.rol=='admin'?' (Yönetici)':'');
+  if(S.rol!='admin')document.querySelectorAll('.admin-only').forEach(x=>x.remove());
+  $('currentYearSpan').textContent=new Date().getFullYear();setInterval(clock,1000);clock();fillSel();onTur();tabClick('editor');
+ }catch(x){$('loginError').textContent=typeof x=='string'?x:'Sunucuya ulaşılamadı: API_URL adresini ve dağıtım erişimini (Herkes) kontrol edin.';$('loginError').classList.remove('hidden');S.pw=''}
+ clearTimeout(t);b.disabled=false;b.innerHTML=o}
+function clock(){const n=new Date();$('clockDate').textContent=tr(iso(n));$('clockTime').textContent=p2(n.getHours())+':'+p2(n.getMinutes())+':'+p2(n.getSeconds())}
+async function reload(q){const b=$('refBtn');b.disabled=true;try{const r=await api({a:'get'});if(r.ok){S.db=r.db;fillSel();$('tabCount').textContent=S.db.Kayitlar.length;if(cur=='saved')renderSaved();if(cur=='lists')renderLists();if(cur=='hist')renderHist();if(!q)note('Liste yenilendi.')}else note(r.err||'Yenilenemedi',1)}catch(x){note('Sunucuya ulaşılamadı',1)}b.disabled=false}
+function tabClick(n){cur=n;['editor','saved','lists','hist'].forEach(k=>{const b=$('btn-'+k),s=$('sec-'+k);if(b){b.className=b.className.replace(/tab-(on|off)/g,'')+' '+(k==n?'tab-on':'tab-off');s.classList.toggle('hidden',k!=n)}});
+ $('tabCount').textContent=S.db.Kayitlar.length;if(n=='saved')renderSaved();if(n=='lists')renderLists();if(n=='hist')renderHist()}
 
-        // ==================== GİRİŞ / ÇIKIŞ ====================
-        async function handleLogin(e) {
-            e.preventDefault();
-            const err = $('loginError'), btn = e.target.querySelector('button[type=submit]'), old = btn.innerHTML;
-            const key = $('passwordInput').value;
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
-            err.classList.add('hidden');
-            try {
-                if (API_URL.indexOf('BURAYA_') === 0) throw new Error('no_api');
-                applyData(await fetchAll(key));
-                sessionStorage.setItem('kdh_ab_key', key);
-                sessionStorage.removeItem('kdh_ab_tab');
-                showApp();
-            } catch (x) {
-                err.textContent = x.message === 'unauthorized' ? 'Hatalı şifre!'
-                    : x.message === 'no_api' ? 'API_URL henüz ayarlanmamış. Apps Script linkini index.html içine yapıştırın.'
-                    : x.bad ? 'Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir.'
-                    : 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.';
-                err.classList.remove('hidden');
-            } finally { btn.disabled = false; btn.innerHTML = old; }
-        }
-        function showApp() {
-            $('mainAuthPortal').classList.add('hidden');
-            $('adminInterface').classList.remove('hidden'); $('adminInterface').classList.add('flex');
-            $('currentYearSpan').textContent = new Date().getFullYear();
-            $('roleChip').innerHTML = (isAdmin() ? '<i class="fa-solid fa-user-shield"></i> Yönetici' : '<i class="fa-solid fa-user"></i> Kullanıcı');
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
-            initPeriodSelects();
-            const n = new Date();
-            openPeriod(n.getFullYear(), n.getMonth() + 1);          // yeni ay gelince o ayın boş raporu açılır; eski aylar filtre ile gelir
-            setLastUpdate();
-            const t = sessionStorage.getItem('kdh_ab_tab');
-            showTab(TABS.includes(t) && (t !== 'log' || isAdmin()) ? t : 'editor');
-        }
-        function logoutToPortal() { sessionStorage.removeItem('kdh_ab_key'); sessionStorage.removeItem('kdh_ab_name'); sessionStorage.removeItem('kdh_ab_tab'); cur.dirty = false; location.href = '../'; }
-        window.addEventListener('beforeunload', e => { if (cur.dirty) { e.preventDefault(); e.returnValue = ''; } });
+/* İZİN YAZ */
+const K=()=>S.db.Personel.find(x=>x.Ad==$('kisi').value)||{};
+function fillSel(){const t=$('tur').value;$('tur').innerHTML=[...new Set(S.db.IzinTurleri.map(x=>x.Tur))].map(x=>`<option>${E(x)}</option>`).join('');if(t)$('tur').value=t;fillVek()}
+function fillVek(){const V=S.db.Vekalet,b=S.db.Birimler.find(x=>x.Birim==K().Birim)||{},o=r=>`<option value="${E(r.Ad+'|'+r.Unvan)}">${E(r.Ad+' — '+r.Unvan)}</option>`,e='<option value="">— Vekil yok —</option>',bv=$('bv').value,mv=$('mv').value;
+ let M=V.filter(r=>r.Grup=='Müdür');const f=M.filter(r=>b.YetkiliUnvan&&String(r.Unvan).startsWith(b.YetkiliUnvan));if(f.length)M=f;
+ $('bv').innerHTML=e+V.filter(r=>r.Grup=='Başhekim').map(o).join('');$('mv').innerHTML=e+M.map(o).join('');$('bv').value=bv;$('mv').value=mv}
+const lc=s=>String(s).toLocaleLowerCase('tr');
+function cb(){const q=lc($('kisi').value.trim()),L=S.db.Personel.filter(x=>lc(x.Ad).includes(q)).slice(0,80);$('kisiX').classList.toggle('hidden',!$('kisi').value);
+ $('kisiDd').innerHTML=L.map(x=>`<div class="px-3 py-2 text-sm cursor-pointer hover:bg-slate-100" onmousedown="pick('${E(x.Ad).replace(/'/g,"\\'")}')"><b>${E(x.Ad)}</b> <span class="text-xs text-slate-500">${E(x.Unvan)}</span></div>`).join('')||'<div class="px-3 py-2 text-xs text-slate-400">Eşleşen personel yok</div>';
+ $('kisiDd').classList.remove('hidden');onKisi(1)}
+function pick(a){$('kisi').value=a;$('kisiDd').classList.add('hidden');$('kisiX').classList.remove('hidden');onKisi()}
+function clrKisi(){$('kisi').value='';$('kisiX').classList.add('hidden');onKisi();cb();$('kisi').focus()}
+function onKisi(q){const k=K();$('kisiInfo').textContent=k.Ad?[k.Unvan,k.Birim,k.Surekli=='E'?'Sürekli işçi':''].filter(Boolean).join(' · '):'';if(!q){fillVek();calc(+$('gun').value>1)}}
+function onTur(d){const t=$('tur').value,dt=S.db.IzinTurleri.filter(x=>x.Tur==t&&x.Detay);
+ if(!d){$('detay').innerHTML=dt.map(x=>`<option>${E(x.Detay)}</option>`).join('');$('detayBox').style.display=dt.length?'':'none'}
+ $('acik').value=[t,dt.length?$('detay').value:''].filter(Boolean).join(' - ');calc(+$('gun').value>1)}
+// Yıllık izinde hafta içine denk gelen tam gün resmi tatil sayılmaz; sürekli işçide pazar sayılmaz
+const hol=d=>S.db.Tatiller.some(t=>t.Tarih==iso(d)&&t.Tur=='Tam'),off=d=>d.getDay()%6==0||hol(d);
+function cnt(d){if($('tur').value=='Yıllık İzin'&&d.getDay()%6&&hol(d))return 0;return K().Surekli=='E'&&d.getDay()==0?0:1}
+function onBas(){const s=$('bas').value;if(!s)return;$('bit').min=s;if(+$('gun').value>1)calc(1);else{$('bit').value=s;calc(0)}try{$('bit').showPicker()}catch(e){}}
+function calc(fromDays){const s=$('bas').value;if(!s)return updK();const a=pd(s);
+ if(fromDays&&+$('gun').value>0){let d=a,c=0,n=+$('gun').value;for(;;){c+=cnt(d);if(c>=n)break;d=nx(d)}$('bit').value=iso(d)}
+ else{if(!$('bit').value||$('bit').value<s)$('bit').value=s;let c=0;for(let d=a;d<=pd($('bit').value);d=nx(d))c+=cnt(d);$('gun').value=c}
+ let r=nx(pd($('bit').value));while(off(r))r=nx(r);$('don').value=iso(r);updK()}
+const kalan=F=>F.Mevcut===''||F.Mevcut==null?'':F.Tur=='Yıllık İzin'?F.Mevcut-(+F.Gun||0):+F.Mevcut;
+function updK(){const k=kalan(getF());$('kalanHint').textContent=k===''?'':'Kalan izin: '+k+' gün'+($('tur').value=='Yıllık İzin'?' (mevcut − izin günü)':'')}
+const getF=()=>{const F={Ad:$('kisi').value,Tur:$('tur').value,Detay:$('detayBox').style.display=='none'?'':$('detay').value,Bas:$('bas').value,Bit:$('bit').value,Gun:$('gun').value,Don:$('don').value,Adres:$('adres').value,Acik:$('acik').value,Mevcut:$('mevcut').value,BV:$('bv').value,MV:$('mv').value};F.Kalan=kalan(F);return F};
+function resetForm(){['kisi','bas','bit','gun','don','adres','mevcut'].forEach(i=>$(i).value='');$('bv').value='';$('mv').value='';$('kisiX').classList.add('hidden');LAST='';onKisi();onTur();$('kalanHint').textContent=''}
 
-        function setLastUpdate(msg) { $('lastUpdate').textContent = msg || ('Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR', { hourCycle: 'h23' })); }
-        function showToast(msg, bad) {
-            const t = document.createElement('div');
-            t.className = 'fixed bottom-4 right-4 z-[90] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 anim-fade ' + (bad ? 'bg-rose-600' : 'bg-slate-900');
-            t.innerHTML = '<i class="fa-solid ' + (bad ? 'fa-circle-exclamation' : 'fa-bell text-amber-400') + '"></i> ' + esc(msg);
-            document.body.appendChild(t); setTimeout(() => t.remove(), 4000);
-        }
-        async function refreshData(manual) {
-            const key = sessionStorage.getItem('kdh_ab_key');
-            if (!key || refreshing) return;
-            refreshing = true;
-            if (curTab === 'log') loadLog(true);
-            const btn = $('refreshBtn'), icon = $('refreshIcon');
-            if (manual) btn.disabled = true;
-            icon.classList.add('fa-spin');
-            try {
-                const data = await fetchAll(key);
-                if (JSON.stringify(data) !== lastSig) {
-                    applyData(data);
-                    // editörde kaydedilmemiş değişiklik yoksa o dönemin güncel halini aç
-                    if (!cur.dirty) openPeriod(cur.yil, cur.ay);
-                    renderCurrent();
-                }
-                setLastUpdate();
-            } catch (e) {
-                if (e.message === 'unauthorized') logoutToPortal();
-                else setLastUpdate('Bağlantı sorunu, Yenile ile tekrar deneyin');
-            } finally { refreshing = false; btn.disabled = false; icon.classList.remove('fa-spin'); }
-        }
+/* FORM (Excel B41:S66 ile aynı yerleşim) */
+function hizmet(s){if(!s)return'';const m=String(s).match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/),a=m?new Date(+m[3],m[2]-1,+m[1]):pd(String(s).slice(0,10)),t=new Date();if(isNaN(a))return'';
+ let y=t.getFullYear()-a.getFullYear(),mo=t.getMonth()-a.getMonth(),d=t.getDate()-a.getDate();if(d<0){mo--;d+=new Date(t.getFullYear(),t.getMonth(),0).getDate()}if(mo<0){y--;mo+=12}return y+' Yıl '+mo+' Ay '+d+' Gün'}
+const A=r=>{const[m,n]=r.split(':'),f=s=>[+s.slice(1)-40,s.charCodeAt(0)-65],a=f(m),b=f(n||m);return`grid-area:${a[0]}/${a[1]}/${b[0]+1}/${b[1]+1}`};
+const CELLS=[['C42:F44','İZİN İSTEĞİ VE ONAY\n(EK:) T.C. Standart Form\nve I3 II4','t7 top'],['I42:J42','Dikkat:','r top'],['K42:R45','{dikkat}','t7 top'],
+['D47:E47','Yıllık','c top'],['H47','Mazeret','c top'],['J47:K47','Hastalık','c top'],['N47','Ücretsiz','c top'],['Q47','Diğer','c top'],
+['D48:E48','{xYILLIK}','c mid box'],['H48','{xMAZARET}','c mid box'],['J48:K48','{xHASTALIK}','c mid box'],['N48','{xUCRETSIZ}','c mid box'],['Q48','{xDIGER}','c mid box'],
+['C50:E50','Kadro Birimi'],['G50:J50','İstihdam Şekli - Görev Birimi'],['C51:F52','{kadro}','top'],['G51:J52','{istihdam}','top'],
+['K51:L51','Sicil No:','r'],['M51:O51','{sicil}'],['P51:R51','Ait Olduğu Yıl','in'],['K52:L52','T.C. Kimlik No:','r'],['M52:O52','{tc}'],['P52:Q52','{yil}','in'],
+['C53:D53','Adı Soyadı:'],['E53:J53','{ad}'],['K53:M53','Başlangıç Tarihi'],['P53:Q53','Dönüş Tarihi'],['K54:M54','{bas}'],['P54:Q54','{don}'],
+['C55:D55','Görevi:'],['E55:J55','{unvan}'],['K55:O55','Memurun Hizmet Süresi'],['P55:R55','Kullanacağı İzin Süresi'],['K56:O56','{hizmet}'],['P56:R56','{gun}','c'],
+['C57:D57','Açıklama:'],['E57:J59','{aciklama}','top'],['K57:R57','{kalanTxt}'],
+['C60:E60','İzin Adresi:'],['F60:J61','{adres}','top'],['C61:E61','Telefon:'],['K60:P60','İstemde Bulunanın İmzası - Tarih'],
+['C62:J62','İzin Veren Yetkilinin Adı - Soyadı, Ünvanı, İmzası.'],['K62:R62','Onaylayanın Adı - Soyadı, Ünvanı, İmzası.'],
+['C63:J63','{mudurAd}'],['C64:J64','{mudurUnvan}'],['K63:R63','{bhAd}'],['K64:R64','{bhUnvan}'],
+['C47:R47','','bt'],['C50:R50','','bt'],['C53:R53','','bt'],['C55:R55','','bt'],['C57:R57','','bt'],['C60:R60','','bt'],['C62:R62','','bt'],['C64:R64','','bb'],['C47:C64','','bl'],['R47:R64','','br'],['K50:K64','','bl'],['G50:G52','','bl'],['P50:P56','','bl']];
+function vals(F){const k=S.db.Personel.find(x=>x.Ad==F.Ad)||{},t=S.db.IzinTurleri.find(x=>x.Tur==F.Tur)||{},b=S.db.Birimler.find(x=>x.Birim==k.Birim)||{},bh=S.db.Bashekim[0]||{},[ma,mu]=(F.MV||'').split('|'),[ba,bu]=(F.BV||'').split('|'),y=F.Don?pd(F.Don).getFullYear():'';
+ const v={dikkat:String((S.db.Istihdam.find(x=>x.Istihdam==k.Istihdam)||{}).Not||'').replace(' istem ve onayınca',' istem ve\nonayınca'),kadro:k.Kadro,istihdam:k.Istihdam,sicil:k.Sicil,tc:k.TC,ad:F.Ad,unvan:k.Unvan,hizmet:hizmet(k.Baslama),bas:tr(F.Bas),don:tr(F.Don),yil:y?(y-1)+'-'+y:'',gun:F.Gun,aciklama:F.Acik,adres:F.Adres,
+ kalanTxt:'Kalan İzin sayısı '+(F.Kalan===''||F.Kalan==null?'      ':F.Kalan)+' gündür.',mudurAd:ma||b.Yetkili,mudurUnvan:ma?mu:b.YetkiliUnvan,bhAd:ba||bh.Ad,bhUnvan:ba?bu:bh.Unvan};
+ ['YILLIK','MAZARET','HASTALIK','UCRETSIZ','DIGER'].forEach(x=>v['x'+x]=t.Kutu==x?'X':'');return v}
+function render(F){const v=vals(F),h=CELLS.map(([r,t,c])=>`<div style="${A(r)}" class="${c||''}">${E(t.replace(/\{(\w+)\}/g,(m,k)=>v[k]??''))}</div>`).join('');$('pvForm').innerHTML=h;$('printArea').innerHTML='<div class="fm">'+h+'</div>'}
+function check(F){if(!S.db.Personel.find(x=>x.Ad==F.Ad)){note('Listeden bir personel seçin.',1);return 0}if(!F.Bas){note('Başlangıç tarihi seçin.',1);return 0}return 1}
+function pvOpen(F,save){PVF=F;PVSAVE=save;render(F);$('pv').classList.replace('hidden','flex')}
+function pvClose(){$('pv').classList.replace('flex','hidden')}
+function preview(){const F=getF();if(check(F))pvOpen(F,1)}
+function pvPrint(){if(PVSAVE)doPrint();else{render(PVF);window.print()}}
+async function doPrint(){const F=getF();if(!check(F))return;const key=JSON.stringify(F);
+ if(key!==LAST){const b=$('prBtn');b.disabled=true;let r;try{r=await api({a:'put',sheet:'Kayitlar',row:F})}catch(x){r={err:'Sunucuya ulaşılamadı'}}b.disabled=false;
+  if(!r.ok)return note(r.err||'Kaydedilemedi',1);LAST=key;note('İzin kaydedildi.');reload(1)}
+ render(F);window.print()}
 
-        // ==================== SEKMELER ====================
-        let curTab = 'editor';
-        // ---- Kaydedilmemiş değişiklik uyarısı: Kaydet ve Devam Et / Kaydetmeden Devam Et / Vazgeç ----
-        let ugRes = null;
-        function askUnsaved(text) { return new Promise(res => { ugRes = res; $('ugText').textContent = text; $('ugErr').classList.add('hidden'); $('ugModal').classList.remove('hidden'); }); }
-        async function ugAnswer(a) {
-            if (a === 'save') {
-                const b = $('ugSave'), old = b.innerHTML; b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
-                const ok = await saveReport(); b.disabled = false; b.innerHTML = old;
-                if (!ok) { $('ugErr').textContent = 'Rapor kaydedilemedi. Eksikleri düzeltip tekrar deneyin.'; $('ugErr').classList.remove('hidden'); return; }
-            }
-            $('ugModal').classList.add('hidden'); const r = ugRes; ugRes = null; if (r) r(a);
-        }
-        async function guardUnsaved(text) { if (!cur.dirty) return true; return (await askUnsaved(text)) !== 'cancel'; }
-        async function tabClick(t) {
-            if (t === curTab) return;
-            if (curTab === 'editor' && !(await guardUnsaved('Rapordaki değişiklikler henüz kaydedilmedi. Sekmeyi değiştirmeden önce kaydetmek ister misiniz?'))) return;
-            showTab(t);
-        }
-        async function logoutClick() {
-            if (!(await guardUnsaved('Rapordaki değişiklikler henüz kaydedilmedi. Çıkış yapmadan önce kaydetmek ister misiniz?'))) return;
-            logoutToPortal();
-        }
-        function showTab(t) {
-            curTab = t;
-            const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
-            TABS.forEach(x => {
-                $('sec-' + x).classList.toggle('hidden', x !== t);
-                $('btn-' + x).className = 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap ' + (x === t ? on : off);
-            });
-            if (!isAdmin()) $('btn-log').classList.add('hidden');
-            sessionStorage.setItem('kdh_ab_tab', t);
-            renderCurrent();
-        }
-        function renderCurrent() {
-            $('tabCount').textContent = REPORTS.length;
-            if (curTab === 'editor') renderEditorHeader();
-            else if (curTab === 'saved') renderSaved();
-            else if (curTab === 'log') loadLog(false);
-            else renderLists();
-        }
+/* KAYITLI İZİNLER */
+function renderSaved(){const q=lc($('svSearch').value),R=S.db.Kayitlar.map((r,i)=>[r,i]).reverse().filter(([r])=>lc(r.Ad+' '+r.Tur).includes(q));
+ $('svBody').innerHTML=R.map(([r,i])=>`<tr class="border-t"><td class="p-2">${E(r.Zaman)}</td><td class="p-2">${E(r.Kullanici)}</td><td class="p-2 font-semibold">${E(r.Ad)}</td><td class="p-2">${E(r.Tur)} ${E(r.Detay)}</td><td class="p-2 whitespace-nowrap">${tr(r.Bas)} - ${tr(r.Bit)}</td><td class="p-2">${E(r.Gun)}</td>
+ <td class="p-2 text-right whitespace-nowrap"><button onclick="openRec(${i})" class="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg font-semibold">Aç / Yazdır</button>${S.rol=='admin'?` <button onclick="delRow('Kayitlar',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button>`:''}</td></tr>`).join('')||'<tr><td class="p-4 text-slate-400" colspan="7">Kayıt yok.</td></tr>'}
+function openRec(i){const r=S.db.Kayitlar[i],F={};['Ad','Tur','Detay','Bas','Bit','Gun','Don','Adres','Acik','Kalan','BV','MV'].forEach(k=>F[k]=r[k]??'');pvOpen(F,0)}
+async function delRow(sh,r){if(!await ask('Bu kayıt silinsin mi? Bu işlem geri alınamaz.'))return;let x;try{x=await api({a:'del',sheet:sh,r})}catch(e){x={err:'Sunucuya ulaşılamadı'}}if(!x.ok)return note(x.err||'Silinemedi',1);note('Silindi.');await reload(1)}
 
-        // ==================== TARİH / GÜN HESABI ====================
-        const dIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-        const isoDate = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
-        function isWork(d) { const w = d.getDay(); return w !== 0 && w !== 6 && !HFULL.has(dIso(d)); }   // arife günü yarım gün: çalışma günü sayılır
-        // Geçici görev "eksik gün": hafta sonu DAHİL sayılır; sadece hafta içine denk gelen resmî tatil sayılmaz
-        function calDays(a, b) {
-            const s = isoDate(a), e = isoDate(b); if (!s || !e || s > e) return 0;
-            let n = 0;
-            for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) { const w = d.getDay(); if (!(w !== 0 && w !== 6 && HFULL.has(dIso(d)))) n++; }
-            return n;
-        }
-        function workdays(a, b) {                       // a ve b dahil; hafta sonu + resmî tatil hariç
-            const s = isoDate(a), e = isoDate(b); if (!s || !e || s > e) return 0;
-            let n = 0; for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) if (isWork(d)) n++;
-            return n;
-        }
-        const iso3 = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
-        const arifeList = (y, m) => [...HARIFE].filter(s => s.slice(0, 7) === `${y}-${pad(m)}`).sort();
-        function monthWork(y, m) {                       // arife günleri hariç mesai günü sayısı
-            const last = new Date(y, m, 0).getDate(); let n = 0;
-            for (let g = 1; g <= last; g++) { const d = new Date(y, m - 1, g); if (isWork(d) && !HARIFE.has(dIso(d))) n++; }
-            return n;
-        }
-        // süt izni başlama tarihinden: 2. altı ay başlangıcı = +6 ay, bitiş = +12 ay - 1 gün (ay sonu taşmaz)
-        function addMonths(s, n) {
-            const d = isoDate(s); if (!d) return '';
-            const t = new Date(d.getFullYear(), d.getMonth() + n, 1), last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
-            return dIso(new Date(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last)));
-        }
-        function sutDates(r) {
-            const s2 = addMonths(r.s1, 6); let bit = '';
-            if (s2) { const e = isoDate(addMonths(s2, 6)); e.setDate(e.getDate() - 1); bit = dIso(e); }
-            return { s2, bit };
-        }
-        // Gün sayma kuralları: hafta sonu ve tam gün tatil sayılmaz; arife günü sadece "sabah kullanıyor" işaretliyse sayılır;
-        // hastaneye başlayıştan önceki günler ve ayrılış tarihinden sonraki günler sayılmaz (ayrılış günü sadece "mesai bitimi" ise sayılır); izin günleri düşülür.
-        function sutCalc(r, y, m) {
-            const { s2, bit } = sutDates(r), last = new Date(y, m, 0).getDate();
-            const izin = (r.izinler || []).filter(x => x.bas).map(x => [x.bas, x.bit || x.bas]);
-            let c1 = 0, c2 = 0;
-            if (r.s1) for (let g = 1; g <= last; g++) {
-                const d = new Date(y, m - 1, g), s = dIso(d);
-                if (!isWork(d)) continue;
-                if (HARIFE.has(s) && !r.arife) continue;
-                if (r.bas && s < r.bas) continue;
-                if (r.ayr && (s > r.ayr || (s === r.ayr && !r.ayrM))) continue;
-                if (izin.some(z => s >= z[0] && s <= z[1])) continue;
-                if (s2 && s >= s2) { if (bit && s > bit) continue; c2++; } else if (s >= r.s1) c1++;
-            }
-            const has = v => v !== null && v !== undefined && v !== '';
-            const h = has(r.h) ? +r.h : c1, j = has(r.j) ? +r.j : c2;
-            return { mesai: monthWork(y, m), a1: c1, a2: c2, h, j, l: has(r.saat) ? +r.saat : h * 3 + j * 1.5, s2, bit };
-        }
+/* LİSTELER (yönetici) */
+function sel(s,c){return{'Personel.Surekli':[['H','Hayır'],['E','Evet (pazar günleri izin sayılmaz)']],'Personel.Birim':S.db.Birimler.map(b=>[b.Birim,b.Birim]),'Personel.Istihdam':S.db.Istihdam.map(x=>[x.Istihdam,x.Istihdam]),
+ 'IzinTurleri.Kutu':[['YILLIK','Yıllık'],['MAZARET','Mazeret'],['HASTALIK','Hastalık'],['UCRETSIZ','Ücretsiz'],['DIGER','Diğer']],'Tatiller.Tur':[['Tam','Tam gün (izinden sayılmaz)'],['Arife','Arife (izne dahil)']],'Vekalet.Grup':[['Başhekim','Başhekim vekili'],['Müdür','Müdür vekili']]}[s+'.'+c]}
+function renderLists(q){const c=COLS[LS];
+ if(!q){$('lsTabs').innerHTML=Object.keys(COLS).map(k=>`<button onclick="LS='${k}';ER=0;$('lsQ').value='';renderLists()" class="px-3 py-1.5 rounded-lg text-xs font-bold ${k==LS?'bg-slate-900 text-white':'bg-white border'}">${LB[k]}</button>`).join('');$('lsHelp').textContent=HELP[LS];
+  $('lsForm').innerHTML=c.map(x=>{const o=sel(LS,x);return`<div><label class="lb">${lab(LS,x)}</label>`+(o?`<select id="f_${x}" class="inp">${o.map(a=>`<option value="${E(a[0])}">${E(a[1])}</option>`).join('')}</select>`:`<input id="f_${x}" type="${x=='Tarih'||x=='Baslama'?'date':'text'}" class="inp">`)+'</div>'}).join('')+'<button onclick="putRow()" class="px-4 py-2.5 bg-slate-900 text-white font-semibold rounded-xl text-xs">Kaydet</button>';
+  $('lsHead').innerHTML=c.map(x=>`<th class="p-2">${lab(LS,x)}</th>`).join('')+'<th></th>'}
+ const f=lc($('lsQ').value);
+ $('lsBody').innerHTML=S.db[LS].map((r,i)=>[r,i]).filter(([r])=>lc(c.map(x=>r[x]).join(' ')).includes(f)).map(([r,i])=>`<tr class="border-t">${c.map(x=>`<td class="p-2 max-w-xs truncate" title="${E(r[x])}">${E(x=='Baslama'?tr(r[x]):r[x])}</td>`).join('')}<td class="p-2 text-right whitespace-nowrap"><button onclick="editRow(${i})" class="px-2.5 py-1.5 bg-slate-700 text-white rounded-lg font-semibold">Düzenle</button> <button onclick="delRow('${LS}',${r._r})" class="px-2.5 py-1.5 bg-rose-600 text-white rounded-lg font-semibold">Sil</button></td></tr>`).join('')||`<tr><td class="p-4 text-slate-400" colspan="${c.length+1}">Kayıt yok.</td></tr>`}
+function editRow(i){const r=S.db[LS][i];ER=r._r;COLS[LS].forEach(x=>{let v=r[x]??'';if(x=='Baslama'&&/^\d{2}\.\d{2}\.\d{4}$/.test(v))v=v.split('.').reverse().join('-');$('f_'+x).value=v});$('f_'+COLS[LS][0]).focus();note('Düzenleme için bilgiler forma alındı. Değiştirip Kaydet\'e basın.')}
+async function putRow(){const row={};COLS[LS].forEach(x=>row[x]=$('f_'+x).value.trim());if(!row[COLS[LS][0]])return note(lab(LS,COLS[LS][0])+' boş olamaz.',1);
+ let r;try{r=await api({a:'put',sheet:LS,row,r:ER})}catch(x){r={err:'Sunucuya ulaşılamadı'}}if(!r.ok)return note(r.err||'Kaydedilemedi',1);note('Kaydedildi.');ER=0;await reload(1);renderLists()}
 
-        // ==================== RAPOR VERİSİ ====================
-        const newData = () => ({ gecici1: [], baslayis: [], ayrilis: [], istihdam: [], sut: [] });
-        const sutBlank = () => ({ ad: '', s1: '', bas: '', ayr: '', ayrM: false, arife: false, izinler: [], h: null, j: null, saat: null });
-        function parseData(s) {
-            let o = {}; try { o = JSON.parse(s) || {}; } catch (e) { }
-            const d = newData(); Object.keys(d).forEach(k => { if (Array.isArray(o[k])) d[k] = o[k]; });
-            if (Array.isArray(o.gecici2)) d.gecici1 = d.gecici1.concat(o.gecici2);       // eski 2. tablo kaldırıldı; kayıtlar 1. tabloya katılır
-            d.sut = d.sut.map(r => Object.assign(sutBlank(), r));
-            return d;
-        }
-        const SEC = {
-            gecici1: { t: 'Geçici Görevle Gelen Personel', kind: 'gecici', min: 7, max: 40, blank: () => ({ unvan: '', kurum: '', ad: '', eksik: [], tarih: '' }) },
-            baslayis: { t: 'Başlayış Yapan Personel', kind: 'bas', min: 8, max: 20, blank: () => ({ ad: '', unvan: '', tarih: '', durum: '' }) },
-            ayrilis: { t: 'Ayrılış Yapan Personel', kind: 'ayr', min: 8, max: 20, blank: () => ({ ad: '', unvan: '', tarih: '', mesai: false, durum: '' }) },
-            istihdam: { t: 'İstihdam Değişikliği Yapan Personel', kind: 'ist', min: 2, max: 10, blank: () => ({ ad: '', unvan: '', ayr: '', bas: '', durum: '' }) },
-            sut: { t: 'Süt İzni Kullanan Personel', kind: 'sut', min: 0, max: 10, blank: sutBlank }
-        };
-        const SEC_KEYS = Object.keys(SEC);
-        const rowEmpty = (k, r) => {
-            const kind = SEC[k].kind;
-            if (kind === 'gecici') return !(r.unvan || r.kurum || r.ad || r.tarih || (r.eksik || []).length);
-            if (kind === 'bas') return !(r.ad || r.unvan || r.tarih || r.durum);
-            if (kind === 'ayr') return !(r.ad || r.unvan || r.tarih || r.durum);
-            if (kind === 'ist') return !(r.ad || r.unvan || r.ayr || r.bas || r.durum);
-            return !(r.ad || r.s1);
-        };
-        const cleanData = d => { const o = {}; SEC_KEYS.forEach(k => { o[k] = (d[k] || []).filter(r => !rowEmpty(k, r)); }); return o; };
-
-        // ==================== DÖNEM SEÇİMİ ====================
-        function initPeriodSelects() {
-            const ny = new Date().getFullYear(), ys = new Set([ny - 1, ny, ny + 1]);
-            REPORTS.forEach(r => ys.add(r.yil)); for (let y = 2024; y <= ny + 1; y++) ys.add(y);
-            const years = [...ys].sort((a, b) => b - a);
-            $('edYil').innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-            $('edAy').innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
-            $('svYil').innerHTML = '<option value="">Tüm Yıllar</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
-            $('svAy').innerHTML = '<option value="">Tüm Aylar</option>' + MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
-            const hy = new Set([ny]); HOLIDAYS.forEach(h => hy.add(+h.d.slice(0, 4)));
-            $('holYil').innerHTML = [...hy].sort((a, b) => b - a).map(y => `<option value="${y}">${y}</option>`).join('');
-        }
-        function openPeriod(y, m) {
-            cur.yil = y; cur.ay = m;
-            const ex = REPORTS.find(r => r.id === rid(y, m));
-            cur.savedId = ex ? ex.id : null;
-            cur.data = ex ? parseData(ex.veri) : newData();
-            cur.dirty = false;
-            $('edYil').value = y; $('edAy').value = m;
-            renderEditor();
-        }
-        async function changePeriod() {
-            const y = +$('edYil').value, m = +$('edAy').value;
-            if (y === cur.yil && m === cur.ay) return;
-            if (!(await guardUnsaved('Başka bir döneme geçerseniz bu rapordaki kaydedilmemiş değişiklikler kaybolur.'))) { $('edYil').value = cur.yil; $('edAy').value = cur.ay; return; }
-            openPeriod(y, m);
-        }
-        const markDirty = () => { if (!cur.dirty) { cur.dirty = true; renderEditorHeader(); } };
-
-        // ==================== EDİTÖR ====================
-        function renderEditorHeader() {
-            if (!cur.data) return;
-            $('edTitle').textContent = reportName(cur.yil, cur.ay);
-            const ex = REPORTS.find(r => r.id === rid(cur.yil, cur.ay)), b = $('edBadge');
-            if (cur.dirty) { b.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800'; b.innerHTML = '<i class="fa-solid fa-pen"></i> Kaydedilmemiş değişiklik var'; }
-            else if (ex) { b.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800'; b.innerHTML = '<i class="fa-solid fa-circle-check"></i> Kaydedildi · ' + esc(fmtDT(ex.updated)); }
-            else { b.className = 'px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600'; b.innerHTML = '<i class="fa-regular fa-file"></i> Yeni rapor · henüz kaydedilmedi'; }
-            // önceki aydan aktarma: bu ay kayıtlı değilse ve önceki ay kayıtlıysa
-            const pm = cur.ay === 1 ? [cur.yil - 1, 12] : [cur.yil, cur.ay - 1], prev = REPORTS.find(r => r.id === rid(pm[0], pm[1]));
-            const can = !ex && prev;
-            $('carryBtn').classList.toggle('hidden', !can); $('carryBtn').classList.toggle('flex', !!can);
-            const hint = $('edHint');
-            if (can && !cur.dirty) { hint.classList.remove('hidden'); hint.textContent = `${MONTHS[cur.ay - 1]} ${cur.yil} için henüz rapor yok. Devam eden geçici görevler ve süt izinleri için "Önceki Aydan Aktar" kullanabilirsiniz; ${MONTHS[pm[1] - 1]} ${pm[0]} raporu "Kayıtlı Raporlar" sekmesinde durur.`; }
-            else hint.classList.add('hidden');
-        }
-        function renderEditor() { renderEditorHeader(); $('edSections').innerHTML = SEC_KEYS.map(renderSection).join(''); refreshSut(); }
-
-        const inp = (s, i, f, v, type = 'text', extra = '') => `<input type="${type}" data-s="${s}" data-i="${i}" data-f="${f}" value="${esc(v)}" class="ed" ${extra}>`;
-        const statusSel = (s, i, f, v) => {
-            const list = STATUSES.map(x => x.ad); if (v && !list.includes(v)) list.unshift(v);
-            return `<select data-s="${s}" data-i="${i}" data-f="${f}" class="ed"><option value="">— Seçiniz —</option>${list.map(x => `<option value="${esc(x)}" ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
-        };
-        const isLockedIzin = s => String(s.ad || '').trim().toLocaleLowerCase('tr') === 'yıllık izin';   // sabit: silinmez, taşınmaz, değiştirilmez
-        const izinSel = (js, v) => { const list = IZINTUR.map(x => x.ad); if (v && !list.includes(v)) list.unshift(v); return `<select class="ed" onchange="${js}">${list.map(x => `<option value="${esc(x)}" ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`; };
-        const delBtn = (s, i) => `<button onclick="delRow('${s}',${i})" title="Satırı sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>`;
-        function leaveSummary(e) { const n = (e || []).length, g = (e || []).reduce((a, x) => a + (+x.gun || 0), 0); return n ? `${n} izin · ${g} gün` : 'İzin ekle'; }
-        function rowHtml(k, r, i) {
-            const kind = SEC[k].kind, no = `<td class="td text-slate-400 text-center w-8 pt-3">${i + 1}</td>`, del = `<td class="td text-right w-10">${delBtn(k, i)}</td>`;
-            if (kind === 'gecici') return `<tr>${no}<td class="td">${inp(k, i, 'ad', r.ad)}</td><td class="td">${inp(k, i, 'unvan', r.unvan)}</td><td class="td">${inp(k, i, 'kurum', r.kurum)}</td>
-                <td class="td"><textarea rows="2" data-s="${k}" data-i="${i}" data-f="tarih" class="ed">${esc(r.tarih)}</textarea></td>
-                <td class="td"><button onclick="openLeave('${k}',${i})" id="lvb-${k}-${i}" class="w-full px-2 py-1.5 border border-dashed border-slate-300 rounded-md text-[11px] font-bold text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-1.5"><i class="fa-solid fa-calendar-minus"></i> <span>${esc(leaveSummary(r.eksik))}</span></button></td>${del}</tr>`;
-            if (kind === 'bas') return `<tr>${no}<td class="td">${inp(k, i, 'ad', r.ad)}</td><td class="td">${inp(k, i, 'unvan', r.unvan)}</td><td class="td">${inp(k, i, 'tarih', r.tarih, 'date')}</td><td class="td">${statusSel(k, i, 'durum', r.durum)}</td>${del}</tr>`;
-            if (kind === 'ayr') return `<tr>${no}<td class="td">${inp(k, i, 'ad', r.ad)}</td><td class="td">${inp(k, i, 'unvan', r.unvan)}</td>
-                <td class="td">${inp(k, i, 'tarih', r.tarih, 'date')}<label class="flex items-center gap-1 mt-1 text-[10px] font-bold text-slate-500"><input type="checkbox" data-s="${k}" data-i="${i}" data-f="mesai" ${r.mesai ? 'checked' : ''}> Mesai bitimi</label></td>
-                <td class="td">${statusSel(k, i, 'durum', r.durum)}</td>${del}</tr>`;
-            if (kind === 'ist') return `<tr>${no}<td class="td">${inp(k, i, 'ad', r.ad)}</td><td class="td">${inp(k, i, 'unvan', r.unvan)}</td><td class="td">${inp(k, i, 'ayr', r.ayr, 'date')}</td><td class="td">${inp(k, i, 'bas', r.bas, 'date')}</td><td class="td">${statusSel(k, i, 'durum', r.durum)}</td>${del}</tr>`;
-            return `<tr>${no}<td class="td">${inp(k, i, 'ad', r.ad)}</td><td class="td">${inp(k, i, 's1', r.s1, 'date')}</td>
-                <td class="td pt-3 text-xs font-semibold text-slate-700 whitespace-nowrap" id="s2-${i}">-</td><td class="td pt-3 text-xs font-semibold text-slate-700 whitespace-nowrap" id="sb-${i}">-</td>
-                <td class="td"><button onclick="openSut(${i})" class="w-full px-2 py-1.5 border border-dashed border-slate-300 rounded-md text-[11px] font-bold text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-1.5"><i class="fa-solid fa-sliders"></i> <span id="smb-${i}">${esc(sutSummary(r))}</span></button></td>
-                <td class="td pt-3 text-xs font-bold text-slate-800" id="sh-${i}">0</td><td class="td pt-3 text-xs font-bold text-slate-800" id="sj-${i}">0</td>
-                <td class="td pt-3 text-xs font-extrabold text-slate-800 whitespace-nowrap" id="sl-${i}">0 Saat</td>${del}</tr>`;
-        }
-        const HEADS = {
-            gecici: ['#', 'Adı Soyadı', 'Ünvanı', 'Kadro Kurumu', 'Görev Başlangıç/Bitiş Tarihi', 'İzin Detayı', ''],
-            bas: ['#', 'Adı Soyadı', 'Ünvanı', 'Başlayış Tarihi', 'Başlayış Durumu', ''],
-            ayr: ['#', 'Adı Soyadı', 'Ünvanı', 'Ayrılış Tarihi', 'Ayrılış Durumu', ''],
-            ist: ['#', 'Adı Soyadı', 'Ünvanı', 'Ayrılış Tarihi', 'Başlayış Tarihi', 'İstihdam Durumu', ''],
-            sut: ['#', 'Adı Soyadı', 'Başlangıç Tarihi', '2.inci 6 Ay Başlangıç Tarihi · otomatik', 'Bitiş Tarihi · otomatik', 'Başlayış / Ayrılış / İzin', 'İlk 6 Ay (gün ×3)', 'Son 6 Ay (gün ×1,5)', 'Aylık Toplam Saat', '']
-        };
-        const SEC_COL = { gecici1: ['#1d4ed8', '#dbeafe', 'fa-user-clock'], baslayis: ['#15803d', '#dcfce7', 'fa-user-plus'], ayrilis: ['#b91c1c', '#fee2e2', 'fa-user-minus'], istihdam: ['#b45309', '#fef3c7', 'fa-arrows-rotate'], sut: ['#0f766e', '#ccfbf1', 'fa-baby'] };
-        function renderSection(k) {
-            const S = SEC[k], rows = cur.data[k], full = rows.length >= S.max;
-            const extra = S.kind === 'sut' ? `<p id="sutInfo" class="text-[11px] text-slate-500 font-semibold px-4 pt-3"></p>` : '';
-            const [c, t, ic] = SEC_COL[k];
-            return `<div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden" id="card-${k}" style="border-top:4px solid ${c}">
-                <div class="px-4 py-3 flex items-center gap-2.5" style="background:linear-gradient(90deg,${t},#fff)">
-                    <span class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm shadow" style="background:${c}"><i class="fa-solid ${ic}"></i></span>
-                    <h3 class="text-xs font-extrabold uppercase tracking-wide flex-1" style="color:${c}">${esc(S.t)} <span class="ml-1 px-2 py-0.5 rounded-full bg-white text-[10px] shadow-sm" style="color:${c};border:1px solid ${c}33">${rows.length}</span></h3>
-                    <button onclick="addRow('${k}')" ${full ? 'disabled' : ''} class="text-[11px] text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm" style="background:${c}"><i class="fa-solid fa-plus"></i> Satır Ekle</button>
-                </div>${extra}
-                <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr>${HEADS[S.kind].map(h => `<th class="th">${h}</th>`).join('')}</tr></thead>
-                <tbody class="divide-y divide-slate-100">${rows.length ? rows.map((r, i) => rowHtml(k, r, i)).join('') : `<tr><td colspan="12" class="p-5 text-center text-slate-400 font-semibold">Bu ay için kayıt yok. Raporda "PERSONEL BULUNMAMAKTADIR" cümlesi yazılır.</td></tr>`}</tbody></table></div></div>`;
-        }
-        function refreshSection(k) { const el = $('card-' + k); const t = document.createElement('div'); t.innerHTML = renderSection(k); el.replaceWith(t.firstElementChild); if (k === 'sut') refreshSut(); }
-        function addRow(k) { if (cur.data[k].length >= SEC[k].max) return; cur.data[k].push(SEC[k].blank()); markDirty(); refreshSection(k); }
-        function delRow(k, i) { cur.data[k].splice(i, 1); markDirty(); refreshSection(k); }
-        function sutSummary(r) {
-            const p = []; if (r.bas) p.push('Başlayış ' + fmtD(r.bas)); if (r.ayr) p.push('Ayrılış ' + fmtD(r.ayr) + (r.ayrM ? ' (mesai bitimi)' : ''));
-            const n = (r.izinler || []).length; if (n) p.push(n + ' izin');
-            if (r.h != null && r.h !== '' || r.j != null && r.j !== '' || r.saat != null && r.saat !== '') p.push('elle düzeltildi');
-            return p.length ? p.join(' · ') : 'Detay ekle';
-        }
-        function refreshSut() {
-            const info = $('sutInfo'); if (!info) return;
-            const ar = arifeList(cur.yil, cur.ay);
-            info.textContent = `${MONTHS[cur.ay - 1]} ${cur.yil} ayındaki mesai günü: ${monthWork(cur.yil, cur.ay)} (hafta sonu, resmî tatil ve arife günleri hariç)${ar.length ? '; arife günü: ' + ar.map(fmtD).join(', ') : ''}. Süt izni başlama tarihini yazınca 2. altı ay ve bitiş tarihi otomatik hesaplanır. Başlayış, ayrılış, izin ve elle saat düzeltmesi için "Başlayış / Ayrılış / İzin" düğmesini kullanın.`;
-            cur.data.sut.forEach((r, i) => {
-                const c = sutCalc(r, cur.yil, cur.ay), set = (id, v) => { const el = $(id + '-' + i); if (el) el.textContent = v; };
-                set('s2', c.s2 ? fmtD(c.s2) : '-'); set('sb', c.bit ? fmtD(c.bit) : '-'); set('sh', c.h || 0); set('sj', c.j || 0); set('sl', fmtN(c.l) + ' Saat'); set('smb', sutSummary(r));
-            });
-        }
-        $('edSections').addEventListener('input', e => {
-            const t = e.target, f = t.dataset.f; if (!f) return;
-            const row = cur.data[t.dataset.s][+t.dataset.i]; if (!row) return;
-            let v = t.type === 'checkbox' ? t.checked : t.value;
-            if (f === 'h' || f === 'j') v = v === '' ? null : +v;
-            row[f] = v; markDirty();
-            if (t.dataset.s === 'sut') refreshSut();
-        });
-
-        // ---- Eksik gün (izin) penceresi ----
-        let lvCtx = null;
-        function openLeave(k, i) {
-            const r = cur.data[k][i]; lvCtx = { k, i, list: (r.eksik || []).map(x => ({ ...x })) };
-            if (!lvCtx.list.length) lvCtx.list.push({ tur: 'Yıllık İzin', bas: '', bit: '', gun: '' });
-            $('lvWho').textContent = r.ad ? 'Personel: ' + r.ad : 'Personel adı henüz yazılmadı';
-            lvRender(); $('lvModal').classList.remove('hidden');
-        }
-        function lvRender() {
-            $('lvList').innerHTML = lvCtx.list.map((x, n) => `<div class="grid grid-cols-[1.3fr_1fr_1fr_.6fr_auto] gap-2 items-center">
-                ${izinSel('lvCtx.list[' + n + '].tur=this.value', x.tur)}
-                <input type="date" class="ed" value="${esc(x.bas)}" onchange="lvDate(${n},'bas',this.value)">
-                <input type="date" class="ed" value="${esc(x.bit)}" onchange="lvDate(${n},'bit',this.value)">
-                <input type="number" min="0" id="lvg-${n}" class="ed" value="${esc(x.gun)}" placeholder="Gün" oninput="lvCtx.list[${n}].gun=this.value===''?'':+this.value">
-                <button onclick="lvDel(${n})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></div>`).join('');
-        }
-        function lvDate(n, f, v) { const x = lvCtx.list[n]; x[f] = v; if (x.bas && x.bit) { x.gun = calDays(x.bas, x.bit); const g = $('lvg-' + n); if (g) g.value = x.gun; } }
-        function lvAdd() { lvCtx.list.push({ tur: 'Yıllık İzin', bas: '', bit: '', gun: '' }); lvRender(); }
-        function lvDel(n) { lvCtx.list.splice(n, 1); lvRender(); }
-        function lvClose() { $('lvModal').classList.add('hidden'); lvCtx = null; }
-        function lvSave() {
-            const { k, i } = lvCtx;
-            cur.data[k][i].eksik = lvCtx.list.filter(x => x.bas || x.bit || x.gun !== '').map(x => ({ tur: (x.tur || '').trim(), bas: x.bas, bit: x.bit, gun: x.gun === '' ? 0 : +x.gun }));
-            lvClose(); markDirty(); refreshSection(k);
-        }
-
-        // ---- Önceki aydan aktar ----
-        async function carryOver() {
-            const pm = cur.ay === 1 ? [cur.yil - 1, 12] : [cur.yil, cur.ay - 1], prev = REPORTS.find(r => r.id === rid(pm[0], pm[1]));
-            if (!prev) return showToast('Önceki ay raporu bulunamadı', true);
-            const p = parseData(prev.veri);
-            const has = ['gecici1', 'sut'].some(k => cur.data[k].length);
-            if (has) { const ok = await askConfirm({ title: 'Mevcut satırların üzerine yazılsın mı?', text: 'Geçici görev ve süt izni tabloları önceki aydan aktarılacak, bu aydaki satırlar silinecek.', ok: 'Evet, Aktar', icon: 'fa-clone', color: 'amber' }); if (!ok) return; }
-            const dropped = applyTransfer(p, cur.yil, cur.ay);
-            markDirty(); renderEditor(); showToast('Önceki aydan aktarıldı; izinler temizlendi' + (dropped ? ` (${dropped} süt izni kaydı süresi bittiği/ayrıldığı için alınmadı)` : ''));
-        }
-
-        // Geçici görev + süt izni sonraki aya geçer; izin kayıtları (izin detayı, arife seçimi, elle düzeltmeler) silinir.
-        // Başlayış / ayrılış / istihdam değişikliği her ay farklı olduğu için aktarılmaz.
-        function applyTransfer(src, y, m) {
-            const first = iso3(y, m, 1), keep = r => { const b = sutDates(r).bit; return !(b && b < first) && !(r.ayr && r.ayr < first); };
-            const sut = src.sut.filter(keep);
-            cur.data.gecici1 = src.gecici1.map(r => ({ ...r, eksik: [] }));
-            cur.data.sut = sut.map(r => ({ ...r, arife: false, izinler: [], h: null, j: null, saat: null }));
-            return src.sut.length - sut.length;
-        }
-        async function carryNext() {
-            if (!REPORTS.find(r => r.id === rid(cur.yil, cur.ay))) return showToast('Önce bu ayın raporunu kaydedin', true);
-            if (cur.dirty) return showToast('Kaydedilmemiş değişiklikler var. Önce "Raporu Kaydet" deyin', true);
-            const ny = cur.ay === 12 ? cur.yil + 1 : cur.yil, nm = cur.ay === 12 ? 1 : cur.ay + 1, src = cleanData(cur.data), ex = REPORTS.find(r => r.id === rid(ny, nm));
-            const ok = await askConfirm({ title: `${MONTHS[nm - 1]} ${ny} taslağı oluşturulsun mu?`, ok: 'Evet, Aktar', icon: 'fa-forward', color: 'amber',
-                text: `Geçici görev ve süt izni kayıtları ${MONTHS[nm - 1]} ${ny} taslağına aktarılır, izin kayıtları silinir. Başlayış, ayrılış ve istihdam değişikliği aktarılmaz. Taslak "Raporu Kaydet" deyince kaydolur.` + (ex ? ` ${MONTHS[nm - 1]} ${ny} için kayıtlı rapor var; sadece geçici görev ve süt izni tabloları değişir.` : '') });
-            if (!ok) return;
-            openPeriod(ny, nm);
-            const dropped = applyTransfer(src, ny, nm);
-            markDirty(); renderEditor(); showToast(`${MONTHS[nm - 1]} ${ny} taslağı hazır` + (dropped ? ` (${dropped} süt izni kaydı süresi bittiği/ayrıldığı için alınmadı)` : ''));
-        }
-
-        // ---- Kaydet ----
-        async function saveReport() {
-            const data = cleanData(cur.data);
-            const bad = SEC_KEYS.find(k => data[k].some(r => !(r.ad || '').trim()));
-            if (bad) return showToast(`"${SEC[bad].t}" tablosunda adı soyadı boş satır var`, true);
-            const json = JSON.stringify(data);
-            if (json.length > 45000) return showToast('Rapor çok büyük, satır sayısını azaltın', true);
-            const id = rid(cur.yil, cur.ay), ex = REPORTS.find(r => r.id === id), now = new Date().toISOString();
-            const row = [id, cur.yil, cur.ay, reportName(cur.yil, cur.ay), json, ex ? ex.created : now, now];
-            const btn = $('saveBtn'), old = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
-            try {
-                await post({ action: ex ? 'update' : 'add', sheet: 'Raporlar', id, row });
-                const rec = { id, yil: cur.yil, ay: cur.ay, ad: row[3], veri: json, created: row[5], updated: now, by: who() };
-                if (ex) Object.assign(ex, rec); else REPORTS.push(rec);
-                cur.data = parseData(json); cur.dirty = false; cur.savedId = id; lastSig = '';
-                renderEditor(); $('tabCount').textContent = REPORTS.length;
-                showToast(`"${row[3]}" kaydedildi`);
-                return true;
-            } catch (x) { showToast('Kaydedilemedi: ' + x.message, true); return false; }
-            finally { btn.disabled = false; btn.innerHTML = old; }
-        }
-
-        // ==================== RAPOR ÇIKTISI (önizleme + yazdırma) ====================
-        // İzin satırları: "1- 01.10.2026 - 02.10.2026 tarihler arasında 2 gün yıllık izin" / "2- 01.10.2026 tarihinde 1 gün yıllık izin"
-        function izinLines(list) {
-            return (list || []).filter(x => x.bas).map((x, n) => {
-                const tur = String(x.tur || 'izin').trim().toLocaleLowerCase('tr'), g = x.gun === '' || x.gun == null ? workdays(x.bas, x.bit || x.bas) : x.gun;
-                return (!x.bit || x.bit === x.bas) ? `${n + 1}- ${fmtD(x.bas)} tarihinde ${g} gün ${tur}` : `${n + 1}- ${fmtD(x.bas)} - ${fmtD(x.bit)} tarihler arasında ${g} gün ${tur}`;
-            }).join('\n');
-        }
-        function reportHTML(data, y, m) {
-            const mon = UP(MONTHS[m - 1]);
-            const td = (v, c = '') => `<td${c ? ` class="${c}"` : ''}>${esc(v)}</td>`;
-            const cg = w => `<colgroup>${w.map(x => `<col style="width:${x}%">`).join('')}</colgroup>`;
-            // Kayıt yoksa tablo/başlık satırı yazılmaz; yerine "... PERSONEL BULUNMAMAKTADIR" cümlesi gelir
-            const none = (cls, what) => `<table class="${cls} kp">${cg([100])}<tr><td class="ttl none">${esc(`${y} YILI ${mon} AYI İÇERİSİNDE ${what} PERSONEL BULUNMAMAKTADIR`)}</td></tr></table>`;
-            const ttl = (what, n) => `<tr><td class="ttl" colspan="${n}">${esc(`${y} YILI ${mon} AYI ${what} PERSONEL LİSTESİ`)}</td></tr>`;
-            // Başlık (thead): yazdırmada sayfa sonuna yalnız kalmaz, tablo sayfa değiştirirse yeni sayfada tekrar eder
-            const tbl = (cls, w, what, head, body) => `<table class="${cls}">${cg(w)}<thead>${ttl(what, w.length)}<tr>${head.map(x => `<th>${x}</th>`).join('')}</tr></thead>${body}</table>`;
-            const gecici = !data.gecici1.length ? none('t-gec', 'GEÇİCİ GÖREVLE GELEN') : tbl('t-gec z', [8, 16, 15, 17, 20, 24], 'GEÇİCİ GÖREVLE GELEN', ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', 'KADRO KURUMU', 'GÖREV BAŞLANGIÇ/BİTİŞ TARİHİ', 'İZİN DETAYI'],
-                `<tbody>${data.gecici1.map((r, i) => `<tr class="r rg">${td(i + 1)}${td(r.ad)}${td(r.unvan)}${td(r.kurum)}${td(r.tarih)}${td(izinLines(r.eksik), 'tl')}</tr>`).join('')}</tbody>`);
-            const dt = r => r.tarih ? fmtD(r.tarih) + (r.mesai ? ' (Mesai Bitimi)' : '') : '';
-            const simple = (cls, what, h4, rows, cells) => !rows.length ? none(cls, what) : tbl(cls + ' z', [8, 24, 20, 22, 26], what, ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', h4[0], h4[1]],
-                `<tbody>${rows.map((r, i) => `<tr class="r">${td(i + 1)}${cells(r)}</tr>`).join('')}</tbody>`);
-            const ist = !data.istihdam.length ? none('t-ist', 'İSTİHDAM DEĞİŞİKLİĞİ YAPAN') : tbl('t-ist z', [8, 21, 17, 17, 17, 20], 'İSTİHDAM DEĞİŞİKLİĞİ YAPAN', ['SIRA NO', 'ADI SOYADI', 'ÜNVANI', 'AYRILIŞ TARİHİ', 'BAŞLAYIŞ TARİHİ', 'İSTİHDAM DURUMU'],
-                `<tbody>${data.istihdam.map((r, i) => `<tr class="r">${td(i + 1)}${td(r.ad)}${td(r.unvan)}${td(fmtD(r.ayr))}${td(fmtD(r.bas))}${td(r.durum)}</tr>`).join('')}</tbody>`);
-            // Süt izni: her kişi bir grup (kişi satırı + ortalı hesap cümlesi); sayfa sonunda ikiye bölünmez
-            const sut = !data.sut.length ? none('t-sut', 'SÜT İZNİ KULLANAN') : tbl('t-sut', [8, 18, 16, 17, 13, 28], 'SÜT İZNİ KULLANAN', ['SIRA NO', 'ADI SOYADI', 'BAŞLANGIÇ TARİHİ', '2.İNCİ 6 AY BAŞLANGIÇ TARİHİ', 'BİTİŞ TARİHİ', 'İZİN DETAYI'],
-                data.sut.map((r, i) => {
-                    const c = sutCalc(r, y, m), lines = izinLines((r.izinler || []).filter(x => x.bas).map(x => ({ ...x, gun: workdays(x.bas, x.bit || x.bas) })));
-                    const txt = `${y} yılı ${MONTHS[m - 1]} ayı mesai ${c.mesai} gündür. İlk 6 ay: ${c.h} gün × 3 + Son 6 ay: ${c.j} gün × 1,5 = Aylık toplam: ${fmtN(c.l)} saat süt izni kullanmıştır.`;
-                    return `<tbody class="g"><tr class="r"><td rowspan="2">${i + 1}</td>${td(r.ad)}${td(fmtD(r.s1))}${td(fmtD(c.s2))}${td(fmtD(c.bit))}${td(lines, 'tl')}</tr><tr class="r"><td colspan="5" class="calc">${esc(txt)}</td></tr></tbody>`;
-                }).join(''));
-            return `<div class="rp"><table class="rpw"><thead><tr><td><table class="head">${cg([20, 60, 20])}<tr><td class="hl"><img src="logo.png" alt=""></td><td class="ho"><div class="c1">T.C.</div><div class="c2">KONYA VALİLİĞİ</div><div class="c3">İL SAĞLIK MÜDÜRLÜĞÜ</div><div class="c4">KARAPINAR DEVLET HASTANESİ</div></td><td class="hr"><div class="pl">RAPOR DÖNEMİ</div><div class="pv">${esc(mon)} ${y}</div></td></tr></table></td></tr></thead><tbody><tr class="wrow"><td>
-                ${gecici}
-                ${simple('t-bas', 'BAŞLAYIŞ YAPAN', ['BAŞLAYIŞ TARİHİ', 'BAŞLAYIŞ DURUMU'], data.baslayis, r => td(r.ad) + td(r.unvan) + td(fmtD(r.tarih)) + td(r.durum))}
-                ${simple('t-ayr', 'AYRILIŞ YAPAN', ['AYRILIŞ TARİHİ', 'AYRILIŞ DURUMU'], data.ayrilis, r => td(r.ad) + td(r.unvan) + td(dt(r)) + td(r.durum))}
-                ${ist}${sut}</td></tr></tbody></table></div>`;
-        }
-        let pvCtx = null;
-        function openPreview(data, y, m) {
-            pvCtx = { data, y, m };
-            $('pvTitle').textContent = 'Önizleme · ' + reportName(y, m);
-            $('pvPage').innerHTML = reportHTML(data, y, m);
-            $('pvModal').classList.remove('hidden'); $('pvModal').classList.add('flex');
-            const z = Math.min(1, (window.innerWidth - 32) / 794); $('pvPage').style.zoom = z;
-        }
-        function closePreview() { $('pvModal').classList.add('hidden'); $('pvModal').classList.remove('flex'); pvCtx = null; }
-        function printReport(data, y, m) {
-            post({ action: 'log', islem: 'Rapor yazdırıldı', kayit: reportName(y, m) }).catch(() => { });
-            $('printArea').innerHTML = reportHTML(data, y, m);
-            const old = document.title; document.title = reportName(y, m);            // PDF'e kaydedince dosya adı rapor adı olur
-            document.body.classList.add('print-report');
-            const done = () => { document.body.classList.remove('print-report'); document.title = old; window.removeEventListener('afterprint', done); };
-            window.addEventListener('afterprint', done);
-            setTimeout(() => window.print(), 80);
-        }
-        function previewCurrent() { openPreview(cleanData(cur.data), cur.yil, cur.ay); }
-        function printCurrent() { printReport(cleanData(cur.data), cur.yil, cur.ay); }
-        function printPreview() { if (pvCtx) printReport(pvCtx.data, pvCtx.y, pvCtx.m); }
-
-        // ==================== KAYITLI RAPORLAR ====================
-        function renderSaved() {
-            const q = ($('svSearch').value || '').toLocaleLowerCase('tr'), y = $('svYil').value, m = $('svAy').value;
-            const list = REPORTS.filter(r => (!y || r.yil === +y) && (!m || r.ay === +m) && (!q || r.ad.toLocaleLowerCase('tr').includes(q))).sort((a, b) => (b.yil * 100 + b.ay) - (a.yil * 100 + a.ay));
-            $('svInfo').textContent = list.length + ' rapor';
-            $('svBody').innerHTML = list.length ? list.map((r, i) => {
-                const d = parseData(r.veri), sum = `Geçici: ${d.gecici1.length} · Başlayış: ${d.baslayis.length} · Ayrılış: ${d.ayrilis.length} · İstihdam: ${d.istihdam.length} · Süt İzni: ${d.sut.length}`;
-                return `<tr data-id="${esc(r.id)}" class="hover:bg-slate-50">
-                <td class="p-2.5 text-slate-400">${i + 1}</td><td class="p-2.5 font-semibold text-slate-800">${esc(r.ad)}</td><td class="p-2.5 text-slate-600 text-[11px]">${esc(sum)}</td>
-                <td class="p-2.5 text-slate-600 whitespace-nowrap">${esc(fmtDT(r.updated))}</td><td class="p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(r.by) || '-'}</td>
-                <td class="p-2.5 text-right whitespace-nowrap">
-                    <button onclick="svOpen('${esc(r.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="svPreview('${esc(r.id)}')" title="Önizle" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 mr-1"><i class="fa-solid fa-eye"></i></button>
-                    <button onclick="svPrint('${esc(r.id)}')" title="Yazdır" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 mr-1"><i class="fa-solid fa-print"></i></button>
-                    <button onclick="svDelete('${esc(r.id)}')" title="Sil" class="admin-only w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 ${isAdmin() ? '' : 'hidden'}"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-            }).join('') : '<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">Kayıtlı rapor bulunamadı.</td></tr>';
-        }
-        const svGet = id => REPORTS.find(r => r.id === id);
-        async function svOpen(id) {
-            const r = svGet(id); if (!r) return;
-            if (cur.dirty && !(cur.yil === r.yil && cur.ay === r.ay)) {
-                if (!(await guardUnsaved('Başka bir raporu açarsanız şu anki raporda kaydedilmemiş değişiklikler kaybolur.'))) return;
-            }
-            if (!(cur.yil === r.yil && cur.ay === r.ay && cur.dirty)) openPeriod(r.yil, r.ay);
-            showTab('editor');
-        }
-        const svPreview = id => { const r = svGet(id); if (r) openPreview(parseData(r.veri), r.yil, r.ay); };
-        const svPrint = id => { const r = svGet(id); if (r) printReport(parseData(r.veri), r.yil, r.ay); };
-        async function svDelete(id) {
-            const r = svGet(id); if (!r) return;
-            const ok = await askConfirm({ title: 'Bu rapor silinsin mi?', text: 'Rapor tablodan silinir. Silinen rapor, IslemGunlugu sayfasına eski haliyle yazılır.', ok: 'Evet, Sil', icon: 'fa-triangle-exclamation', color: 'rose', summary: `<div><b>Rapor:</b> ${esc(r.ad)}</div><div><b>Son kayıt:</b> ${esc(fmtDT(r.updated))}</div>`, action: () => post({ action: 'delete', sheet: 'Raporlar', id }) });
-            if (!ok) return;
-            const tr = document.querySelector(`tr[data-id="${id}"]`); if (tr) { tr.classList.add('row-removing'); await sleep(450); }
-            REPORTS = REPORTS.filter(x => x.id !== id); lastSig = '';
-            if (cur.yil === r.yil && cur.ay === r.ay) openPeriod(r.yil, r.ay);
-            renderCurrent(); showToast('Rapor silindi');
-        }
-
-        // ==================== İŞLEM GEÇMİŞİ (yönetici) ====================
-        const fmtLogT = s => { const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2}:\d{2})/.exec(s || ''); return m ? `${m[3]}.${m[2]}.${m[1]} ${m[4]}` : (s || ''); };
-        async function loadLog(force) {
-            if (!isAdmin()) return;
-            if (logLoaded && !force) return renderLog();
-            $('lgBody').innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</td></tr>';
-            try {
-                const out = await fetchSheet('IslemGecmisi', sessionStorage.getItem('kdh_ab_key') || '');
-                LOG = (out.rows || []).map(x => ({ t: String(x.col1 ?? ''), u: String(x.col2 ?? ''), r: String(x.col3 ?? ''), i: String(x.col4 ?? ''), k: String(x.col6 ?? ''), a: String(x.col7 ?? '') })).sort((a, b) => b.t.localeCompare(a.t));
-                LOG = LOG.filter(x => !/giriş/i.test(x.i) && !/^durum başlığı/i.test(x.i)); logLoaded = true;
-            } catch (e) {
-                $('lgBody').innerHTML = '<tr><td colspan="6" class="p-6 text-center text-rose-600 font-semibold">İşlem geçmişi okunamadı. Apps Script\'te "kurulum" fonksiyonunu çalıştırıp yeni sürüm olarak yayınlayın.</td></tr>'; return;
-            }
-            renderLog();
-        }
-        function renderLog() {
-            const su = $('lgUser'), si = $('lgIslem'), uv = su.value, iv = si.value;
-            const users = [...new Set(LOG.map(x => x.u))].sort((a, b) => a.localeCompare(b, 'tr')), ops = [...new Set(LOG.map(x => x.i))].sort((a, b) => a.localeCompare(b, 'tr'));
-            su.innerHTML = '<option value="">Tüm Kullanıcılar</option>' + users.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join(''); su.value = users.includes(uv) ? uv : '';
-            si.innerHTML = '<option value="">Tüm İşlemler</option>' + ops.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join(''); si.value = ops.includes(iv) ? iv : '';
-            const q = ($('lgSearch').value || '').toLocaleLowerCase('tr');
-            const list = LOG.filter(x => (!su.value || x.u === su.value) && (!si.value || x.i === si.value) && (!q || (x.k + ' ' + x.a).toLocaleLowerCase('tr').includes(q)));
-            $('lgInfo').textContent = list.length + ' işlem';
-            const tone = i => /silindi/i.test(i) ? 'bg-rose-100 text-rose-700' : /yazdır/i.test(i) ? 'bg-blue-100 text-blue-700' : /giriş/i.test(i) ? 'bg-slate-100 text-slate-600' : /güncellendi|düzenlendi|değiştirildi/i.test(i) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700';
-            $('lgBody').innerHTML = list.length ? list.slice(0, 500).map(x => `<tr class="hover:bg-slate-50"><td class="p-2.5 whitespace-nowrap text-slate-600 tabular-nums">${esc(fmtLogT(x.t))}</td><td class="p-2.5 font-bold text-slate-800 whitespace-nowrap">${esc(x.u)}</td><td class="p-2.5 text-slate-500 whitespace-nowrap">${esc(x.r)}</td>
-                <td class="p-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${tone(x.i)}">${esc(x.i)}</span></td><td class="p-2.5 text-slate-700">${esc(x.k) || '-'}</td><td class="p-2.5 text-slate-500">${esc(x.a)}</td></tr>`).join('')
-                : '<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">Kayıt bulunamadı.</td></tr>';
-        }
-
-        // ==================== DURUM BAŞLIKLARI / TATİLLER ====================
-        const DEF_MSG = 'İzin türleri sayfası sunucuda yok. Apps Script\'e yeni Kod.gs yapıştırıp "kurulum" fonksiyonunu çalıştırın, sonra yeni sürüm olarak yayınlayın.';
-        const rowBtns = (kind, s, i, n, minI = 0) => {
-            const up = i <= minI ? 'style="opacity:.3;cursor:not-allowed" disabled' : '', dn = i === n - 1 ? 'style="opacity:.3;cursor:not-allowed" disabled' : '';
-            return `<button onclick="moveItem('${kind}','${esc(s.id)}',-1)" ${up} title="Yukarı taşı" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 mr-1"><i class="fa-solid fa-arrow-up"></i></button><button onclick="moveItem('${kind}','${esc(s.id)}',1)" ${dn} title="Aşağı taşı" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 mr-2"><i class="fa-solid fa-arrow-down"></i></button><button onclick="${kind === 'durum' ? 'editStatus' : 'editIzin'}('${esc(s.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="${kind === 'durum' ? 'delStatus' : 'delIzin'}('${esc(s.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>`;
-        };
-        function renderIzin() {
-            const adm = isAdmin(), def = IZINTUR.length && IZINTUR[0].id.startsWith('def');
-            const note = def ? `<tr><td colspan="3" class="p-2.5 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg">${esc(DEF_MSG)}</td></tr>` : '';
-            $('izinBody').innerHTML = IZINTUR.length ? note + IZINTUR.map((s, i) => `<tr class="hover:bg-slate-50"><td class="p-2 text-slate-400 w-8">${i + 1}</td><td class="p-2 font-semibold text-slate-800">${esc(s.ad)}</td>
-                <td class="p-2 text-right whitespace-nowrap">${adm ? (isLockedIzin(s) ? '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold"><i class="fa-solid fa-lock"></i> Sabit</span>' : rowBtns('izin', s, i, IZINTUR.length, 1)) : ''}</td></tr>`).join('')
-                : '<tr><td class="p-5 text-center text-slate-400 font-semibold">İzin türü yok.</td></tr>';
-        }
-        let moving = false;
-        async function moveItem(kind, id, dir) {                 // yukarı / aşağı sıralama (sıra Google Tablosundaki satır sırasıdır)
-            if (moving) return;
-            const L = kind === 'durum' ? STATUSES : IZINTUR, sheet = kind === 'durum' ? 'DurumBasliklari' : 'IzinTurleri';
-            const i = L.findIndex(x => x.id === id), j = i + dir; if (i < 0 || j < 0 || j >= L.length) return;
-            if (kind === 'izin' && (isLockedIzin(L[i]) || isLockedIzin(L[j]))) return;       // Yıllık İzin taşınmaz, üstüne de çıkılamaz
-            if (String(id).startsWith('def')) return showToast(DEF_MSG, true);
-            moving = true; [L[i], L[j]] = [L[j], L[i]]; renderLists();
-            try { await post({ action: 'move', sheet, id, dir: dir < 0 ? 'up' : 'down' }); lastSig = ''; if (kind === 'durum') renderEditor(); }
-            catch (x) { [L[i], L[j]] = [L[j], L[i]]; renderLists(); showToast('Sıra değiştirilemedi: ' + x.message, true); }
-            finally { moving = false; }
-        }
-        async function addIzin(e) {
-            e.preventDefault();
-            const ad = $('newIzin').value.trim().replace(/\s+/g, ' '); if (!ad) return;
-            if (IZINTUR.some(s => s.ad.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'))) return showToast('Bu izin türü zaten var', true);
-            const btn = $('izinSaveBtn'), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            try {
-                const id = String(Date.now()); await post({ action: 'add', sheet: 'IzinTurleri', row: [id, ad] });
-                if (IZINTUR.length && IZINTUR[0].id.startsWith('def')) IZINTUR = [];   // sayfa yeni oluşmuşsa varsayılanlar yerine sunucudaki liste kullanılır
-                IZINTUR.push({ id, ad }); lastSig = ''; $('newIzin').value = ''; renderIzin(); showToast('İzin türü eklendi');
-            } catch (x) { showToast('Eklenemedi: ' + x.message, true); } finally { btn.disabled = false; btn.innerHTML = old; }
-        }
-        function editIzin(id) {
-            const s = IZINTUR.find(x => x.id === id); if (!s) return;
-            if (isLockedIzin(s)) return showToast('Yıllık İzin sabittir; değiştirilemez, silinemez ve taşınamaz.', true);
-            if (String(id).startsWith('def')) return showToast(DEF_MSG, true);
-            openEditModal({ title: 'İzin Türünü Düzenle', l1: 'İzin Türü', v1: s.ad, save: async v1 => {
-                const ad = v1.trim().replace(/\s+/g, ' '); if (!ad) throw new Error('İzin türü boş olamaz.');
-                if (IZINTUR.some(x => x.id !== id && x.ad.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'))) throw new Error('Bu izin türü zaten var.');
-                await post({ action: 'update', sheet: 'IzinTurleri', id, row: [id, ad] }); s.ad = ad; renderIzin();
-            } });
-        }
-        async function delIzin(id) {
-            const s = IZINTUR.find(x => x.id === id); if (!s) return;
-            if (isLockedIzin(s)) return showToast('Yıllık İzin sabittir; değiştirilemez, silinemez ve taşınamaz.', true);
-            if (String(id).startsWith('def')) return showToast(DEF_MSG, true);
-            const ok = await askConfirm({ title: 'İzin türü silinsin mi?', text: 'Listeden kalkar. Eski raporlarda bu türle yazılmış izinler aynen kalır.', ok: 'Evet, Sil', icon: 'fa-triangle-exclamation', color: 'rose', summary: `<div><b>İzin türü:</b> ${esc(s.ad)}</div>`, action: () => post({ action: 'delete', sheet: 'IzinTurleri', id }) });
-            if (!ok) return; IZINTUR = IZINTUR.filter(x => x.id !== id); lastSig = ''; renderIzin(); showToast('Silindi');
-        }
-        function renderLists() {
-            renderIzin();
-            const adm = isAdmin();
-            $('statusBody').innerHTML = STATUSES.length ? STATUSES.map((s, i) => `<tr class="hover:bg-slate-50"><td class="p-2 text-slate-400 w-8">${i + 1}</td><td class="p-2 font-semibold text-slate-800">${esc(s.ad)}</td>
-                <td class="p-2 text-right whitespace-nowrap">${adm ? rowBtns('durum', s, i, STATUSES.length) : ''}</td></tr>`).join('')
-                : '<tr><td class="p-5 text-center text-slate-400 font-semibold">Durum başlığı yok.</td></tr>';
-            const hy = +$('holYil').value || new Date().getFullYear();
-            const hl = HOLIDAYS.filter(h => +h.d.slice(0, 4) === hy).sort((a, b) => a.d.localeCompare(b.d));
-            $('holBody').innerHTML = hl.length ? hl.map(h => `<tr class="hover:bg-slate-50"><td class="p-2 font-semibold text-slate-800 whitespace-nowrap">${esc(fmtD(h.d))}</td><td class="p-2 text-slate-600">${esc(h.ac) || '-'}${h.tur === 'Arife' ? ' <span class="ml-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">Arife · 5 saat</span>' : ''}</td>
-                <td class="p-2 text-right whitespace-nowrap">${adm ? `<button onclick="editHoliday('${esc(h.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="delHoliday('${esc(h.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`).join('')
-                : '<tr><td class="p-5 text-center text-slate-400 font-semibold">Bu yıl için tatil kaydı yok.</td></tr>';
-        }
-        async function addStatus(e) {
-            e.preventDefault();
-            const ad = UP($('newStatus').value.trim().replace(/\s+/g, ' ')); if (!ad) return;
-            if (STATUSES.some(s => s.ad === ad)) return showToast('Bu durum başlığı zaten var', true);
-            const btn = $('statusSaveBtn'), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            try { const id = String(Date.now()); await post({ action: 'add', sheet: 'DurumBasliklari', row: [id, ad] }); STATUSES.push({ id, ad, by: who() }); lastSig = ''; $('newStatus').value = ''; renderLists(); showToast('Durum başlığı eklendi'); }
-            catch (x) { showToast('Eklenemedi: ' + x.message, true); } finally { btn.disabled = false; btn.innerHTML = old; }
-        }
-        async function delStatus(id) {
-            const s = STATUSES.find(x => x.id === id); if (!s) return;
-            const ok = await askConfirm({ title: 'Durum başlığı silinsin mi?', text: 'Listeden kalkar. Eski raporlarda bu durumla yazılmış satırlar aynen kalır.', ok: 'Evet, Sil', icon: 'fa-triangle-exclamation', color: 'rose', summary: `<div><b>Başlık:</b> ${esc(s.ad)}</div>`, action: () => post({ action: 'delete', sheet: 'DurumBasliklari', id }) });
-            if (!ok) return; STATUSES = STATUSES.filter(x => x.id !== id); lastSig = ''; renderLists(); renderEditor(); showToast('Silindi');
-        }
-        async function addHoliday(e) {
-            e.preventDefault();
-            const d = $('newHolDate').value, ac = $('newHolName').value.trim(), tur = $('newHolTur').value; if (!d) return;
-            if (HOLIDAYS.some(h => h.d === d)) return showToast('Bu tarih zaten tatil olarak kayıtlı', true);
-            const btn = $('holSaveBtn'), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            try { const id = String(Date.now()); await post({ action: 'add', sheet: 'Tatiller', row: [id, d, ac, tur] }); HOLIDAYS.push({ id, d, ac, tur, by: who() }); rebuildH(); lastSig = ''; $('newHolDate').value = ''; $('newHolName').value = ''; initPeriodSelectsKeep(); renderLists(); refreshSut(); showToast('Tatil eklendi' + (+d.slice(0, 4) !== (+$('holYil').value) ? ' (' + d.slice(0, 4) + ' yılı listesinde görünür)' : '')); }
-            catch (x) { showToast('Eklenemedi: ' + x.message, true); } finally { btn.disabled = false; btn.innerHTML = old; }
-        }
-        function initPeriodSelectsKeep() {                  // seçili yıl değişmez; yeni yıl sadece listeye eklenir
-            const keep = +$('holYil').value || new Date().getFullYear(), hy = new Set([keep, new Date().getFullYear()]); HOLIDAYS.forEach(x => hy.add(+x.d.slice(0, 4)));
-            $('holYil').innerHTML = [...hy].sort((a, b) => b - a).map(v => `<option value="${v}">${v}</option>`).join(''); $('holYil').value = keep;
-        }
-        async function delHoliday(id) {
-            const h = HOLIDAYS.find(x => x.id === id); if (!h) return;
-            const ok = await askConfirm({ title: 'Tatil silinsin mi?', text: 'Bu gün tekrar mesai günü sayılır; süt izni hesapları buna göre değişir.', ok: 'Evet, Sil', icon: 'fa-triangle-exclamation', color: 'rose', summary: `<div><b>Tarih:</b> ${esc(fmtD(h.d))}</div><div><b>Açıklama:</b> ${esc(h.ac) || '-'}</div>`, action: () => post({ action: 'delete', sheet: 'Tatiller', id }) });
-            if (!ok) return; HOLIDAYS = HOLIDAYS.filter(x => x.id !== id); rebuildH(); lastSig = ''; renderLists(); refreshSut(); showToast('Silindi');
-        }
-        // ---- Genel düzenleme penceresi ----
-        let editCtx = null;
-        function openEditModal(ctx) {
-            editCtx = ctx; $('editTitle').querySelector('span').textContent = ctx.title;
-            $('editLabel1').textContent = ctx.l1; $('editInput1').type = ctx.t1 || 'text'; $('editInput1').value = ctx.v1;
-            $('editRow2').classList.toggle('hidden', !ctx.l2); if (ctx.l2) { $('editLabel2').textContent = ctx.l2; $('editInput2').value = ctx.v2; }
-            $('editRow3').classList.toggle('hidden', !ctx.l3); if (ctx.l3) { $('editLabel3').textContent = ctx.l3; $('editSel3').value = ctx.v3; }
-            $('editErr').classList.add('hidden'); $('editModal').classList.remove('hidden'); setTimeout(() => $('editInput1').focus(), 50);
-        }
-        function closeEdit() { $('editModal').classList.add('hidden'); editCtx = null; }
-        function editStatus(id) {
-            const s = STATUSES.find(x => x.id === id); if (!s) return;
-            openEditModal({ title: 'Durum Başlığını Düzenle', l1: 'Durum Başlığı', v1: s.ad, save: async v1 => {
-                const ad = UP(v1.trim().replace(/\s+/g, ' ')); if (!ad) throw new Error('Başlık boş olamaz.');
-                if (STATUSES.some(x => x.id !== id && x.ad === ad)) throw new Error('Bu durum başlığı zaten var.');
-                await post({ action: 'update', sheet: 'DurumBasliklari', id, row: [id, ad] }); s.ad = ad; s.by = who(); renderLists(); renderEditor();
-            } });
-        }
-        function editHoliday(id) {
-            const h = HOLIDAYS.find(x => x.id === id); if (!h) return;
-            openEditModal({ title: 'Tatili Düzenle', l1: 'Tarih', t1: 'date', v1: h.d, l2: 'Açıklama', v2: h.ac, l3: 'Tür', v3: h.tur, save: async (v1, v2, v3) => {
-                if (!v1) throw new Error('Tarih seçin.'); if (HOLIDAYS.some(x => x.id !== id && x.d === v1)) throw new Error('Bu tarih zaten kayıtlı.');
-                await post({ action: 'update', sheet: 'Tatiller', id, row: [id, v1, v2.trim(), v3] }); h.d = v1; h.ac = v2.trim(); h.tur = v3; h.by = who(); rebuildH(); renderLists(); refreshSut();
-            } });
-        }
-        async function saveEdit() {
-            if (!editCtx) return; const btn = $('editSaveBtn'), old = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
-            try { await editCtx.save($('editInput1').value, $('editInput2').value, $('editSel3').value); lastSig = ''; closeEdit(); showToast('Değişiklik kaydedildi'); }
-            catch (x) { $('editErr').textContent = x.message; $('editErr').classList.remove('hidden'); }
-            finally { btn.disabled = false; btn.innerHTML = old; }
-        }
-
-        // ==================== ONAY PENCERESİ ====================
-        let cfRes = null, cfAct = null;
-        function askConfirm(o) {
-            return new Promise(res => {
-                cfRes = res; cfAct = o.action || null;
-                const c = o.color || 'rose', pal = { rose: ['bg-rose-100 text-rose-600', 'bg-rose-600 hover:bg-rose-700', 'rgba(244,63,94,.35)'], amber: ['bg-amber-100 text-amber-600', 'bg-slate-900 hover:bg-slate-800', 'rgba(245,158,11,.35)'] }[c];
-                $('cfIcon').className = 'relative w-16 h-16 rounded-full flex items-center justify-center text-3xl anim-shake ' + pal[0]; $('cfIcon').innerHTML = `<i class="fa-solid ${o.icon || 'fa-triangle-exclamation'}"></i>`;
-                $('cfOk').className = 'py-2.5 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 ' + pal[1]; $('cfOk').innerHTML = `<i class="fa-solid ${c === 'rose' ? 'fa-trash' : 'fa-check'}"></i> ${esc(o.ok || 'Tamam')}`;
-                $('cfTitle').textContent = o.title; $('cfText').textContent = o.text || '';
-                const s = $('cfSummary'); s.innerHTML = o.summary || ''; s.classList.toggle('hidden', !o.summary);
-                $('cfErr').classList.add('hidden'); $('cfModal').classList.remove('hidden');
-            });
-        }
-        async function cfAnswer(yes) {
-            if (yes && cfAct) {
-                const btn = $('cfOk'), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
-                try { await cfAct(); } catch (x) { $('cfErr').textContent = 'İşlem yapılamadı: ' + (x.message || x); $('cfErr').classList.remove('hidden'); btn.disabled = false; btn.innerHTML = old; return; }
-                btn.disabled = false; btn.innerHTML = old;
-            }
-            $('cfModal').classList.add('hidden'); const r = cfRes; cfRes = null; cfAct = null; if (r) r(!!yes);
-        }
-
-        // ---- Süt izni detay penceresi ----
-        let smCtx = null;
-        function openSut(i) {
-            const r = cur.data.sut[i]; smCtx = { i, t: JSON.parse(JSON.stringify(r)) };
-            $('smWho').textContent = (r.ad ? 'Personel: ' + r.ad : 'Personel adı henüz yazılmadı') + ' · Süt izni başlama: ' + (r.s1 ? fmtD(r.s1) : 'yazılmadı');
-            $('smBas').value = r.bas || ''; $('smAyr').value = r.ayr || ''; $('smAyrM').checked = !!r.ayrM; $('smArife').checked = !!r.arife;
-            ['h', 'j', 'saat'].forEach(f => { $({ h: 'smH', j: 'smJ', saat: 'smSaat' }[f]).value = (r[f] === null || r[f] === undefined) ? '' : r[f]; });
-            smRenderIz(); smRecalc(); $('smModal').classList.remove('hidden');
-        }
-        function smRenderIz() {
-            $('smIzList').innerHTML = smCtx.t.izinler.length ? smCtx.t.izinler.map((x, n) => `<div class="grid grid-cols-[1.2fr_1fr_1fr_.6fr_auto] gap-2 items-center">
-                ${izinSel('smCtx.t.izinler[' + n + '].tur=this.value', x.tur || 'Yıllık İzin')}
-                <input type="date" class="ed" value="${esc(x.bas)}" onchange="smIzDate(${n},'bas',this.value)">
-                <input type="date" class="ed" value="${esc(x.bit)}" onchange="smIzDate(${n},'bit',this.value)">
-                <div class="text-xs font-extrabold text-slate-700 text-center" id="smg-${n}">${x.bas ? workdays(x.bas, x.bit || x.bas) + ' gün' : '-'}</div>
-                <button onclick="smIzDel(${n})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></div>`).join('')
-                : '<p class="text-[11px] text-slate-400 font-semibold">Bu ay izin kaydı yok.</p>';
-        }
-        function smIzDate(n, f, v) { const x = smCtx.t.izinler[n]; x[f] = v; const g = $('smg-' + n); if (g) g.textContent = x.bas ? workdays(x.bas, x.bit || x.bas) + ' gün' : '-'; smRecalc(); }
-        function smIzAdd() { smCtx.t.izinler.push({ tur: 'Yıllık İzin', bas: '', bit: '' }); smRenderIz(); }
-        function smIzDel(n) { smCtx.t.izinler.splice(n, 1); smRenderIz(); smRecalc(); }
-        function smSet(f, v) { smCtx.t[f] = v; smRecalc(); }
-        function smNum(f, v) { smCtx.t[f] = v === '' ? null : +v; smRecalc(); }
-        function smRecalc() {
-            const t = smCtx.t, c = sutCalc(t, cur.yil, cur.ay), auto = sutCalc({ ...t, saat: null }, cur.yil, cur.ay), ar = arifeList(cur.yil, cur.ay);
-            $('smArifeInfo').textContent = ar.length ? 'Bu ay arife günü: ' + ar.map(fmtD).join(', ') : 'Bu ay arife günü yok.';
-            $('smH').placeholder = 'oto: ' + c.a1; $('smJ').placeholder = 'oto: ' + c.a2; $('smSaat').placeholder = 'oto: ' + fmtN(auto.l);
-            $('smSum').innerHTML = `${MONTHS[cur.ay - 1]} ${cur.yil} mesai günü: <b>${c.mesai}</b> · İlk 6 ay: <b>${c.h}</b> gün × 3 · Son 6 ay: <b>${c.j}</b> gün × 1,5 · Aylık toplam: <b>${fmtN(c.l)} saat</b>`;
-        }
-        function smClose() { $('smModal').classList.add('hidden'); smCtx = null; }
-        function smSave() {
-            const { i, t } = smCtx, r = cur.data.sut[i];
-            Object.assign(r, { bas: t.bas || '', ayr: t.ayr || '', ayrM: !!t.ayrM, arife: !!t.arife, h: t.h, j: t.j, saat: t.saat, izinler: t.izinler.filter(x => x.bas).map(x => ({ tur: (x.tur || 'Yıllık İzin').trim(), bas: x.bas, bit: x.bit || x.bas, gun: workdays(x.bas, x.bit || x.bas) })) });
-            smClose(); markDirty(); refreshSut();
-        }
-
-        function tickClock() { const n = new Date(); $('clockDate').textContent = n.toLocaleDateString('tr-TR'); $('clockTime').textContent = n.toLocaleTimeString('tr-TR', { hourCycle: 'h23' }); }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ugModal').classList.contains('hidden')) { ugAnswer('cancel'); return; } if (e.key === 'Escape') { if (!$('cfModal').classList.contains('hidden')) cfAnswer(false); else { closeEdit(); $('lvModal').classList.add('hidden'); $('smModal').classList.add('hidden'); closePreview(); } } });
-
-        (function initPortalAnimation() {
-            const canvas = $('animatedPortalBg'); if (!canvas) return;
-            const ctx = canvas.getContext('2d'); let width, height;
-            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
-            window.addEventListener('resize', resize); resize();
-            const ps = []; for (let i = 0; i < 40; i++) ps.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 3 + 1, sx: (Math.random() - 0.5) * 0.3, sy: -Math.random() * 0.5 - 0.2, o: Math.random() * 0.5 + 0.2 });
-            (function animate() {
-                if (canvas.offsetParent === null) return;   // giriş ekranı kapandıysa animasyon durur
-                ctx.clearRect(0, 0, width, height);
-                ps.forEach(p => { p.x += p.sx; p.y += p.sy; if (p.y < -10) p.y = height + 10; ctx.save(); ctx.globalAlpha = p.o; ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.restore(); });
-                requestAnimationFrame(animate);
-            })();
-        })();
-
-        document.addEventListener('pointerdown', e => {
-            const b = e.target.closest && e.target.closest('button'); if (!b || b.disabled) return;
-            const r = b.getBoundingClientRect(), s = Math.max(r.width, r.height), d = document.createElement('span');
-            d.className = 'ripple'; d.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX - r.left - s / 2}px;top:${e.clientY - r.top - s / 2}px`;
-            b.appendChild(d); setTimeout(() => d.remove(), 600);
-            try { if (navigator.vibrate) navigator.vibrate(10); } catch (x) { }
-        });
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            setInterval(tickClock, 1000); tickClock();
-            const key = sessionStorage.getItem('kdh_ab_key');
-            if (!key || API_URL.indexOf('BURAYA_') === 0) return;
-            try { applyData(await fetchAll(key)); showApp(); }
-            catch (e) { if (e.message === 'unauthorized') sessionStorage.removeItem('kdh_ab_key'); /* giriş ekranı açık kalır */ }
-        });
-    </script>
+/* İŞLEM GEÇMİŞİ (yönetici) */
+function renderHist(){$('hiBody').innerHTML=(S.db.IslemGunlugu||[]).map(r=>`<tr class="border-t"><td class="p-2 whitespace-nowrap">${E(r.Zaman)}</td><td class="p-2">${E(r.Kullanici)}</td><td class="p-2 font-semibold">${E(r.Islem)}</td><td class="p-2">${E(r.Sayfa)}</td><td class="p-2 max-w-md truncate" title="${E(r.Detay)}">${E(String(r.Detay).slice(0,140))}</td></tr>`).join('')||'<tr><td class="p-4 text-slate-400" colspan="5">Kayıt yok.</td></tr>'}
+</script>
 </body>
 </html>
