@@ -199,6 +199,9 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 <div id="printArea"></div>
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
+// Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
+// Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: '../portal.html').
+const PORTAL_URL=(() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
 const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
 const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
 const HELP={Personel:'Hizmet süresi, memuriyete başlama tarihinden bugüne göre yıl-ay-gün olarak formda otomatik hesaplanır. Liste, yeni başlayanlar üstte olacak şekilde sıralıdır. Sürekli işçi bilgisi personelin İstihdam Şekli üzerinden gelir.',Birimler:'Her birimin müdürü burada tanımlanır. Personelin birimi seçilince formdaki müdür otomatik gelir.',IzinTurleri:'İzin Yaz ekranındaki izin türü ve detay listesidir. "Forma işaretlenecek kutu", formdaki X işaretinin yerini belirler.',Tatiller:'Tam gün tatiller yıllık izinden sayılmaz, arife günleri izne dahildir. Yılı üstteki filtreden seçin; her yıl başlamadan önce o yılın tatillerini ekleyin.',Istihdam:'İstihdam şekli ve formun üstündeki Dikkat notu. Sürekli işçidir kutusu işaretliyse bu istihdam şeklindeki personelin izin gün sayımında pazar günleri sayılmaz.',Bashekim:'Formda sabit görünen Başhekim adı ve ünvanı.',Vekalet:'İzin Yaz ekranındaki vekil listeleridir. Ünvan formda yazıldığı gibi çıkar (ör. Başhekim V.). Grup, hangi listede görüneceğini belirler.'};
@@ -237,7 +240,7 @@ async function handleLogin(e){e.preventDefault();const b=$('loginBtn'),o=b.inner
  try{await doLogin(1)}catch(x){sessionStorage.removeItem(KEY);S.pw='';const m=x.message;
   er.textContent=m==='unauthorized'?'Hatalı şifre!':x instanceof SyntaxError?'Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir.':m==='Failed to fetch'?'Sunucuya ulaşılamadı. Bağlantınızı ve API_URL adresini kontrol edin.':m;er.classList.remove('hidden')}
  clearTimeout(t);b.disabled=false;b.innerHTML=o}
-function logout(){sessionStorage.removeItem(KEY);location.reload()}
+function logout(){sessionStorage.removeItem(KEY);try{localStorage.removeItem('kdh_admin_bypass')}catch(e){}location.replace(PORTAL_URL)}
 window.addEventListener('DOMContentLoaded',async()=>{const k=sessionStorage.getItem(KEY);if(!k)return;S.pw=k;try{await doLogin(0)}catch(x){sessionStorage.removeItem(KEY);S.pw=''}});
 (function(){const c=$('animatedPortalBg');if(!c)return;const x=c.getContext('2d');let w,h;const rs=()=>{w=c.width=innerWidth;h=c.height=innerHeight};addEventListener('resize',rs);rs();
  const P=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h,s:Math.random()*3+1,sx:(Math.random()-.5)*.3,sy:-Math.random()*.5-.2,o:Math.random()*.5+.2}));
