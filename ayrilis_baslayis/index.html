@@ -414,7 +414,10 @@
 
     <script>
         // Apps Script web uygulaması linki (yeni tabloya bağlı komut dosyasını yayınlayınca buraya yapıştırın)
-        const API_URL = "https://script.google.com/macros/s/AKfycbwOMUqKJmAj_DjGJ9vXGzVEAyKX5G6dB299J8eHZNdVV9A8s9mBzj4jUgqHUQSO5q4dOg/exec";
+        const API_URL = "BURAYA_APPS_SCRIPT_WEB_UYGULAMA_LINKI";
+        // Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
+        // Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: "../portal.html").
+        const PORTAL_URL = (() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
 
         const $ = id => document.getElementById(id);
         const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -502,7 +505,7 @@
             const t = sessionStorage.getItem('kdh_ab_tab');
             showTab(TABS.includes(t) && (t !== 'log' || isAdmin()) ? t : 'editor');
         }
-        function logoutToPortal() { sessionStorage.removeItem('kdh_ab_key'); sessionStorage.removeItem('kdh_ab_name'); sessionStorage.removeItem('kdh_ab_tab'); cur.dirty = false; location.href = '../'; }
+        function logoutToPortal() { sessionStorage.removeItem('kdh_ab_key'); sessionStorage.removeItem('kdh_ab_name'); sessionStorage.removeItem('kdh_ab_tab'); cur.dirty = false; try { localStorage.removeItem('kdh_admin_bypass'); } catch (e) { } location.replace(PORTAL_URL); }
         window.addEventListener('beforeunload', e => { if (cur.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
         function setLastUpdate(msg) { $('lastUpdate').textContent = msg || ('Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR', { hourCycle: 'h23' })); }
