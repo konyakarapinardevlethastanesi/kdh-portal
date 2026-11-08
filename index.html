@@ -118,7 +118,14 @@
         .pc.kilit:hover{filter:saturate(.85);opacity:1}
         #kapiKart{box-shadow:0 30px 60px -15px rgba(15,23,42,.45)}
         #sifre:focus{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
-        #gecis{clip-path:circle(0 at 50% 50%);transition:clip-path .7s cubic-bezier(.7,0,.3,1)}
+        @keyframes yuz{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(34px,-42px) scale(1.12)}}
+        @keyframes ekg{to{stroke-dashoffset:0}}
+        @keyframes gic{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+        .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.38;animation:yuz 10s ease-in-out infinite;pointer-events:none}
+        .ekg{stroke-dasharray:240;stroke-dashoffset:240;animation:ekg 2.6s linear infinite}
+        #gecis{opacity:0;transition:opacity .3s ease}
+        #gecis.ac{opacity:1}
+        #gecis.ac .gic{animation:gic .5s cubic-bezier(.16,1,.3,1);box-shadow:0 0 45px rgb(var(--c)/.5)}
     </style>
 </head>
 <body class="bg-gradient-to-br dark:from-slate-700 dark:via-slate-800 dark:to-slate-900 from-slate-100 via-slate-200 to-slate-300 dark:text-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased relative overflow-x-hidden select-none py-4">
@@ -175,9 +182,8 @@
                 <button id="kullBtn" onclick="kullAc()" class="hidden px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-blue-300 text-blue-600 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition items-center gap-2 text-xs font-bold"><i class="fa-solid fa-users-gear"></i><span class="hidden sm:inline">Kullanıcılar</span></button>
                 <button onclick="cikis()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-rose-300 text-rose-600 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Çıkış</span></button>
                 <!-- TEMA DEĞİŞTİRME BUTONU -->
-                <button onclick="toggleTheme()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-amber-400 text-slate-700 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold shrink-0">
+                <button title="Tema" onclick="toggleTheme()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-amber-400 text-slate-700 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold shrink-0">
                     <i id="themeIcon" class="fa-solid fa-moon"></i>
-                    <span id="themeText" class="hidden sm:inline">Koyu Tema</span>
                 </button>
             </div>
         </div>
@@ -193,12 +199,14 @@
 
     <!-- GİRİŞ EKRANI -->
     <div id="kapi" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 dark:bg-slate-900/55 bg-slate-100/55 backdrop-blur-xl">
+        <div class="orb w-72 h-72 bg-blue-500 top-[12%] left-[18%]"></div><div class="orb w-80 h-80 bg-indigo-500 bottom-[8%] right-[16%]" style="animation-delay:-5s"></div>
         <div id="kapiKart" class="modal-card yuk max-w-md w-full p-8 sm:p-10 rounded-3xl text-center space-y-6 relative">
             <!-- GİRİŞ LOGOSU: üstteki başlıktaki logo ile aynı (logo.png) -->
             <div class="relative w-24 h-24 mx-auto flex items-center justify-center"><span class="halka"></span><span class="halka" style="animation-delay:1.3s"></span><div class="relative w-20 h-20"><img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg/512px-T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg.png'"></div></div>
             <div class="space-y-2">
                 <div class="text-[10px] font-black tracking-[.25em] uppercase brand-font dark:text-blue-300 text-blue-600"><i class="fa-solid fa-shield-halved mr-1.5"></i>Güvenli Kurumsal Erişim</div>
                 <h2 id="selam" class="text-3xl font-black dark:text-white text-slate-900 brand-font tracking-tight">Hoş Geldiniz</h2>
+                <svg viewBox="0 0 200 30" class="w-44 h-6 mx-auto" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M0 15H58L66 15L72 4L81 26L88 15H108L114 11L120 15H200" stroke="#3b82f6" opacity=".2"/><path class="ekg" d="M0 15H58L66 15L72 4L81 26L88 15H108L114 11L120 15H200" stroke="#3b82f6"/></svg>
                 <p class="text-xs dark:text-slate-300 text-slate-600 leading-relaxed font-medium">Karapınar Devlet Hastanesi Kurumsal Portalı'na erişmek için size verilen şifreyi giriniz.</p>
             </div>
             <form onsubmit="giris(event)" class="space-y-4">
@@ -210,7 +218,7 @@
                 <button id="girisBtn" type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-extrabold rounded-2xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2"><span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i></button>
                 <p id="kapiMsg" class="hidden text-xs font-bold leading-relaxed"></p>
             </form>
-            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 text-[10px] dark:text-slate-400 text-slate-500 font-semibold tracking-wide">T.C. SAĞLIK BAKANLIĞI • BİLGİ İŞLEM BİRİMİ</div>
+            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 space-y-1 dark:text-slate-400 text-slate-500"><div class="text-[9px] font-semibold tracking-wider">T.C. SAĞLIK BAKANLIĞI • KARAPINAR DEVLET HASTANESİ</div><div class="text-[8px] font-medium tracking-wider opacity-80">Tasarım &amp; Geliştirme: Cihan TİRYAKİ</div></div>
         </div>
     </div>
 
@@ -256,27 +264,24 @@
         </div>
     </div>
 
-    <!-- MODÜLE GEÇİŞ EFEKTİ -->
-
-    <div id="gecis" class="fixed inset-0 z-[300] pointer-events-none flex flex-col items-center justify-center text-white text-center px-6">
-        <i id="gIk" class="fa-solid text-5xl mb-4"></i>
-        <div id="gAd" class="brand-font text-2xl font-extrabold"></div>
-        <div class="text-xs opacity-80 mt-1.5 tracking-wide"><i class="fa-solid fa-circle-notch animate-spin mr-1.5"></i>Uygulama açılıyor…</div>
+    <!-- MODÜLE GEÇİŞ EFEKTİ (hafif) -->
+    <div id="gecis" class="fixed inset-0 z-[300] pointer-events-none flex flex-col items-center justify-center text-center px-6 dark:bg-slate-900/60 bg-slate-100/60 backdrop-blur-lg">
+        <div id="gIc" class="ic gic w-20 h-20 rounded-2xl flex items-center justify-center text-4xl"><i id="gIk" class="fa-solid"></i></div>
+        <div id="gAd" class="brand-font text-xl font-extrabold dark:text-white text-slate-900 mt-4"></div>
+        <div class="w-40 h-1 rounded-full overflow-hidden mt-4 dark:bg-slate-700 bg-slate-300"><div id="gBar" class="h-full rounded-full" style="width:0;transition:width .5s ease"></div></div>
     </div>
 
+    <script src="portal-ayar.js"></script>
     <script>
         // TEMA GEÇİŞ MANTIĞI
         function updateThemeUI(isDark) {
             const icon = document.getElementById('themeIcon');
-            const text = document.getElementById('themeText');
             if (isDark) {
                 document.documentElement.classList.add('dark');
                 icon.className = 'fa-solid fa-sun text-amber-400';
-                text.innerText = 'Açık Tema';
             } else {
                 document.documentElement.classList.remove('dark');
                 icon.className = 'fa-solid fa-moon text-slate-700';
-                text.innerText = 'Koyu Tema';
             }
         }
 
@@ -340,7 +345,7 @@
         // =====================================================================
         //  AYARLAR (buradan düzenleyin)
         // =====================================================================
-        const API_URL = 'https://script.google.com/macros/s/AKfycbx8mWhLN_8KCqEjLKifDNa6oAXxkxnVNLTaw2FbwqeuCm8JqQRkG1YUEPC_eqojHlL28w/exec';   // Apps Script "Web uygulaması" /exec adresi
+        // API_URL, portal-ayar.js dosyasındadır (index.html ile aynı klasörde)
         const OTURUM_DK = 10;                                // modülden dönünce portal şifresi sorulma süresi (dk)
 
         // Boş "Yapım Aşamasında" yuvası. Açmak için bu satırı tam kart nesnesiyle değiştirin (aşağıdaki örneğe bakın)
@@ -350,19 +355,19 @@
         // url  : klasör adı. BOŞ bırakılırsa kart "Pek Yakında" olur, dolu olursa açılır
         // renk : her kartın rengi (hepsi farklı). ikon: fontawesome adı
         const MODULLER = [
-            {key:'zimmet', ad:'Zimmet & Envanter', ack:'Demirbaş kayıtları, cihaz künyeleri, etiket basımı ve zimmet takip sistemi', ikon:'fa-boxes-stacked', renk:'#3b82f6', url:'zimmet/'},
-            {key:'devriye', ad:'Vardiya & Devriye', ack:'Güvenlik nöbet devriyeleri, vardiya çizelgeleri ve nokta kontrol sistemi', ikon:'fa-user-clock', renk:'#f59e0b', url:'devriye/'},
-            {key:'anket', ad:'Anket & Analiz', ack:'Çalışan ve hasta memnuniyet analitiği, birim anketleri ve raporlama paneli', ikon:'fa-chart-pie', renk:'#10b981',
-             baslik:'Giriş Yapmak İstediğiniz Anket Uygulamasını Seçiniz', alt:[
-                {key:'hasta_deneyim', ad:'Hasta Deneyim Anketi', ack:'Poliklinik ve hizmet kalitesi değerlendirme uygulaması', ikon:'fa-hospital-user', renk:'#14b8a6', url:'hastadeneyimanket/'},
-                {key:'calisan_anket', ad:'Çalışan Memnuniyet Anketi', ack:'Personel memnuniyet ve geri bildirim uygulaması', ikon:'fa-users', renk:'#0ea5e9', url:'calisananket/'},
-                {key:'tel_anket', ad:'Telefonla Hasta Memnuniyet Anketi', ack:'Telefonla hasta memnuniyet görüşme ve kayıt uygulaması', ikon:'fa-phone-volume', renk:'#d946ef', url:'tel_hasta_anket/'}]},
             {key:'yazi_isleri', ad:'Personel & Yazı İşleri & Arşiv', ack:'Özlük dosyaları, ayrılış & başlayış işlemleri ve kurumsal arşiv yönetimi.', ikon:'fa-folder-open', renk:'#a855f7',
              baslik:'Giriş Yapmak İstediğiniz Uygulamayı Seçiniz', alt:[
                 {key:'ayrilis_baslayis', ad:'Ayrılış & Başlayış İşlemleri', ack:'Personel hareket takip, form ve raporlama uygulaması', ikon:'fa-right-left', renk:'#6366f1', url:'ayrilis_baslayis/'},
                 {key:'izin_yonetimi', ad:'İzin İşlemleri Yönetimi', ack:'Personel izin talepleri, onay ve takip sistemi', ikon:'fa-file-signature', renk:'#f97316', url:'izinyonetimi/'},
                 YER(3,'#84cc16'), YER(4,'#ec4899'), YER(5,'#ef4444'), YER(6,'#eab308'), YER(7,'#22c55e')]},
             {key:'nobet_puantaj', ad:'Nöbet & Puantaj', ack:'Nöbet çizelgeleri, personel devam takibi ve aylık puantaj kayıtları', ikon:'fa-calendar-check', renk:'#f43f5e', url:'nobet_puantaj/'},
+            {key:'anket', ad:'Anket & Analiz', ack:'Çalışan ve hasta memnuniyet analitiği, birim anketleri ve raporlama paneli', ikon:'fa-chart-pie', renk:'#10b981',
+             baslik:'Giriş Yapmak İstediğiniz Anket Uygulamasını Seçiniz', alt:[
+                {key:'hasta_deneyim', ad:'Hasta Deneyim Anketi', ack:'Poliklinik ve hizmet kalitesi değerlendirme uygulaması', ikon:'fa-hospital-user', renk:'#14b8a6', url:'hastadeneyimanket/'},
+                {key:'calisan_anket', ad:'Çalışan Memnuniyet Anketi', ack:'Personel memnuniyet ve geri bildirim uygulaması', ikon:'fa-users', renk:'#0ea5e9', url:'calisananket/'},
+                {key:'tel_anket', ad:'Telefonla Hasta Memnuniyet Anketi', ack:'Telefonla hasta memnuniyet görüşme ve kayıt uygulaması', ikon:'fa-phone-volume', renk:'#d946ef', url:'tel_hasta_anket/'}]},
+            {key:'zimmet', ad:'Zimmet & Envanter', ack:'Demirbaş kayıtları, cihaz künyeleri, etiket basımı ve zimmet takip sistemi', ikon:'fa-boxes-stacked', renk:'#3b82f6', url:'zimmet/'},
+            {key:'devriye', ad:'Vardiya & Devriye', ack:'Güvenlik nöbet devriyeleri, vardiya çizelgeleri ve nokta kontrol sistemi', ikon:'fa-user-clock', renk:'#f59e0b', url:'devriye/'},
             {key:'yapim', ad:'Yapım Aşamasında', ack:'Yeni hastane hizmet ve entegrasyon uygulamaları için hazırlık alanı.', ikon:'fa-helmet-safety', renk:'#06b6d4', url:''}
         ];
         // ÖRNEK: personel_3 yuvasını açmak için YER(3,'#84cc16') yerine şunu yazın:
@@ -413,7 +418,7 @@
             b.disabled = true; b.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i><span>Doğrulanıyor…</span>'; mesaj('');
             let d;
             try {
-                if (API_URL.startsWith('BURAYA')) throw new Error('yapilandirma');
+                if (typeof API_URL === 'undefined' || API_URL.startsWith('BURAYA')) throw new Error('yapilandirma');
                 const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'giris', sifre:s})});
                 d = await r.json();
             } catch (x) {
@@ -487,15 +492,15 @@
             e.classList.add('hidden'); void e.offsetWidth; e.classList.remove('hidden');
             clearTimeout(tt); tt = setTimeout(() => e.classList.add('hidden'), 4800);
         }
-        function gecis(m, ev) {
+        function gecis(m) {
             dokun();
-            const g = $('gecis'), x = ev ? ev.clientX : innerWidth / 2, y = ev ? ev.clientY : innerHeight / 2;
-            g.style.background = `linear-gradient(135deg, ${m.renk}, #0f172a)`;
-            g.style.clipPath = `circle(0 at ${x}px ${y}px)`; $('gIk').className = 'fa-solid text-5xl mb-4 ' + m.ikon; $('gAd').textContent = m.ad;
-            void g.offsetWidth; g.style.clipPath = `circle(150% at ${x}px ${y}px)`; g.style.pointerEvents = 'auto';
-            setTimeout(() => { location.href = m.url; }, 800);
+            const g = $('gecis'), bar = $('gBar');
+            $('gIc').style.setProperty('--c', rgb(m.renk)); $('gIk').className = 'fa-solid ' + m.ikon; $('gAd').textContent = m.ad;
+            bar.style.background = m.renk; g.style.pointerEvents = 'auto'; g.classList.add('ac');
+            requestAnimationFrame(() => { bar.style.width = '100%'; });
+            setTimeout(() => { location.href = m.url; }, 550);
         }
-        addEventListener('pageshow', () => { const g = $('gecis'); g.style.clipPath = 'circle(0 at 50% 50%)'; g.style.pointerEvents = 'none'; modalKapat(); baslat(); });
+        addEventListener('pageshow', () => { const g = $('gecis'); g.classList.remove('ac'); g.style.pointerEvents = 'none'; $('gBar').style.width = '0'; modalKapat(); baslat(); });
 
         // =====================================================================
         //  KULLANICI YÖNETİMİ (sadece yönetici)
