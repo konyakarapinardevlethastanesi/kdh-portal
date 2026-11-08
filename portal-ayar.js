@@ -20,7 +20,7 @@
 const PORTAL_AYARLARI = {
   1:  { ad: 'Ana Portal',            url: 'https://script.google.com/macros/s/AKfycbx8mWhLN_8KCqEjLKifDNa6oAXxkxnVNLTaw2FbwqeuCm8JqQRkG1YUEPC_eqojHlL28w/exec', not: '' },
   2:  { ad: 'ayriliş_baslayis',      url: 'https://script.google.com/macros/s/AKfycbwOMUqKJmAj_DjGJ9vXGzVEAyKX5G6dB299J8eHZNdVV9A8s9mBzj4jUgqHUQSO5q4dOg/exec', not: '' },
-  3:  { ad: '',                      url: '', not: '' },
+  3:  { ad: 'izinyonetimi',          url: 'https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec', not: '' },
   4:  { ad: '',                      url: '', not: '' },
   5:  { ad: '',                      url: '', not: '' },
   6:  { ad: '',                      url: '', not: '' },
