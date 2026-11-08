@@ -199,12 +199,13 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
  </div>
 </div>
 <div id="printArea"></div>
+   
 <script src="../portal-ayar.js"></script>
 <script>
-// Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
-const API_URL = ADRESLER.izinyonetimi;
-// Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
-// Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: '../portal.html').
+   // Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
+   const API_URL = ADRESLER.izinyonetimi;
+   // Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
+   // Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: '../portal.html').
 const PORTAL_URL=(() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
 const LB={Personel:'Personel',Birimler:'Birimler ve Müdürler',IzinTurleri:'İzin Türleri',Tatiller:'Resmî Tatiller',Istihdam:'İstihdam Şekli',Bashekim:'Başhekim',Vekalet:'Vekalet'};
 const COLS={Personel:['Ad','TC','Sicil','Unvan','Kadro','Istihdam','Baslama','Birim'],Birimler:['Birim','Yetkili','YetkiliUnvan'],IzinTurleri:['Tur','Detay','Kutu'],Tatiller:['Tarih','Ad','Tur'],Istihdam:['Istihdam','Not','Surekli'],Bashekim:['Ad','Unvan'],Vekalet:['Ad','Unvan','Grup']};
