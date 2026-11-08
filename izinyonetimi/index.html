@@ -199,8 +199,10 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
  </div>
 </div>
 <div id="printArea"></div>
+<script src="../portal-ayar.js"></script>
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
+// Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
+const API_URL = ADRESLER.izinyonetimi;
 // Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
 // Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: '../portal.html').
 const PORTAL_URL=(() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
