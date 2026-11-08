@@ -5,8 +5,10 @@
 <script src="../kdh-theme.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cg fill='%23fff' fill-rule='evenodd'%3E%3Cpath transform='translate(3.2 18)' d='M0 0H5V12.2L11.4 0H17.4L9.6 14.1L17.8 28H11.6L5 16.4V28H0Z'/%3E%3Cpath transform='translate(23.4 18)' d='M0 0H8.2C14 0 17.4 5 17.4 14S14 28 8.2 28H0Z M5 4.8V23.2H7.6C10.8 23.2 12.3 19.6 12.3 14S10.8 4.8 7.6 4.8Z'/%3E%3Cpath transform='translate(43.6 18)' d='M0 0H5V11.4H12.4V0H17.4V28H12.4V16.2H5V28H0Z'/%3E%3C/g%3E%3C/svg%3E">
 <title>Personel İzin Formu - Konya Karapınar Devlet Hastanesi</title>
+   <link rel="icon" type="image/png" href="/kdh-portal/favicon.png">
+   <link rel="shortcut icon" href="/kdh-portal/favicon.ico">
+   <link rel="apple-touch-icon" href="/kdh-portal/apple-touch-icon.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -198,7 +200,6 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 </div>
 <div id="printArea"></div>
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
 // Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
 // Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: '../portal.html').
 const PORTAL_URL=(() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
@@ -367,6 +368,8 @@ async function usrPw(i){const u=S.db.Kullanicilar[i],pw=$('usrNew').value.trim()
 async function usrDel(i){const u=S.db.Kullanicilar[i];
  const ok=await askConfirm({title:'Kullanıcı silinsin mi?',text:'Bu kullanıcı artık şifresiyle giriş yapamaz. Yaptığı işlemler İşlem Geçmişi\'nde kalır.',ok:'Evet, Sil',summary:`<div><b>Kullanıcı:</b> ${E(u.Ad)}</div>`,action:async()=>{let x;try{x=await api({a:'del',sheet:'Kullanicilar',r:u._r})}catch(e){throw new Error('Sunucuya ulaşılamadı')}if(!x.ok)throw new Error(x.err||'Silinemedi')}});
  if(!ok)return;note('Kullanıcı silindi.');await reload(1);usrRender()}
+        <script>window.AYAR_NO = 2;</script>
+        <script src="portal-ayar.js"></script>
 </script>
 </body>
 </html>
