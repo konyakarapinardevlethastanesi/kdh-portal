@@ -200,6 +200,7 @@ body>*:not(#printArea){display:none!important}#printArea{display:block!important
 </div>
 <div id="printArea"></div>
 <script>
+const API_URL='https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec';
 // Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
 // Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: '../portal.html').
 const PORTAL_URL=(() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
@@ -368,8 +369,6 @@ async function usrPw(i){const u=S.db.Kullanicilar[i],pw=$('usrNew').value.trim()
 async function usrDel(i){const u=S.db.Kullanicilar[i];
  const ok=await askConfirm({title:'Kullanıcı silinsin mi?',text:'Bu kullanıcı artık şifresiyle giriş yapamaz. Yaptığı işlemler İşlem Geçmişi\'nde kalır.',ok:'Evet, Sil',summary:`<div><b>Kullanıcı:</b> ${E(u.Ad)}</div>`,action:async()=>{let x;try{x=await api({a:'del',sheet:'Kullanicilar',r:u._r})}catch(e){throw new Error('Sunucuya ulaşılamadı')}if(!x.ok)throw new Error(x.err||'Silinemedi')}});
  if(!ok)return;note('Kullanıcı silindi.');await reload(1);usrRender()}
-   <script>window.AYAR_NO = 3;</script>
-   <script src="portal-ayar.js"></script>
 </script>
 </body>
 </html>
