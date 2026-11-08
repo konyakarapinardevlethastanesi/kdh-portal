@@ -172,6 +172,7 @@
                     </div>
                 </div>
 
+                <button id="kullBtn" onclick="kullAc()" class="hidden px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-blue-300 text-blue-600 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition items-center gap-2 text-xs font-bold"><i class="fa-solid fa-users-gear"></i><span class="hidden sm:inline">Kullanıcılar</span></button>
                 <button onclick="cikis()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-rose-300 text-rose-600 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Çıkış</span></button>
                 <!-- TEMA DEĞİŞTİRME BUTONU -->
                 <button onclick="toggleTheme()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-amber-400 text-slate-700 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold shrink-0">
@@ -228,7 +229,35 @@
     <!-- KİBAR UYARI (yetki / yapım aşaması) -->
     <div id="toast" onclick="this.classList.add('hidden')" class="hidden fixed top-5 left-1/2 z-[200] w-[92%] max-w-sm modal-card rounded-2xl p-4 cursor-pointer" style="animation:bildir .45s cubic-bezier(.16,1,.3,1)"></div>
 
+    <!-- KULLANICI YÖNETİMİ (yönetici) -->
+    <div id="kmodal" onclick="if(event.target===this)modalKapat()" class="hidden fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="modal-card yuk max-w-2xl w-full p-5 sm:p-6 rounded-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-extrabold dark:text-white text-slate-900"><i class="fa-solid fa-users-gear mr-2 text-blue-500"></i>Kullanıcı Yönetimi</h3>
+                <button onclick="modalKapat()" class="w-8 h-8 rounded-lg dark:bg-slate-800 bg-slate-100 dark:text-slate-300 text-slate-600 hover:scale-105 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="kListe" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+            <div class="border-t dark:border-slate-700 border-slate-200 pt-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div id="kBaslik" class="text-xs font-extrabold dark:text-blue-300 text-blue-600 uppercase tracking-wider">Yeni Kullanıcı</div>
+                    <button onclick="kForm(-1)" class="text-[11px] font-bold dark:text-slate-300 text-slate-600 hover:text-blue-500"><i class="fa-solid fa-plus mr-1"></i>Yeni kullanıcı</button>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-2.5">
+                    <input id="kAd" autocomplete="off" placeholder="Kullanıcı adı (örn: yazi_isleri)" class="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60">
+                    <input id="kSifre" autocomplete="off" placeholder="Şifre" class="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+                <div id="kKartBox" class="space-y-2">
+                    <div class="flex items-center justify-between"><span class="text-[11px] font-bold dark:text-slate-300 text-slate-600">Açabileceği kartlar</span><span class="text-[11px] font-bold"><button onclick="kHepsi(1)" class="text-blue-500">Tümünü seç</button> <span class="dark:text-slate-500 text-slate-400">•</span> <button onclick="kHepsi(0)" class="text-blue-500">Temizle</button></span></div>
+                    <div id="kKart" class="grid sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1"></div>
+                </div>
+                <p id="kMsg" class="hidden text-xs font-bold"></p>
+                <button id="kBtn" onclick="kullKaydet()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-extrabold rounded-2xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-600/30 disabled:opacity-60"><i class="fa-solid fa-floppy-disk mr-2"></i>Kaydet</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODÜLE GEÇİŞ EFEKTİ -->
+
     <div id="gecis" class="fixed inset-0 z-[300] pointer-events-none flex flex-col items-center justify-center text-white text-center px-6">
         <i id="gIk" class="fa-solid text-5xl mb-4"></i>
         <div id="gAd" class="brand-font text-2xl font-extrabold"></div>
@@ -358,6 +387,7 @@
         }
         function goster(o) {
             YETKI = o.kartlar || [];
+            $('kullBtn').classList.toggle('hidden', o.rol !== 'yonetici'); $('kullBtn').classList.toggle('flex', o.rol === 'yonetici');
             $('grid').innerHTML = MODULLER.map(kartHTML).join('');
             $('kapi').classList.add('hidden');
             $('portal').classList.remove('hidden');
@@ -390,7 +420,7 @@
                 d = {ok:false, mesaj: x.message === 'yapilandirma' ? 'Portal bağlantısı henüz yapılandırılmamış (API_URL).' : 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyiniz.'};
             }
             if (d.ok) {
-                const o = {rol:d.rol, kartlar:d.kartlar, son:Date.now()};
+                const o = {rol:d.rol, kartlar:d.kartlar, token:d.token, son:Date.now()};
                 sessionStorage.setItem('kdh_oturum', JSON.stringify(o));
                 b.innerHTML = '<i class="fa-solid fa-check"></i><span>Giriş Başarılı</span>';
                 setTimeout(() => { goster(o); b.disabled = false; b.innerHTML = '<span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i>'; }, 550);
@@ -444,7 +474,7 @@
             $('mBaslik').textContent = m.baslik; $('mListe').innerHTML = m.alt.map(satirHTML).join('');
             $('modal').classList.remove('hidden');
         }
-        function modalKapat() { $('modal').classList.add('hidden'); }
+        function modalKapat() { $('modal').classList.add('hidden'); $('kmodal').classList.add('hidden'); }
 
         const MESAJ = {
             kilit: ['fa-lock', 'Erişim Yetkisi', 'Bu uygulamaya erişim yetkiniz bulunmamaktadır. Yetki talepleriniz için Bilgi İşlem Birimi ile iletişime geçebilirsiniz.'],
@@ -466,6 +496,61 @@
             setTimeout(() => { location.href = m.url; }, 800);
         }
         addEventListener('pageshow', () => { const g = $('gecis'); g.style.clipPath = 'circle(0 at 50% 50%)'; g.style.pointerEvents = 'none'; modalKapat(); baslat(); });
+
+        // =====================================================================
+        //  KULLANICI YÖNETİMİ (sadece yönetici)
+        // =====================================================================
+        const YAPRAK = MODULLER.flatMap(m => m.alt ? m.alt.map(a => ({...a, ust:m.ad})) : [m]);
+        const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        let KULL = [], SILB = -1;
+        async function api(b) {
+            const o = oku() || {};
+            try {
+                const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({...b, token:o.token})});
+                const d = await r.json();
+                if (d.yeniden) { cikis(); mesaj(d.mesaj, 'bilgi'); }
+                return d;
+            } catch (e) { return {ok:false, mesaj:'Sunucuya ulaşılamadı. Lütfen tekrar deneyiniz.'}; }
+        }
+        function kMsg(t, hata) {
+            const e = $('kMsg'); e.textContent = t || ''; e.classList.toggle('hidden', !t);
+            e.className = 'text-xs font-bold ' + (t ? '' : 'hidden ') + (hata ? 'dark:text-rose-300 text-rose-600' : 'dark:text-emerald-300 text-emerald-600');
+        }
+        async function kullAc() { $('kmodal').classList.remove('hidden'); kForm(-1); kMsg(''); await kullYukle(); }
+        async function kullYukle() { $('kListe').innerHTML = '<div class="text-xs text-center py-3 dark:text-slate-400 text-slate-500"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i>Yükleniyor…</div>'; const d = await api({action:'kullanicilar'}); if (d.ok) { KULL = d.liste; kListe(); } else kMsg(d.mesaj, 1); }
+        function kListe() {
+            $('kListe').innerHTML = KULL.map((u, i) => {
+                const y = u.ad === 'yonetici', btn = 'w-8 h-8 rounded-lg flex items-center justify-center text-xs transition ';
+                return `<div class="flex items-center gap-2.5 p-2.5 rounded-xl border dark:border-slate-600 border-slate-200 dark:bg-slate-800/70 bg-white">
+                    <i class="fa-solid ${y ? 'fa-user-shield text-amber-500' : 'fa-user text-blue-500'} w-5 text-center"></i>
+                    <div class="flex-1 min-w-0"><div class="text-xs font-bold dark:text-white text-slate-900 truncate">${esc(u.ad)}</div><div class="text-[10px] dark:text-slate-400 text-slate-500">${y ? 'Tüm kartlara yetkili' : u.kartlar.length + ' kart yetkili'}</div></div>
+                    ${SILB === i ? `<span class="text-[11px] font-bold text-rose-500">Silinsin mi?</span><button onclick="kullSil(${i})" class="${btn}bg-rose-500 text-white">Evet</button><button onclick="SILB=-1;kListe()" class="${btn}dark:bg-slate-700 bg-slate-100 dark:text-slate-200 text-slate-600">Hayır</button>`
+                    : `<button onclick="kForm(${i})" title="Düzenle" class="${btn}dark:bg-blue-500/20 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white"><i class="fa-solid fa-pen"></i></button>${y ? '' : `<button onclick="SILB=${i};kListe()" title="Sil" class="${btn}dark:bg-rose-500/20 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white"><i class="fa-solid fa-trash"></i></button>`}`}
+                </div>`;
+            }).join('') || '<div class="text-xs text-center py-3 dark:text-slate-400 text-slate-500">Kayıtlı kullanıcı yok.</div>';
+        }
+        function kForm(i) {
+            const u = i >= 0 ? KULL[i] : null, y = u && u.ad === 'yonetici';
+            $('kAd').value = u ? u.ad : ''; $('kAd').disabled = !!u; $('kSifre').value = '';
+            $('kSifre').placeholder = u ? 'Şifre (değişmeyecekse boş bırakın)' : 'Şifre (en az 6 karakter)';
+            $('kBaslik').textContent = u ? 'Düzenle: ' + u.ad : 'Yeni Kullanıcı';
+            $('kKartBox').classList.toggle('hidden', !!y); kMsg('');
+            $('kKart').innerHTML = YAPRAK.map(a => `<label class="flex items-center gap-2 p-2 rounded-lg border dark:border-slate-600 border-slate-200 dark:bg-slate-800/60 bg-white cursor-pointer" style="--c:${rgb(a.renk)}">
+                <input type="checkbox" class="kc" value="${a.key}" ${u && u.kartlar.includes(a.key) ? 'checked' : ''} style="accent-color:${a.renk}">
+                <span class="ic w-6 h-6 rounded-md flex items-center justify-center text-[10px] shrink-0"><i class="fa-solid ${a.ikon}"></i></span>
+                <span class="min-w-0 leading-tight"><span class="block text-[11px] font-bold dark:text-white text-slate-900 truncate">${a.ad}</span><span class="block text-[9px] dark:text-slate-400 text-slate-500 truncate">${a.ust ? a.ust : 'Ana kart'}</span></span></label>`).join('');
+        }
+        function kHepsi(v) { document.querySelectorAll('.kc').forEach(c => c.checked = !!v); }
+        async function kullKaydet() {
+            const b = $('kBtn'); b.disabled = true; kMsg('');
+            const d = await api({action:'kaydet', ad:$('kAd').value.trim().toLowerCase(), sifre:$('kSifre').value.trim(), kartlar:[...document.querySelectorAll('.kc:checked')].map(x => x.value)});
+            b.disabled = false;
+            if (d.ok) { KULL = d.liste; SILB = -1; kListe(); kForm(-1); kMsg('Kaydedildi.'); } else kMsg(d.mesaj, 1);
+        }
+        async function kullSil(i) {
+            const d = await api({action:'sil', ad:KULL[i].ad}); SILB = -1;
+            if (d.ok) { KULL = d.liste; kListe(); kForm(-1); kMsg('Kullanıcı silindi.'); } else kMsg(d.mesaj, 1);
+        }
 
         // FARE İMLECİ IŞIK EFEKTİ
         const glow = document.getElementById('cursorGlow');
