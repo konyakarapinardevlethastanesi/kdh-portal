@@ -218,7 +218,7 @@
                 <button id="girisBtn" type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-extrabold rounded-2xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2"><span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i></button>
                 <p id="kapiMsg" class="hidden text-xs font-bold leading-relaxed"></p>
             </form>
-            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 space-y-1 dark:text-slate-400 text-slate-500"><div class="text-[9px] font-semibold tracking-wider">KONYA KARAPINAR DEVLET HASTANESİ</div><div class="text-[8px] font-medium tracking-wider opacity-80">Tasarım &amp; Geliştirme: Cihan TİRYAKİ</div></div>
+            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 space-y-1 dark:text-slate-400 text-slate-500"><div class="text-[9px] font-semibold tracking-wider">T.C. SAĞLIK BAKANLIĞI • KARAPINAR DEVLET HASTANESİ</div><div class="text-[8px] font-medium tracking-wider opacity-80">Tasarım &amp; Geliştirme: Cihan TİRYAKİ</div></div>
         </div>
     </div>
 
@@ -271,7 +271,6 @@
         <div class="w-40 h-1 rounded-full overflow-hidden mt-4 dark:bg-slate-700 bg-slate-300"><div id="gBar" class="h-full rounded-full" style="width:0;transition:width .5s ease"></div></div>
     </div>
 
-    <script>window.AYAR_NO = 1;</script>
     <script src="portal-ayar.js"></script>
     <script>
         // TEMA GEÇİŞ MANTIĞI
@@ -346,7 +345,7 @@
         // =====================================================================
         //  AYARLAR (buradan düzenleyin)
         // =====================================================================
-        // API_URL, portal-ayar.js dosyasındadır (index.html ile aynı klasörde)
+        // Adresler portal-ayar.js dosyasındadır (ADRESLER.portal)
         const OTURUM_DK = 10;                                // modülden dönünce portal şifresi sorulma süresi (dk)
 
         // Boş "Yapım Aşamasında" yuvası. Açmak için bu satırı tam kart nesnesiyle değiştirin (aşağıdaki örneğe bakın)
@@ -419,11 +418,11 @@
             b.disabled = true; b.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i><span>Doğrulanıyor…</span>'; mesaj('');
             let d;
             try {
-                if (typeof API_URL === 'undefined' || API_URL.startsWith('BURAYA')) throw new Error('yapilandirma');
-                const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'giris', sifre:s})});
+                if (typeof ADRESLER === 'undefined' || !ADRESLER.portal || ADRESLER.portal.startsWith('BURAYA')) throw new Error('yapilandirma');
+                const r = await fetch(ADRESLER.portal, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'giris', sifre:s})});
                 d = await r.json();
             } catch (x) {
-                d = {ok:false, mesaj: x.message === 'yapilandirma' ? 'Portal bağlantısı henüz yapılandırılmamış (API_URL).' : 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyiniz.'};
+                d = {ok:false, mesaj: x.message === 'yapilandirma' ? 'Portal bağlantısı henüz yapılandırılmamış (portal-ayar.js).' : 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyiniz.'};
             }
             if (d.ok) {
                 const o = {rol:d.rol, kartlar:d.kartlar, token:d.token, son:Date.now()};
@@ -512,7 +511,7 @@
         async function api(b) {
             const o = oku() || {};
             try {
-                const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({...b, token:o.token})});
+                const r = await fetch(ADRESLER.portal, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({...b, token:o.token})});
                 const d = await r.json();
                 if (d.yeniden) { cikis(); mesaj(d.mesaj, 'bilgi'); }
                 return d;
