@@ -417,6 +417,8 @@
 
     <script>
         // Apps Script web uygulaması linki (yeni tabloya bağlı komut dosyasını yayınlayınca buraya yapıştırın)
+        <script>window.AYAR_NO = 2;</script>
+        <script src="portal-ayar.js"></script>
         // Çıkış yapınca dönülecek ana portal adresi: adresteki "kdh-portal" klasörünün kökü (uygulama kaç klasör derinde olursa olsun).
         // Adreste "kdh-portal" geçmiyorsa bir üst klasöre ("../") döner. Elle belirlemek için sağdaki ifadeyi silip adres yazın (örn: "../portal.html").
         const PORTAL_URL = (() => { const m = location.pathname.match(/^(.*\/kdh-portal\/)/i); return !m ? '../' : (location.protocol === 'file:' ? 'file://' + m[1] + 'index.html' : m[1]); })();
@@ -1251,8 +1253,6 @@
             try { applyData(await fetchAll(key)); showApp(); }
             catch (e) { if (e.message === 'unauthorized') sessionStorage.removeItem('kdh_ab_key'); /* giriş ekranı açık kalır */ }
         });
-        <script>window.AYAR_NO = 2;</script>
-        <script src="portal-ayar.js"></script>
     </script>
 </body>
 </html>
