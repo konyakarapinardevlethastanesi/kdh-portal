@@ -98,6 +98,27 @@
             border: 1px solid rgba(226, 232, 240, 0.9);
             box-shadow: 0 25px 50px -12px rgba(100, 116, 139, 0.3);
         }
+
+        /* ===== YENİ: giriş, kart renkleri, kilit, geçiş ===== */
+        @keyframes yuk{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+        @keyframes halka{0%{transform:scale(.92);opacity:.7}100%{transform:scale(1.55);opacity:0}}
+        @keyframes sars{10%,90%{transform:translateX(-3px)}30%,70%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
+        @keyframes bildir{from{opacity:0;transform:translate(-50%,-18px)}to{opacity:1;transform:translate(-50%,0)}}
+        @keyframes nabiz{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.35)}50%{box-shadow:0 0 0 14px rgba(59,130,246,0)}}
+        .yuk{animation:yuk .6s cubic-bezier(.16,1,.3,1) backwards}
+        .sars{animation:sars .45s}
+        .halka{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(59,130,246,.55);animation:halka 2.6s ease-out infinite}
+        .pc{--c:59 130 246;animation:yuk .6s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--i,0)*70ms)}
+        .pc:hover{border-color:rgb(var(--c)/.85)!important;box-shadow:0 15px 35px -8px rgb(var(--c)/.4)!important}
+        .ic{background:rgb(var(--c)/.16);color:rgb(var(--c));border:1px solid rgb(var(--c)/.3);transition:.3s}
+        .pc:hover .ic{background:rgb(var(--c));color:#fff}
+        .pc .bl{background:rgb(var(--c)/.12)} .pc:hover .bl{background:rgb(var(--c)/.26)}
+        .pc .go,.pc:hover h2,.pc:hover h4{color:rgb(var(--c))}
+        .pc.kilit{filter:saturate(.4);opacity:.75}
+        .pc.kilit:hover{filter:saturate(.85);opacity:1}
+        #kapiKart{box-shadow:0 30px 60px -15px rgba(15,23,42,.45)}
+        #sifre:focus{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+        #gecis{clip-path:circle(0 at 50% 50%);transition:clip-path .7s cubic-bezier(.7,0,.3,1)}
     </style>
 </head>
 <body class="bg-gradient-to-br dark:from-slate-700 dark:via-slate-800 dark:to-slate-900 from-slate-100 via-slate-200 to-slate-300 dark:text-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased relative overflow-x-hidden select-none py-4">
@@ -107,7 +128,7 @@
     <canvas id="animatedPortalBg" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
     <!-- ANA PORTAL EKRANI -->
-    <div class="relative z-10 max-w-6xl w-full mx-auto px-4 sm:px-6 space-y-5 my-auto">
+    <div id="portal" class="hidden relative z-10 max-w-6xl w-full mx-auto px-4 sm:px-6 space-y-5 my-auto">
         
         <!-- YATAY KURUMSAL BAŞLIK BARI -->
         <div class="header-card rounded-2xl p-4 flex items-center justify-between gap-4">
@@ -151,6 +172,7 @@
                     </div>
                 </div>
 
+                <button onclick="cikis()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-rose-300 text-rose-600 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Çıkış</span></button>
                 <!-- TEMA DEĞİŞTİRME BUTONU -->
                 <button onclick="toggleTheme()" class="px-3 py-2 dark:bg-slate-800/80 bg-white/90 dark:text-amber-400 text-slate-700 rounded-xl border dark:border-slate-600 border-slate-300 shadow-md hover:scale-105 transition flex items-center gap-2 text-xs font-bold shrink-0">
                     <i id="themeIcon" class="fa-solid fa-moon"></i>
@@ -160,105 +182,7 @@
         </div>
 
         <!-- 6 MODÜL KARTI GRID DÜZENİ -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            <!-- 1. MODÜL: ZİMMET -->
-            <div onclick="window.location.href='zimmet/'" class="portal-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-400/10 rounded-full blur-xl group-hover:bg-blue-400/20 transition duration-500"></div>
-                <div>
-                    <div class="w-11 h-11 dark:bg-blue-500/20 dark:border-blue-400/30 dark:text-blue-300 bg-blue-50 border-blue-200 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-3 group-hover:bg-blue-600 group-hover:text-white transition duration-300 shadow-sm">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                    </div>
-                    <h2 class="text-base font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">Zimmet & Envanter</h2>
-                    <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">Demirbaş kayıtları, cihaz künyeleri, etiket basımı ve zimmet takip sistemi</p>
-                </div>
-                <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-blue-300 text-blue-600">
-                    <span>Uygulamaya Git</span>
-                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-1.5 transition duration-300"></i>
-                </div>
-            </div>
-
-            <!-- 2. MODÜL: VARDİYA -->
-            <div onclick="window.location.href='devriye/'" class="portal-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-amber-400/10 rounded-full blur-xl group-hover:bg-amber-400/20 transition duration-500"></div>
-                <div>
-                    <div class="w-11 h-11 dark:bg-amber-500/20 dark:border-amber-400/30 dark:text-amber-300 bg-amber-50 border-amber-200 text-amber-600 rounded-xl flex items-center justify-center text-xl mb-3 group-hover:bg-amber-600 group-hover:text-white transition duration-300 shadow-sm">
-                        <i class="fa-solid fa-user-clock"></i>
-                    </div>
-                    <h2 class="text-base font-bold dark:text-white text-slate-900 group-hover:dark:text-amber-300 group-hover:text-amber-600 transition">Vardiya & Devriye</h2>
-                    <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">Güvenlik nöbet devriyeleri, vardiya çizelgeleri ve nokta kontrol sistemi</p>
-                </div>
-                <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-amber-300 text-amber-600">
-                    <span>Uygulamaya Git</span>
-                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-1.5 transition duration-300"></i>
-                </div>
-            </div>
-
-            <!-- 3. MODÜL: ANKET -->
-            <div onclick="openAnketModal()" class="portal-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-emerald-400/10 rounded-full blur-xl group-hover:bg-emerald-400/20 transition duration-500"></div>
-                <div>
-                    <div class="w-11 h-11 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-300 bg-emerald-50 border-emerald-200 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-3 group-hover:bg-emerald-600 group-hover:text-white transition duration-300 shadow-sm">
-                        <i class="fa-solid fa-chart-pie"></i>
-                    </div>
-                    <h2 class="text-base font-bold dark:text-white text-slate-900 group-hover:dark:text-emerald-300 group-hover:text-emerald-600 transition">Anket & Analiz</h2>
-                    <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">Çalışan ve hasta memnuniyet analitiği, birim anketleri ve raporlama paneli</p>
-                </div>
-                <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-emerald-300 text-emerald-600">
-                    <span>Anket Seçiniz</span>
-                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-1.5 transition duration-300"></i>
-                </div>
-            </div>
-
-            <!-- 4. MODÜL: PERSONEL & YAZI İŞLERİ & ARŞİV -->
-            <div onclick="openPersonelModal()" class="portal-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-purple-400/10 rounded-full blur-xl group-hover:bg-purple-400/20 transition duration-500"></div>
-                <div>
-                    <div class="w-11 h-11 dark:bg-purple-500/20 dark:border-purple-400/30 dark:text-purple-300 bg-purple-50 border-purple-200 text-purple-600 rounded-xl flex items-center justify-center text-xl mb-3 group-hover:bg-purple-600 group-hover:text-white transition duration-300 shadow-sm">
-                        <i class="fa-solid fa-folder-open"></i>
-                    </div>
-                    <h2 class="text-base font-bold dark:text-white text-slate-900 group-hover:dark:text-purple-300 group-hover:text-purple-600 transition">Personel & Yazı İşleri & Arşiv</h2>
-                    <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">Özlük dosyaları, ayrılış & başlayış işlemleri ve kurumsal arşiv yönetimi.</p>
-                </div>
-                <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-purple-300 text-purple-600">
-                    <span>Modül Seçiniz</span>
-                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-1.5 transition duration-300"></i>
-                </div>
-            </div>
-
-            <!-- 5. MODÜL: NÖBET & PUANTAJ -->
-            <div onclick="window.location.href='nobet_puantaj/'" class="portal-card rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-rose-400/10 rounded-full blur-xl group-hover:bg-rose-400/20 transition duration-500"></div>
-                <div>
-                    <div class="w-11 h-11 dark:bg-rose-500/20 dark:border-rose-400/30 dark:text-rose-300 bg-rose-50 border-rose-200 text-rose-600 rounded-xl flex items-center justify-center text-xl mb-3 group-hover:bg-rose-600 group-hover:text-white transition duration-300 shadow-sm">
-                        <i class="fa-solid fa-calendar-check"></i>
-                    </div>
-                    <h2 class="text-base font-bold dark:text-white text-slate-900 group-hover:dark:text-rose-300 group-hover:text-rose-600 transition">Nöbet & Puantaj</h2>
-                    <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">Nöbet çizelgeleri, personel devam takibi ve aylık puantaj kayıtları</p>
-                </div>
-                <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-rose-300 text-rose-600">
-                    <span>Uygulamaya Git</span>
-                    <i class="fa-solid fa-arrow-right-long group-hover:translate-x-1.5 transition duration-300"></i>
-                </div>
-            </div>
-
-            <!-- 6. MODÜL: YAPIM AŞAMASINDA -->
-            <div class="portal-card rounded-2xl p-5 opacity-75 flex flex-col justify-between relative overflow-hidden min-h-[170px]">
-                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-slate-400/10 rounded-full blur-xl"></div>
-                <div>
-                    <div class="w-11 h-11 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400 bg-slate-200 border-slate-300 text-slate-500 rounded-xl flex items-center justify-center text-xl mb-3 shadow-sm">
-                        <i class="fa-solid fa-helmet-safety"></i>
-                    </div>
-                    <h2 class="text-base font-bold dark:text-white text-slate-900 transition">Yapım Aşamasında</h2>
-                    <p class="text-[11px] dark:text-slate-400 text-slate-500 mt-1.5 leading-relaxed font-medium">Yeni hastane hizmet ve entegrasyon uygulamaları için hazırlık alanı.</p>
-                </div>
-                <div class="mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold dark:text-slate-400 text-slate-500">
-                    <span>Pek Yakında</span>
-                    <i class="fa-solid fa-clock"></i>
-                </div>
-            </div>
-
-        </div>
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
 
         <!-- FOOTER -->
         <footer class="text-center text-[10px] dark:text-slate-300 text-slate-500 font-medium">
@@ -266,144 +190,49 @@
         </footer>
     </div>
 
-    <!-- ANKET UYGULAMASI SEÇİM MODALI (GÜNCELLENMİŞ SIRALAMA) -->
-    <div id="anketSelectModal" class="fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="modal-card max-w-md w-full p-5 sm:p-6 rounded-2xl space-y-5 relative">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 dark:bg-emerald-500/20 dark:text-emerald-300 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl mx-auto dark:border-emerald-400/30 border-emerald-200 border shadow-inner">
-                    <i class="fa-solid fa-clipboard-list"></i>
-                </div>
-                <h3 class="text-base font-extrabold dark:text-white text-slate-900 leading-snug">Giriş Yapmak İstediğiniz Anket Uygulamasını Seçiniz</h3>
+    <!-- GİRİŞ EKRANI -->
+    <div id="kapi" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 dark:bg-slate-900/55 bg-slate-100/55 backdrop-blur-xl">
+        <div id="kapiKart" class="modal-card yuk max-w-md w-full p-8 sm:p-10 rounded-3xl text-center space-y-6 relative">
+            <!-- GİRİŞ LOGOSU: üstteki başlıktaki logo ile aynı (logo.png) -->
+            <div class="relative w-24 h-24 mx-auto flex items-center justify-center"><span class="halka"></span><span class="halka" style="animation-delay:1.3s"></span><div class="relative w-20 h-20"><img src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg/512px-T.C._Sa%C4%9Fl%C4%B1k_Bakanl%C4%B1%C4%9F%C4%B1_logo.svg.png'"></div></div>
+            <div class="space-y-2">
+                <div class="text-[10px] font-black tracking-[.25em] uppercase brand-font dark:text-blue-300 text-blue-600"><i class="fa-solid fa-shield-halved mr-1.5"></i>Güvenli Kurumsal Erişim</div>
+                <h2 id="selam" class="text-3xl font-black dark:text-white text-slate-900 brand-font tracking-tight">Hoş Geldiniz</h2>
+                <p class="text-xs dark:text-slate-300 text-slate-600 leading-relaxed font-medium">Karapınar Devlet Hastanesi Kurumsal Portalı'na erişmek için size verilen şifreyi giriniz.</p>
             </div>
-
-            <div class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-                <!-- 1. HASTA DENEYİM ANKETİ -->
-                <div onclick="window.location.href='hastadeneyimanket/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-emerald-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="w-10 h-10 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-300 bg-emerald-50 border-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-lg shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-hospital-user"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-emerald-300 group-hover:text-emerald-600 transition">Hasta Deneyim Anketi</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Poliklinik ve hizmet kalitesi değerlendirme uygulaması</p>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[10px] font-bold dark:text-emerald-300 text-emerald-600 gap-1.5 group-hover:translate-x-1 transition">
-                        <span>Uygulamaya Git</span>
-                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
-                    </div>
+            <form onsubmit="giris(event)" class="space-y-4">
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-sm dark:text-slate-400 text-slate-500"></i>
+                    <input id="sifre" type="password" autocomplete="current-password" placeholder="Erişim şifreniz" class="w-full pl-11 pr-11 py-3.5 text-center text-sm font-bold tracking-widest rounded-2xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none transition">
+                    <button type="button" onclick="gozGoster()" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm dark:text-slate-400 text-slate-500 hover:text-blue-500"><i id="goz" class="fa-solid fa-eye"></i></button>
                 </div>
-
-                <!-- 2. ÇALIŞAN MEMNUNİYET ANKETİ -->
-                <div onclick="window.location.href='calisananket/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="w-10 h-10 dark:bg-blue-500/20 dark:border-blue-400/30 dark:text-blue-300 bg-blue-50 border-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-user-check"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">Çalışan Memnuniyet Anketi</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Personel durum ve ortam değerlendirme uygulaması</p>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[10px] font-bold dark:text-blue-300 text-blue-600 gap-1.5 group-hover:translate-x-1 transition">
-                        <span>Uygulamaya Git</span>
-                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
-                    </div>
-                </div>
-
-                <!-- 3. TELEFONLA HASTA MEMNUNİYET ANKETİ -->
-                <div onclick="window.location.href='tel_hasta_anket/'" class="p-3.5 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-purple-400 hover:dark:bg-slate-700 transition duration-200 group flex flex-col justify-between space-y-2.5">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="w-10 h-10 dark:bg-purple-500/20 dark:border-purple-400/30 dark:text-purple-300 bg-purple-50 border-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-lg shrink-0 group-hover:bg-purple-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-phone-volume"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-purple-300 group-hover:text-purple-600 transition">Telefonla Hasta Memnuniyet Anketi</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Telefon üzerinden hasta geri bildirim uygulaması</p>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-t dark:border-slate-700 border-slate-100 flex items-center justify-end text-[10px] font-bold dark:text-purple-300 text-purple-600 gap-1.5 group-hover:translate-x-1 transition">
-                        <span>Uygulamaya Git</span>
-                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="closeAnketModal()" class="w-full py-2.5 dark:bg-slate-800 bg-slate-100 hover:dark:bg-slate-700 hover:bg-slate-200 dark:text-slate-300 text-slate-600 font-bold rounded-xl text-xs transition dark:border-slate-600 border-slate-200 border">
-                Vazgeç
-            </button>
+                <button id="girisBtn" type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-extrabold rounded-2xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2"><span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i></button>
+                <p id="kapiMsg" class="hidden text-xs font-bold leading-relaxed"></p>
+            </form>
+            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 text-[10px] dark:text-slate-400 text-slate-500 font-semibold tracking-wide">T.C. SAĞLIK BAKANLIĞI • BİLGİ İŞLEM BİRİMİ</div>
         </div>
     </div>
 
-    <!-- PERSONEL & YAZI İŞLERİ SEÇİM MODALI -->
-    <div id="personelSelectModal" class="fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="modal-card max-w-md w-full p-5 sm:p-6 rounded-2xl space-y-5 relative">
+    <!-- ALT UYGULAMA SEÇİM PENCERESİ (Anket, Personel vb.) -->
+    <div id="modal" onclick="if(event.target===this)modalKapat()" class="hidden fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="modal-card yuk max-w-md w-full p-5 sm:p-6 rounded-2xl space-y-5">
             <div class="text-center space-y-2">
-                <div class="w-12 h-12 dark:bg-purple-500/20 dark:text-purple-300 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl mx-auto dark:border-purple-400/30 border-purple-200 border shadow-inner">
-                    <i class="fa-solid fa-folder-open"></i>
-                </div>
-                <h3 class="text-base font-extrabold dark:text-white text-slate-900 leading-snug">Giriş Yapmak İstediğiniz Uygulamayı Seçiniz</h3>
+                <div id="mIc" class="ic w-12 h-12 rounded-xl flex items-center justify-center text-xl mx-auto"></div>
+                <h3 id="mBaslik" class="text-base font-extrabold dark:text-white text-slate-900 leading-snug"></h3>
             </div>
-
-            <div class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-                 <!-- 1. AYRILIŞ-BAŞLAYIŞ -->
-                <div onclick="window.location.href='ayrilis_baslayis/'" class="p-3 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-purple-400 hover:dark:bg-slate-700 transition duration-200 group flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 dark:bg-purple-500/20 dark:text-purple-300 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center text-sm shrink-0 group-hover:bg-purple-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-right-left"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-purple-300 group-hover:text-purple-600 transition">Ayrılış & Başlayış İşlemleri</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Personel hareket takip, form ve raporlama uygulaması</p>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-arrow-right text-xs dark:text-purple-400 text-purple-600 group-hover:translate-x-1 transition"></i>
-                </div>
-                 <!-- 2. İZİN YÖNETİMİ -->
-                <div onclick="window.location.href='izinyonetimi/'" class="p-3 dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:dark:bg-slate-700 transition duration-200 group flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 dark:bg-blue-500/20 dark:text-blue-300 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
-                            <i class="fa-solid fa-calendar-check"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900 group-hover:dark:text-blue-300 group-hover:text-blue-600 transition">İzin İşlemleri Yönetimi</h4>
-                            <p class="text-[10px] dark:text-slate-300 text-slate-500">Personel izin talepleri, onay ve takip sistemi</p>
-                         </div>
-                    </div>
-                    <i class="fa-solid fa-arrow-right text-xs dark:text-blue-400 text-blue-600 group-hover:translate-x-1 transition"></i>
-                </div>
-                 <!-- 3. yapım aşamasında -->
-                <div class="p-3 dark:bg-slate-800/50 bg-slate-50 dark:border-slate-700 border-slate-200 rounded-xl opacity-70 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 dark:bg-slate-700 dark:text-slate-400 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-sm shrink-0">
-                            <i class="fa-solid fa-helmet-safety"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900">Yapım Aşamasında</h4>
-                            <p class="text-[10px] dark:text-slate-400 text-slate-500">Yeni modül yakında eklenecek</p>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-semibold text-slate-400">Pek Yakında</span>
-                </div>
-                 <!-- 4. yapım aşamasında -->
-                <div class="p-3 dark:bg-slate-800/50 bg-slate-50 dark:border-slate-700 border-slate-200 rounded-xl opacity-70 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 dark:bg-slate-700 dark:text-slate-400 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-sm shrink-0">
-                            <i class="fa-solid fa-helmet-safety"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold dark:text-white text-slate-900">Yapım Aşamasında</h4>
-                            <p class="text-[10px] dark:text-slate-400 text-slate-500">Yeni modül yakında eklenecek</p>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-semibold text-slate-400">Pek Yakında</span>
-                </div>
-            </div>
-
-            <button onclick="closePersonelModal()" class="w-full py-2.5 dark:bg-slate-800 bg-slate-100 hover:dark:bg-slate-700 hover:bg-slate-200 dark:text-slate-300 text-slate-600 font-bold rounded-xl text-xs transition dark:border-slate-600 border-slate-200 border">
-                Vazgeç
-            </button>
+            <div id="mListe" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1"></div>
+            <button onclick="modalKapat()" class="w-full py-2.5 dark:bg-slate-800 bg-slate-100 hover:dark:bg-slate-700 hover:bg-slate-200 dark:text-slate-300 text-slate-600 font-bold rounded-xl text-xs transition dark:border-slate-600 border-slate-200 border">Vazgeç</button>
         </div>
+    </div>
+
+    <!-- KİBAR UYARI (yetki / yapım aşaması) -->
+    <div id="toast" onclick="this.classList.add('hidden')" class="hidden fixed top-5 left-1/2 z-[200] w-[92%] max-w-sm modal-card rounded-2xl p-4 cursor-pointer" style="animation:bildir .45s cubic-bezier(.16,1,.3,1)"></div>
+
+    <!-- MODÜLE GEÇİŞ EFEKTİ -->
+    <div id="gecis" class="fixed inset-0 z-[300] pointer-events-none flex flex-col items-center justify-center text-white text-center px-6">
+        <i id="gIk" class="fa-solid text-5xl mb-4"></i>
+        <div id="gAd" class="brand-font text-2xl font-extrabold"></div>
+        <div class="text-xs opacity-80 mt-1.5 tracking-wide"><i class="fa-solid fa-circle-notch animate-spin mr-1.5"></i>Uygulama açılıyor…</div>
     </div>
 
     <script>
@@ -478,21 +307,165 @@
         updateClockAndDate();
 
         // MODAL FONKSİYONLARI
-        function openAnketModal() {
-            document.getElementById('anketSelectModal').classList.remove('hidden');
+        
+        // =====================================================================
+        //  AYARLAR (buradan düzenleyin)
+        // =====================================================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbx8mWhLN_8KCqEjLKifDNa6oAXxkxnVNLTaw2FbwqeuCm8JqQRkG1YUEPC_eqojHlL28w/exec';   // Apps Script "Web uygulaması" /exec adresi
+        const OTURUM_DK = 10;                                // modülden dönünce portal şifresi sorulma süresi (dk)
+
+        // Boş "Yapım Aşamasında" yuvası. Açmak için bu satırı tam kart nesnesiyle değiştirin (aşağıdaki örneğe bakın)
+        const YER = (n, renk) => ({key:'personel_'+n, ad:'Yapım Aşamasında', ack:'Yeni modül yakında eklenecek', ikon:'fa-helmet-safety', renk:renk, url:''});
+
+        // key  : tablodaki "Kartlar" sütununa yazılacak ad (değiştirmeyin)
+        // url  : klasör adı. BOŞ bırakılırsa kart "Pek Yakında" olur, dolu olursa açılır
+        // renk : her kartın rengi (hepsi farklı). ikon: fontawesome adı
+        const MODULLER = [
+            {key:'zimmet', ad:'Zimmet & Envanter', ack:'Demirbaş kayıtları, cihaz künyeleri, etiket basımı ve zimmet takip sistemi', ikon:'fa-boxes-stacked', renk:'#3b82f6', url:'zimmet/'},
+            {key:'devriye', ad:'Vardiya & Devriye', ack:'Güvenlik nöbet devriyeleri, vardiya çizelgeleri ve nokta kontrol sistemi', ikon:'fa-user-clock', renk:'#f59e0b', url:'devriye/'},
+            {key:'anket', ad:'Anket & Analiz', ack:'Çalışan ve hasta memnuniyet analitiği, birim anketleri ve raporlama paneli', ikon:'fa-chart-pie', renk:'#10b981',
+             baslik:'Giriş Yapmak İstediğiniz Anket Uygulamasını Seçiniz', alt:[
+                {key:'hasta_deneyim', ad:'Hasta Deneyim Anketi', ack:'Poliklinik ve hizmet kalitesi değerlendirme uygulaması', ikon:'fa-hospital-user', renk:'#14b8a6', url:'hastadeneyimanket/'},
+                {key:'calisan_anket', ad:'Çalışan Memnuniyet Anketi', ack:'Personel memnuniyet ve geri bildirim uygulaması', ikon:'fa-users', renk:'#0ea5e9', url:'calisananket/'},
+                {key:'tel_anket', ad:'Telefonla Hasta Memnuniyet Anketi', ack:'Telefonla hasta memnuniyet görüşme ve kayıt uygulaması', ikon:'fa-phone-volume', renk:'#d946ef', url:'tel_hasta_anket/'}]},
+            {key:'yazi_isleri', ad:'Personel & Yazı İşleri & Arşiv', ack:'Özlük dosyaları, ayrılış & başlayış işlemleri ve kurumsal arşiv yönetimi.', ikon:'fa-folder-open', renk:'#a855f7',
+             baslik:'Giriş Yapmak İstediğiniz Uygulamayı Seçiniz', alt:[
+                {key:'ayrilis_baslayis', ad:'Ayrılış & Başlayış İşlemleri', ack:'Personel hareket takip, form ve raporlama uygulaması', ikon:'fa-right-left', renk:'#6366f1', url:'ayrilis_baslayis/'},
+                {key:'izin_yonetimi', ad:'İzin İşlemleri Yönetimi', ack:'Personel izin talepleri, onay ve takip sistemi', ikon:'fa-file-signature', renk:'#f97316', url:'izinyonetimi/'},
+                YER(3,'#84cc16'), YER(4,'#ec4899'), YER(5,'#ef4444'), YER(6,'#eab308'), YER(7,'#22c55e')]},
+            {key:'nobet_puantaj', ad:'Nöbet & Puantaj', ack:'Nöbet çizelgeleri, personel devam takibi ve aylık puantaj kayıtları', ikon:'fa-calendar-check', renk:'#f43f5e', url:'nobet_puantaj/'},
+            {key:'yapim', ad:'Yapım Aşamasında', ack:'Yeni hastane hizmet ve entegrasyon uygulamaları için hazırlık alanı.', ikon:'fa-helmet-safety', renk:'#06b6d4', url:''}
+        ];
+        // ÖRNEK: personel_3 yuvasını açmak için YER(3,'#84cc16') yerine şunu yazın:
+        // {key:'personel_3', ad:'Arşiv Takip', ack:'Evrak ve arşiv kayıt uygulaması', ikon:'fa-box-archive', renk:'#84cc16', url:'arsiv/'}
+
+        // =====================================================================
+        //  OTURUM, YETKİ, GİRİŞ
+        // =====================================================================
+        const $ = id => document.getElementById(id);
+        const rgb = h => [1,3,5].map(i => parseInt(h.substr(i,2),16)).join(' ');
+        const TUM = MODULLER.flatMap(m => m.alt ? [m, ...m.alt] : [m]);
+        let YETKI = [];
+        const var_ = k => YETKI.includes('hepsi') || YETKI.includes(k);
+        const acik = m => m.alt ? m.alt.some(a => var_(a.key)) : var_(m.key);
+        const oku = () => { try { return JSON.parse(sessionStorage.getItem('kdh_oturum')); } catch(e) { return null; } };
+        const portalAcik = () => !$('portal').classList.contains('hidden');
+        function dokun() { const o = oku(); if (o) { o.son = Date.now(); sessionStorage.setItem('kdh_oturum', JSON.stringify(o)); } }
+
+        function baslat() {
+            const o = oku();
+            if (o && Date.now() - o.son < OTURUM_DK * 60000) goster(o); else { sessionStorage.removeItem('kdh_oturum'); kapiAc(); }
+        }
+        function goster(o) {
+            YETKI = o.kartlar || [];
+            $('grid').innerHTML = MODULLER.map(kartHTML).join('');
+            $('kapi').classList.add('hidden');
+            $('portal').classList.remove('hidden');
+        }
+        function kapiAc(msg) {
+            $('portal').classList.add('hidden'); modalKapat();
+            const h = new Date().getHours();
+            $('selam').textContent = h < 5 ? 'İyi Geceler' : h < 12 ? 'Günaydın' : h < 18 ? 'İyi Günler' : h < 22 ? 'İyi Akşamlar' : 'İyi Geceler';
+            $('kapi').classList.remove('hidden');
+            const k = $('kapiKart'); k.classList.remove('yuk'); void k.offsetWidth; k.classList.add('yuk');
+            mesaj(msg || '', 'bilgi'); $('sifre').value = ''; setTimeout(() => $('sifre').focus(), 150);
+        }
+        function mesaj(t, tip) {
+            const e = $('kapiMsg'); e.textContent = t; e.classList.toggle('hidden', !t);
+            e.className = 'text-xs font-bold leading-relaxed ' + (t ? '' : 'hidden ') + (tip === 'hata' ? 'dark:text-rose-300 text-rose-600' : 'dark:text-sky-300 text-sky-600');
+        }
+        function cikis() { sessionStorage.removeItem('kdh_oturum'); YETKI = []; kapiAc(); }
+        function gozGoster() { const i = $('sifre'), g = i.type === 'password'; i.type = g ? 'text' : 'password'; $('goz').className = 'fa-solid ' + (g ? 'fa-eye-slash' : 'fa-eye'); }
+
+        async function giris(e) {
+            e.preventDefault();
+            const s = $('sifre').value.trim(), b = $('girisBtn'); if (!s) return;
+            b.disabled = true; b.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i><span>Doğrulanıyor…</span>'; mesaj('');
+            let d;
+            try {
+                if (API_URL.startsWith('BURAYA')) throw new Error('yapilandirma');
+                const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'giris', sifre:s})});
+                d = await r.json();
+            } catch (x) {
+                d = {ok:false, mesaj: x.message === 'yapilandirma' ? 'Portal bağlantısı henüz yapılandırılmamış (API_URL).' : 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyiniz.'};
+            }
+            if (d.ok) {
+                const o = {rol:d.rol, kartlar:d.kartlar, son:Date.now()};
+                sessionStorage.setItem('kdh_oturum', JSON.stringify(o));
+                b.innerHTML = '<i class="fa-solid fa-check"></i><span>Giriş Başarılı</span>';
+                setTimeout(() => { goster(o); b.disabled = false; b.innerHTML = '<span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i>'; }, 550);
+            } else {
+                mesaj(d.mesaj === 'Hatalı şifre' ? 'Girdiğiniz şifre doğrulanamadı. Lütfen tekrar deneyiniz.' : (d.mesaj || 'Giriş yapılamadı.'), 'hata');
+                const k = $('kapiKart'); k.classList.remove('sars'); void k.offsetWidth; k.classList.add('sars');
+                $('sifre').value = ''; $('sifre').focus();
+                b.disabled = false; b.innerHTML = '<span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i>';
+            }
         }
 
-        function closeAnketModal() {
-            document.getElementById('anketSelectModal').classList.add('hidden');
-        }
+        // Portalda hareket oldukça süre yenilenir; modüle geçince durur
+        let sonDokun = 0;
+        ['mousemove','click','keydown','touchstart'].forEach(ev => addEventListener(ev, () => {
+            if (portalAcik() && Date.now() - sonDokun > 4000) { sonDokun = Date.now(); dokun(); }
+        }, {passive:true}));
+        setInterval(() => {
+            const o = oku();
+            if (portalAcik() && o && Date.now() - o.son >= OTURUM_DK * 60000) { cikis(); mesaj('Güvenliğiniz için oturumunuz sonlandırıldı. Lütfen şifrenizi tekrar giriniz.', 'bilgi'); }
+        }, 15000);
 
-        function openPersonelModal() {
-            document.getElementById('personelSelectModal').classList.remove('hidden');
+        // =====================================================================
+        //  KARTLAR, PENCERE, UYARI, GEÇİŞ
+        // =====================================================================
+        function kartHTML(m, i) {
+            const kl = !acik(m), son = m.alt ? ['Seçiniz','fa-arrow-right-long group-hover:translate-x-1.5'] : m.url ? ['Uygulamaya Git','fa-arrow-right-long group-hover:translate-x-1.5'] : ['Pek Yakında','fa-clock'];
+            return `<div onclick="ac('${m.key}',event)" style="--c:${rgb(m.renk)};--i:${i}" class="pc portal-card ${kl?'kilit':''} rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
+                <div class="bl absolute -right-6 -bottom-6 w-28 h-28 rounded-full blur-xl transition duration-500"></div>
+                ${kl ? '<i class="fa-solid fa-lock absolute top-4 right-4 text-xs dark:text-slate-400 text-slate-500"></i>' : ''}
+                <div><div class="ic w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-3 shadow-sm"><i class="fa-solid ${m.ikon}"></i></div>
+                <h2 class="text-base font-bold dark:text-white text-slate-900 transition">${m.ad}</h2>
+                <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">${m.ack}</p></div>
+                <div class="go mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold"><span>${son[0]}</span><i class="fa-solid ${son[1]} transition duration-300"></i></div></div>`;
         }
+        function satirHTML(a, i) {
+            const kl = !var_(a.key), ik = !a.url ? 'fa-clock' : kl ? 'fa-lock' : 'fa-arrow-right';
+            return `<div onclick="ac('${a.key}',event)" style="--c:${rgb(a.renk)};--i:${i}" class="pc ${kl?'kilit':''} p-3 rounded-xl cursor-pointer group flex items-center gap-3 border dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 transition">
+                <div class="ic w-10 h-10 rounded-lg flex items-center justify-center text-base shrink-0"><i class="fa-solid ${a.ikon}"></i></div>
+                <div class="flex-1 min-w-0"><h4 class="text-xs font-bold dark:text-white text-slate-900 transition">${a.ad}</h4><p class="text-[10px] dark:text-slate-300 text-slate-500">${a.ack}</p></div>
+                <i class="fa-solid ${ik} text-xs go group-hover:translate-x-1 transition"></i></div>`;
+        }
+        function ac(key, ev) {
+            const m = TUM.find(x => x.key === key); if (!m) return;
+            if (m.alt) return acik(m) ? modalAc(m) : bildir('kilit');
+            if (!m.url) return bildir('yapim');
+            if (!var_(m.key)) return bildir('kilit');
+            gecis(m, ev);
+        }
+        function modalAc(m) {
+            $('mIc').style.setProperty('--c', rgb(m.renk)); $('mIc').innerHTML = `<i class="fa-solid ${m.ikon}"></i>`;
+            $('mBaslik').textContent = m.baslik; $('mListe').innerHTML = m.alt.map(satirHTML).join('');
+            $('modal').classList.remove('hidden');
+        }
+        function modalKapat() { $('modal').classList.add('hidden'); }
 
-        function closePersonelModal() {
-            document.getElementById('personelSelectModal').classList.add('hidden');
+        const MESAJ = {
+            kilit: ['fa-lock', 'Erişim Yetkisi', 'Bu uygulamaya erişim yetkiniz bulunmamaktadır. Yetki talepleriniz için Bilgi İşlem Birimi ile iletişime geçebilirsiniz.'],
+            yapim: ['fa-helmet-safety', 'Çok Yakında', 'Bu uygulama yapım aşamasındadır. Hizmete açıldığında buradan ulaşabileceksiniz.']
+        };
+        let tt;
+        function bildir(t) {
+            const [ik, b, m] = MESAJ[t], e = $('toast');
+            e.innerHTML = `<div class="flex gap-3 items-start text-left"><div class="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center dark:bg-amber-500/20 bg-amber-50 dark:text-amber-300 text-amber-600"><i class="fa-solid ${ik}"></i></div><div><div class="text-xs font-extrabold dark:text-white text-slate-900">${b}</div><p class="text-[11px] dark:text-slate-300 text-slate-600 mt-0.5 leading-relaxed">${m}</p></div></div>`;
+            e.classList.add('hidden'); void e.offsetWidth; e.classList.remove('hidden');
+            clearTimeout(tt); tt = setTimeout(() => e.classList.add('hidden'), 4800);
         }
+        function gecis(m, ev) {
+            dokun();
+            const g = $('gecis'), x = ev ? ev.clientX : innerWidth / 2, y = ev ? ev.clientY : innerHeight / 2;
+            g.style.background = `linear-gradient(135deg, ${m.renk}, #0f172a)`;
+            g.style.clipPath = `circle(0 at ${x}px ${y}px)`; $('gIk').className = 'fa-solid text-5xl mb-4 ' + m.ikon; $('gAd').textContent = m.ad;
+            void g.offsetWidth; g.style.clipPath = `circle(150% at ${x}px ${y}px)`; g.style.pointerEvents = 'auto';
+            setTimeout(() => { location.href = m.url; }, 800);
+        }
+        addEventListener('pageshow', () => { const g = $('gecis'); g.style.clipPath = 'circle(0 at 50% 50%)'; g.style.pointerEvents = 'none'; modalKapat(); baslat(); });
 
         // FARE İMLECİ IŞIK EFEKTİ
         const glow = document.getElementById('cursorGlow');
