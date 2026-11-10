@@ -3,7 +3,6 @@
 <head>
     <meta name="kdh-back" content="1">
     <script src="../kdh-theme.js"></script>
-    <script src="../kdh-auth.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Devriye Yönetici Paneli - Konya Karapınar Devlet Hastanesi</title>
@@ -76,14 +75,14 @@
             <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
                 <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-3">
                     <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-user-gear text-slate-900"></i> Yönetici Giriş Paneli
+                        <i class="fa-solid fa-user-gear text-slate-900"></i> Kullanıcı / Yönetici Girişi
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Yönetici Şifresi <span class="text-rose-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
                         <input type="password" id="adminPasswordInputPortal" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-slate-900">
                     </div>
                     <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-sliders"></i> Yönetici Paneline Giriş Yap
+                        <i class="fa-solid fa-sliders"></i> Giriş Yap
                     </button>
                     <p id="adminLoginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
                 </form>
@@ -110,6 +109,22 @@
                     <a href="guvenlik.html" title="Güvenlik ekranına git" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0">
                         <i class="fa-solid fa-user-shield"></i> <span>Güvenlik Ekranına Git</span>
                     </a>
+                    <div id="uw" class="hidden relative">
+                        <button id="uwChip" onclick="uwToggle()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700">
+                            <i class="fa-solid fa-circle-user text-emerald-400"></i><span id="uwName"></span><span id="uwRole" class="text-amber-300"></span><i id="uwCaret" class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        <div id="uwPanel" class="hidden absolute right-0 top-full mt-2 w-80 max-h-[75vh] overflow-y-auto bg-white text-slate-800 rounded-xl border border-slate-200 shadow-2xl p-3 space-y-2.5 text-left z-50">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-users text-slate-600 text-xs"></i><h4 class="flex-1 text-xs font-extrabold text-slate-800">Kullanıcılar</h4><button onclick="uwToggle()" class="w-6 h-6 rounded-md text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-xmark text-xs"></i></button></div>
+                            <div id="uwList" class="max-h-52 overflow-y-auto"></div>
+                            <div class="space-y-1.5 border-t border-slate-100 pt-2.5">
+                                <input id="uwAd" type="text" maxlength="60" placeholder="Ad Soyad" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-800">
+                                <div class="flex gap-1.5"><input id="uwSifre" type="text" maxlength="40" autocomplete="off" placeholder="Şifre (en az 4 karakter)" class="flex-1 min-w-0 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-slate-800">
+                                <button id="uwEkle" onclick="uwAdd()" class="shrink-0 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-user-plus"></i> Ekle</button></div>
+                                <p id="uwErr" class="hidden text-[11px] text-rose-600 font-semibold"></p>
+                                <p class="text-[10px] text-slate-400 leading-snug">Giriş sadece şifreyle yapılır; şifre kimin girdiğini belirler. Yönetici şifresi Apps Script özelliklerinde tanımlıdır.</p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="text-right leading-tight shrink-0 hidden sm:block">
                         <div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</div>
                         <div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</div>
@@ -288,6 +303,32 @@
 
             <!-- ==================== TAB 3: QR KOD VERİ TABANI ==================== -->
             <section id="sec-qrdb" class="hidden space-y-6 anim-fade">
+                <div id="secCard" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-amber-600"></i> Güvenlik Kontrolleri <span class="text-[10px] font-semibold text-slate-400">(QR'ı fotoğraftan okutmayı zorlaştırır · varsayılan pasif)</span></h2>
+                        <div class="flex gap-2">
+                            <button onclick="markFill()" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles"></i> Eksik İşaretleri Doldur</button>
+                            <button id="gkSaveBtn" onclick="gkSave()" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-3.5 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex items-center gap-3">
+                                <label class="relative inline-flex items-center cursor-pointer shrink-0"><input type="checkbox" id="chkSekil" class="sr-only peer" onchange="gkTxt()"><div class="w-11 h-6 bg-slate-300 peer-checked:bg-emerald-500 rounded-full transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-5 after:h-5 after:rounded-full after:transition peer-checked:after:translate-x-5"></div></label>
+                                <div class="flex-1"><div class="text-xs font-extrabold text-slate-800">Şekil Seçtirme <span id="txtSekil" class="ml-1 text-[10px] font-bold text-slate-400">Pasif</span></div></div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">QR okutulunca personele 4 şekil gösterilir; noktadaki gizli etikette hangisi olduğunu seçmesi istenir. Her noktanın şekli aşağıdaki tabloda görünür; etiketi o noktaya (QR levhasından ayrı, az fark edilen bir yere) yapıştırın. Şekli değiştirmek için "Yeni Kod Üret".</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex items-center gap-3">
+                                <label class="relative inline-flex items-center cursor-pointer shrink-0"><input type="checkbox" id="chkSure" class="sr-only peer" onchange="gkTxt()"><div class="w-11 h-6 bg-slate-300 peer-checked:bg-emerald-500 rounded-full transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-5 after:h-5 after:rounded-full after:transition peer-checked:after:translate-x-5"></div></label>
+                                <div class="flex-1 text-xs font-extrabold text-slate-800">Süre Kontrolü <span id="txtSure" class="ml-1 text-[10px] font-bold text-slate-400">Pasif</span></div>
+                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">en az <input type="number" id="chkSureSn" min="5" max="600" value="30" class="w-16 px-2 py-1 border border-slate-300 rounded-lg text-xs text-center"> sn</div>
+                            </div>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">Aynı personel iki farklı noktayı belirlenen süreden kısa sürede okutursa kayıt "⚠ Şüpheli" olarak işaretlenir ve Devriye Kayıtları'nda görünür. Kaydı engellemez, sadece işaretler.</p>
+                        </div>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-plus-circle text-red-600"></i> Yeni QR Kod Kaydet / Oluştur</h2>
@@ -342,6 +383,7 @@
                                     <th class="p-2.5 w-10 text-center"><input type="checkbox" id="selectAllQr" onchange="toggleSelectAllQrs(this)"></th>
                                     <th class="p-2.5 cursor-pointer select-none hover:text-slate-900" onclick="sortBy('qr','code')">Alan / QR Kodu <i data-sk="qr:code" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
                                     <th class="p-2.5 cursor-pointer select-none hover:text-slate-900" onclick="sortBy('qr','name')">Lokasyon / Alan Adı <i data-sk="qr:name" class="fa-solid fa-sort ml-1 text-slate-300"></i></th>
+                                    <th class="p-2.5 whitespace-nowrap">Gizli İşaret</th>
                                     <th class="p-2.5">QR Kod</th>
                                     <th class="p-2.5">Kaydet</th>
                                     <th class="p-2.5 text-right">İşlem</th>
@@ -441,8 +483,10 @@
         </div>
     </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxM95JBfqDilvDtfJk3WSSK-Zulibt5JU7zvS9vI5MDW91je5GUHUwL-nyl66f8NzWM/exec";
+     <script src="../portal-ayar.js"></script>
+     <script>
+        // Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
+        const API_URL = ADRESLER.devriye;
         const $ = id => document.getElementById(id);
         const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
         const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -481,7 +525,7 @@
             return {
                 id: String(r.col0 ?? ''), t: ok ? t : 0,
                 officer: String(r.col2 ?? '').trim() || '-', code: String(r.col3 ?? '').trim(),
-                loc: String(r.col4 ?? '').trim(), status: String(r.col5 ?? '').trim(), notes: String(r.col6 ?? '').trim(),
+                loc: String(r.col4 ?? '').trim(), status: String(r.col5 ?? '').trim(), notes: String(r.col6 ?? '').trim(), chk: String(r['Kontrol'] ?? '').trim(),
                 year: d ? String(d.getFullYear()) : '', month: d ? p(d.getMonth() + 1) : '',
                 day: d ? `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}` : '', hour: d ? d.getHours() : -1
             };
@@ -489,7 +533,7 @@
         function applyData(data) {
             LOGS = data.l.map(normLog);
             STAFF = data.s.map(r => ({ id: String(r.col0 ?? ''), name: String(r.col1 ?? '').trim(), role: String(r.col2 ?? '').trim(), by: String(r['İşlemi Yapan'] ?? '').trim() }));
-            QRS = data.q.map(r => ({ id: String(r.col0 ?? ''), code: String(r.col1 ?? '').trim(), name: String(r.col2 ?? '').trim(), by: String(r['İşlemi Yapan'] ?? '').trim() }));
+            QRS = data.q.map(r => ({ id: String(r.col0 ?? ''), code: String(r.col1 ?? '').trim(), name: String(r.col2 ?? '').trim(), by: String(r['İşlemi Yapan'] ?? '').trim(), mark: String(r['Isaret'] ?? '').trim() }));
             lastSig = JSON.stringify(data);
             populateFilters();
         }
@@ -509,6 +553,7 @@
                 applyData(await fetchAll(key));            // şifre sunucuda doğrulanır, veriler girişte hazırlanır
                 sessionStorage.setItem('kdh_admin_key', key);
                 sessionStorage.removeItem('kdh_tab');      // her girişte 1. sekme
+                await loadWho();
                 showAdminInterface();
             } catch (x) {
                 err.textContent = x.message === 'unauthorized' ? 'Hatalı şifre!'
@@ -518,7 +563,7 @@
             } finally { btn.disabled = false; btn.innerHTML = old; }
         }
         function showAdminInterface() {
-            KDHAuth.init({ api: API_URL, key: function () { return sessionStorage.getItem('kdh_admin_key') || ''; }, title: 'Devriye' });
+            uwInit();
             $('mainAuthPortal').classList.add('hidden');
             $('adminInterface').classList.remove('hidden'); $('adminInterface').classList.add('flex');
             $('currentYearSpan').textContent = new Date().getFullYear();
@@ -528,6 +573,132 @@
         }
         function logoutToPortal() { sessionStorage.removeItem('kdh_admin_key'); sessionStorage.removeItem('kdh_tab'); location.href = '../'; }
         const adminKey = () => sessionStorage.getItem('kdh_admin_key') || '';
+
+        // ==================== KİMLİK (şifreden kim girdi?) ====================
+        let WHO = { ad: '', rol: '' };
+        async function loadWho() {
+            try { const o = await (await fetch(API_URL + '?action=kimlik&key=' + encodeURIComponent(adminKey()))).json(); WHO = o.status === 'success' ? { ad: o.ad, rol: o.rol } : { ad: 'Kullanıcı', rol: 'kullanici' }; }
+            catch (e) { WHO = { ad: 'Kullanıcı', rol: 'kullanici' }; }
+        }
+        // ==================== GÜVENLİK KONTROLLERİ (yönetici) ====================
+        let GK = { sekil: false, sure: false, sureSn: 30 };
+        function gkTxt() {
+            [['chkSekil', 'txtSekil'], ['chkSure', 'txtSure']].forEach(p => { const on = $(p[0]).checked, t = $(p[1]); t.textContent = on ? 'Aktif' : 'Pasif'; t.className = 'ml-1 text-[10px] font-bold ' + (on ? 'text-emerald-600' : 'text-slate-400'); });
+        }
+        function gkDraw() { $('chkSekil').checked = GK.sekil; $('chkSure').checked = GK.sure; $('chkSureSn').value = GK.sureSn; gkTxt(); }
+        async function gkLoad() {
+            if (WHO.rol !== 'admin') return;
+            try {
+                const o = await (await fetch(API_URL + '?action=ayarlar&key=' + encodeURIComponent(adminKey()))).json();
+                if (o.status !== 'success') throw new Error(o.message || 'Hata');
+                GK = { sekil: !!o.sekil, sure: !!o.sure, sureSn: Number(o.sureSn) || 30 }; gkDraw();
+            } catch (x) { showToast('Güvenlik ayarları okunamadı (Apps Script yeni sürüm yayınlanmamış olabilir)', true); }
+        }
+        function applyMarks(m) { if (!m) return; QRS.forEach(q => { if (m[q.id]) q.mark = m[q.id]; }); renderQrTable(); }
+        async function gkSave() {
+            const sekil = $('chkSekil').checked, sure = $('chkSure').checked, sn = Math.round(Number($('chkSureSn').value));
+            if (!(sn >= 5 && sn <= 600)) return showToast('Süre 5 ile 600 saniye arasında olmalı', true);
+            const btn = $('gkSaveBtn'), old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+            try {
+                const o = await adminPost({ action: 'ayarKaydet', sekil, sure, sureSn: sn });
+                if (o.status !== 'success') throw new Error(o.message || 'Hata');
+                GK = { sekil, sure, sureSn: sn }; applyMarks(o.marks); showToast('Güvenlik kontrolleri kaydedildi');
+            } catch (x) { showToast('Kaydedilemedi: ' + x.message, true); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+        async function markRenew(id) {
+            const q = QRS.find(x => x.id === id); if (!q) return;
+            try {
+                const o = await adminPost({ action: 'isaretYenile', id });
+                if (o.status !== 'success') throw new Error(o.message || 'Hata');
+                q.mark = o.isaret; renderQrTable(); showToast('Yeni gizli işaret: ' + o.isaret + ' · ' + q.name + ' noktasındaki etiketi değiştirin');
+            } catch (x) { showToast('Yeni kod üretilemedi: ' + x.message, true); }
+        }
+        async function markFill() {
+            try { const o = await adminPost({ action: 'isaretDoldur' }); if (o.status !== 'success') throw new Error(o.message || 'Hata'); applyMarks(o.marks); showToast('Eksik gizli işaretler dolduruldu'); }
+            catch (x) { showToast('Doldurulamadı: ' + x.message, true); }
+        }
+
+        let UW = { open: false, users: [], show: {}, passFor: null };
+        function uwInit() {
+            $('uwName').textContent = WHO.ad; $('uwRole').textContent = '· ' + (WHO.rol === 'admin' ? 'Yönetici' : 'Kullanıcı');
+            $('uwCaret').classList.toggle('hidden', WHO.rol !== 'admin'); $('uw').classList.remove('hidden');
+            if (WHO.rol !== 'admin') { document.querySelectorAll('.admin-only').forEach(x => { x.style.display = 'none'; }); $('secCard').style.display = 'none'; }   // işlem geçmişi ve güvenlik ayarları sadece yönetici
+            else gkLoad();
+        }
+        async function uwToggle() {
+            if (WHO.rol !== 'admin') return;
+            UW.open = !UW.open; $('uwPanel').classList.toggle('hidden', !UW.open);
+            $('uwCaret').className = 'fa-solid fa-chevron-' + (UW.open ? 'up' : 'down') + ' text-[8px] text-slate-400';
+            if (UW.open) await uwLoad();
+        }
+        async function uwLoad() {
+            $('uwList').innerHTML = '<div class="text-[11px] text-slate-400 font-semibold p-2">Yükleniyor...</div>';
+            try {
+                const o = await (await fetch(API_URL + '?action=kullanicilar&key=' + encodeURIComponent(adminKey()))).json();
+                if (o.status !== 'success') throw new Error(o.message || 'Hata');
+                UW.users = (o.kullanicilar || []).map(u => ({ ad: String(u.ad), sifre: String(u.sifre) })); uwRender();
+            } catch (x) { $('uwList').innerHTML = '<div class="text-[11px] text-rose-600 font-semibold p-2">Kullanıcılar okunamadı: ' + esc(x.message) + '</div>'; }
+        }
+        function uwRender() {
+            $('uwList').innerHTML = UW.users.length ? UW.users.map((u, i) => `<div class="py-1.5 border-b border-slate-100">
+                <div class="flex items-center gap-1.5"><span class="flex-1 min-w-0 text-[11px] font-bold text-slate-800 truncate" title="${esc(u.ad)}">${esc(u.ad)}</span>
+                <span class="text-[10px] font-mono text-slate-500">${UW.show[u.ad] ? esc(u.sifre) : '••••••'}</span>
+                <button onclick="uwEye(${i})" title="Şifreyi göster/gizle" class="w-6 h-6 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200"><i class="fa-solid ${UW.show[u.ad] ? 'fa-eye-slash' : 'fa-eye'} text-[10px]"></i></button>
+                <button onclick="uwPass(${i})" title="Şifreyi değiştir" class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-key text-[10px]"></i></button>
+                <button onclick="openDel('Kullanicilar', UW.users[${i}].ad)" title="Sil" class="w-6 h-6 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash text-[10px]"></i></button></div>
+                ${UW.passFor === u.ad ? `<div class="flex gap-1.5 mt-1.5"><input id="uwNewPw" type="text" maxlength="40" autocomplete="off" placeholder="Yeni şifre" class="flex-1 min-w-0 px-2 py-1 border border-slate-300 rounded-lg text-[11px] focus:outline-none focus:ring-2 focus:ring-slate-800"><button onclick="uwSavePass(${i})" class="px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px]">Kaydet</button></div>` : ''}</div>`).join('')
+                : '<div class="text-[11px] text-slate-400 font-semibold p-2">Henüz kullanıcı eklenmedi.</div>';
+            if (UW.passFor && $('uwNewPw')) $('uwNewPw').focus();
+        }
+        function uwEye(i) { const a = UW.users[i].ad; UW.show[a] = !UW.show[a]; uwRender(); }
+        function uwPass(i) { const a = UW.users[i].ad; UW.passFor = UW.passFor === a ? null : a; uwRender(); }
+        async function uwSavePass(i) {
+            const u = UW.users[i], v = ($('uwNewPw').value || '').trim();
+            if (v.length < 4) return showToast('Şifre en az 4 karakter olmalı', true);
+            try { const o = await adminPost({ action: 'kullaniciSifre', ad: u.ad, sifre: v }); if (o.status !== 'success') throw new Error(o.message || 'Hata'); u.sifre = v; UW.passFor = null; uwRender(); showToast('Şifre değiştirildi'); }
+            catch (x) { showToast('Şifre değiştirilemedi: ' + x.message, true); }
+        }
+        async function uwAdd() {
+            const ad = $('uwAd').value.trim(), sifre = $('uwSifre').value.trim(), err = $('uwErr'), btn = $('uwEkle'), old = btn.innerHTML;
+            err.classList.add('hidden');
+            if (ad.length < 2) { err.textContent = 'Ad soyad yazın.'; return err.classList.remove('hidden'); }
+            if (sifre.length < 4) { err.textContent = 'Şifre en az 4 karakter olmalı.'; return err.classList.remove('hidden'); }
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            try { const o = await adminPost({ action: 'kullaniciEkle', ad, sifre }); if (o.status !== 'success') throw new Error(o.message || 'Hata'); UW.users.push({ ad, sifre }); $('uwAd').value = ''; $('uwSifre').value = ''; uwRender(); showToast('Kullanıcı eklendi'); }
+            catch (x) { err.textContent = x.message; err.classList.remove('hidden'); }
+            finally { btn.disabled = false; btn.innerHTML = old; }
+        }
+
+        // ==================== İŞLEM GEÇMİŞİ (sadece yönetici) ====================
+        let AUD = { rows: [], q: '', i: '' };
+        const AUD_SAYFA = { Staff: 'Personel', Locations: 'QR Kod', Logs: 'Devriye', Kullanicilar: 'Kullanıcı' };
+        async function renderAudit() {
+            const box = $('auditBox');
+            box.innerHTML = `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-2">
+                <div class="relative flex-1 min-w-[180px]"><i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i><input type="text" value="${esc(AUD.q)}" oninput="AUD.q=this.value;auditDraw()" placeholder="Kullanıcı, işlem veya kayıt ara..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"></div>
+                <select onchange="AUD.i=this.value;auditDraw()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-semibold text-slate-700">
+                    ${[['', 'Tüm İşlemler'], ['ekle', 'Eklenenler'], ['düzen', 'Düzenlenenler'], ['sil', 'Silinenler']].map(o => `<option value="${o[0]}" ${AUD.i === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+                <span id="auInfo" class="text-[11px] text-slate-500 font-semibold"></span></div>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs">
+                <thead><tr class="bg-slate-50 text-slate-500 text-left"><th class="p-2.5 font-bold">Tarih</th><th class="p-2.5 font-bold">İşlemi Yapan</th><th class="p-2.5 font-bold">Sayfa</th><th class="p-2.5 font-bold">İşlem</th><th class="p-2.5 font-bold">Kayıt</th></tr></thead>
+                <tbody id="auBody" class="divide-y"><tr><td colspan="5" class="p-6 text-center text-slate-400 font-semibold">Yükleniyor...</td></tr></tbody></table></div></div>`;
+            try {
+                const o = await (await fetch(API_URL + '?action=gecmis&key=' + encodeURIComponent(adminKey()))).json();
+                if (o.status !== 'success') throw new Error(o.message === 'unauthorized' ? 'Oturum geçersiz' : (o.message || 'Hata'));
+                AUD.rows = o.gecmis || []; if ($('auBody')) auditDraw();
+            } catch (x) { if ($('auBody')) $('auBody').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-rose-600 font-semibold">İşlem geçmişi okunamadı: ' + esc(x.message) + '</td></tr>'; }
+        }
+        function auditDraw() {
+            const q = AUD.q.toLocaleLowerCase('tr'), f = AUD.i;
+            const list = AUD.rows.filter(r => (!f || String(r[4]).toLocaleLowerCase('tr').includes(f)) && (!q || r.join(' ').toLocaleLowerCase('tr').includes(q))).slice(0, 500);
+            $('auInfo').textContent = list.length + ' kayıt';
+            const tone = s => /silindi/i.test(s) ? 'bg-rose-100 text-rose-700' : /düzenlendi|değiştirildi|güncellendi/i.test(s) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700';
+            $('auBody').innerHTML = list.length ? list.map(r => `<tr class="hover:bg-slate-50"><td class="p-2.5 text-slate-600 whitespace-nowrap">${esc(r[0])}</td>
+                <td class="p-2.5 font-semibold text-slate-800 whitespace-nowrap">${esc(r[1])} <span class="text-[10px] text-slate-400">${esc(r[2])}</span></td><td class="p-2.5 text-slate-600">${esc(AUD_SAYFA[r[3]] || r[3])}</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${tone(r[4])}">${esc(r[4])}</span></td><td class="p-2.5 text-slate-600">${esc(r[6])}</td></tr>`).join('')
+                : '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-semibold">Kayıt bulunamadı.</td></tr>';
+        }
 
         // ==================== YENİLEME ====================
         function setLastUpdate(msg) {
@@ -564,7 +735,7 @@
         // ==================== SEKMELER ====================
         let curTab = 'reports';
         function showTab(t) {
-            if (t === 'audit' && !(window.KDHAuth && KDHAuth.who() && KDHAuth.who().rol === 'admin')) t = 'reports';
+            if (t === 'audit' && WHO.rol !== 'admin') t = 'reports';
             curTab = t;
             const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
             TABS.forEach(x => {
@@ -584,7 +755,7 @@
             if (curTab === 'reports') renderReports();
             else if (curTab === 'logs') renderLogs();
             else if (curTab === 'qrdb') renderQrTable();
-            else if (curTab === 'audit') KDHAuth.history('auditBox');
+            else if (curTab === 'audit') renderAudit();
             else renderStaff();
         }
 
@@ -698,7 +869,7 @@
                     <td class="p-2.5 font-mono text-slate-500 whitespace-nowrap">${fmtDT(l.t)}</td>
                     <td class="p-2.5 font-semibold text-slate-800">${esc(l.officer)}</td>
                     <td class="p-2.5"><div class="font-bold text-slate-700">${esc(name)}</div><div class="text-[10px] font-mono text-slate-400">${esc(l.code)}</div></td>
-                    <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${cls}">${esc(l.status || '-')}</span></td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${cls}">${esc(l.status || '-')}</span>${l.chk ? (/⚠/.test(l.chk) ? `<div class="mt-1"><span title="${esc(l.chk)}" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 whitespace-nowrap">⚠ Şüpheli</span></div><div class="text-[10px] text-orange-600 max-w-[200px]">${esc(l.chk.replace(/^.*?⚠\s*/, ''))}</div>` : `<div class="mt-1 text-[10px] font-semibold text-emerald-600" title="${esc(l.chk)}">✓ İşaret doğru</div>`) : ''}</td>
                     <td class="p-2.5 text-slate-500 max-w-[260px] truncate" title="${esc(l.notes)}">${l.notes ? esc(l.notes) : '<span class="text-slate-300">-</span>'}</td>
                     <td class="p-2.5 text-right"><button onclick="openDel('Logs','${esc(l.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             }).join('') : `<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">Kayıt bulunamadı.</td></tr>`;
@@ -709,8 +880,8 @@
         function exportExcel() {
             const s = ST.logs, lm = locMap(), list = logsFiltered().sort(cmpBy(s.key, s.dir, logVal));
             if (!list.length) return showToast('Aktarılacak kayıt yok', true);
-            const rows = [['Tarih/Saat', 'Personel', 'Lokasyon', 'Kod', 'Durum', 'Not']].concat(list.map(l => [fmtDT(l.t), l.officer, lm[l.code] || l.loc || l.code, l.code, l.status, l.notes]));
-            const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{ wch: 18 }, { wch: 24 }, { wch: 30 }, { wch: 14 }, { wch: 40 }, { wch: 40 }];
+            const rows = [['Tarih/Saat', 'Personel', 'Lokasyon', 'Kod', 'Durum', 'Not', 'Kontrol']].concat(list.map(l => [fmtDT(l.t), l.officer, lm[l.code] || l.loc || l.code, l.code, l.status, l.notes, l.chk]));
+            const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{ wch: 18 }, { wch: 24 }, { wch: 30 }, { wch: 14 }, { wch: 40 }, { wch: 40 }, { wch: 44 }];
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Devriye Kayıtları');
             XLSX.writeFile(wb, 'devriye_raporu_' + new Date().toISOString().slice(0, 10) + '.xlsx');
         }
@@ -821,6 +992,9 @@
                 const s = STAFF.find(x => x.id === id); if (!s) return;
                 title = 'Personel silinsin mi?'; text = 'Personel giriş listesinden kalkar. Eski devriye kayıtları silinmez.';
                 summary = `<div><b>Ad Soyad:</b> ${esc(s.name)}</div><div><b>Ünvan:</b> ${esc(s.role)}</div>`;
+            } else if (sheet === 'Kullanicilar') {
+                title = 'Kullanıcı silinsin mi?'; text = 'Bu kullanıcı artık şifresiyle giriş yapamaz. Yaptığı işlemler İşlem Geçmişi\'nde kalır.';
+                summary = `<div><b>Kullanıcı:</b> ${esc(id)}</div>`;
             } else {
                 const q = QRS.find(x => x.id === id); if (!q) return;
                 title = 'QR kod silinsin mi?'; text = 'Bu kontrol noktası silinir; basılı QR kod bir daha okutulamaz.';
@@ -843,11 +1017,12 @@
             const { sheet, id } = delCtx, btn = $('delConfirmBtn'), old = btn.innerHTML;
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Siliniyor...';
             try {
-                const out = await adminPost({ action: 'delete', sheet, id });
+                const out = sheet === 'Kullanicilar' ? await adminPost({ action: 'kullaniciSil', ad: id }) : await adminPost({ action: 'delete', sheet, id });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
                 closeDel();
-                const tr = document.querySelector(`tr[data-id="${id}"]`);
+                const tr = document.querySelector('tr[data-id="' + CSS.escape(String(id)) + '"]');
                 if (tr) { tr.classList.add('row-removing'); await sleep(450); }
+                if (sheet === 'Kullanicilar') { UW.users = UW.users.filter(u => u.ad !== id); uwRender(); }
                 if (sheet === 'Logs') LOGS = LOGS.filter(l => l.id !== id);
                 if (sheet === 'Staff') STAFF = STAFF.filter(s => s.id !== id);
                 if (sheet === 'Locations') { const q = QRS.find(x => x.id === id); if (q) selQR.delete(q.code); QRS = QRS.filter(x => x.id !== id); }
@@ -903,9 +1078,9 @@
             try {
                 const out = await adminPost({ action: 'update', sheet, id, row });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
-                if (isStaff) { const s = STAFF.find(x => x.id === id); s.name = v1; s.role = v2; s.by = (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : ''); }
+                if (isStaff) { const s = STAFF.find(x => x.id === id); s.name = v1; s.role = v2; s.by = WHO.ad; }
                 else {
-                    const q = QRS.find(x => x.id === id); q.code = v2; q.name = v1; q.by = (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : '');
+                    const q = QRS.find(x => x.id === id); q.code = v2; q.name = v1; q.by = WHO.ad;
                     if (old.code !== v2) { if (selQR.delete(old.code)) selQR.add(v2); }
                     if (prevCode === old.code) previewQR(v2, v1);
                 }
@@ -939,7 +1114,7 @@
                 const id = String(Date.now());
                 const out = await adminPost({ action: 'add', sheet: 'Staff', row: [id, name, role] });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
-                STAFF.push({ id, name, role, by: (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : '') }); lastSig = '';
+                STAFF.push({ id, name, role, by: WHO.ad }); lastSig = '';
                 $('newStaffName').value = ''; $('newStaffRole').value = '';
                 renderStaff(); showToast('Personel kaydedildi');
             } catch (x) { showToast('Kaydedilemedi: ' + x.message, true); }
@@ -958,11 +1133,12 @@
                 <td class="p-2.5 text-center w-10"><input type="checkbox" class="qr-cb" ${selQR.has(q.code) ? 'checked' : ''} data-code="${esc(q.code)}" onchange="toggleQr(this)"></td>
                 <td class="p-2.5 font-mono font-bold text-slate-800">${esc(q.code)}</td>
                 <td class="p-2.5 font-semibold text-slate-700">${esc(q.name)}</td>
+                <td class="p-2.5"><div class="flex items-center gap-2"><span class="text-2xl leading-none w-6 text-center">${q.mark ? esc(q.mark) : '<span class="text-slate-300 text-base">—</span>'}</span>${WHO.rol === 'admin' ? `<button onclick="markRenew('${esc(q.id)}')" title="Noktadaki gizli işareti yeni bir şekille değiştirir; etiketi güncellemeniz gerekir" class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg px-2 py-1 whitespace-nowrap"><i class="fa-solid fa-dice"></i> Yeni Kod Üret</button>` : ''}</div></td>
                 <td class="p-2.5"><button data-code="${esc(q.code)}" data-name="${esc(q.name)}" onclick="previewQR(this.dataset.code, this.dataset.name)" class="text-blue-600 hover:underline font-semibold"><i class="fa-solid fa-qrcode"></i> QR Kod Göster</button></td>
                 <td class="p-2.5"><button data-code="${esc(q.code)}" data-name="${esc(q.name)}" onclick="downloadSpecificQR(this.dataset.code, this.dataset.name)" class="text-emerald-600 hover:underline font-semibold"><i class="fa-solid fa-download"></i> Resim Kaydet</button></td>
                 <td class="p-2.5 text-right whitespace-nowrap"><button onclick="openEdit('Locations','${esc(q.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="openDel('Locations','${esc(q.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button></td>
                 <td class="col-yapan p-2.5 text-xs font-semibold text-slate-600 whitespace-nowrap">${esc(q.by) || '-'}</td></tr>`).join('')
-                : '<tr><td colspan="7" class="p-6 text-center text-slate-400 font-semibold">QR kodu bulunamadı.</td></tr>';
+                : '<tr><td colspan="8" class="p-6 text-center text-slate-400 font-semibold">QR kodu bulunamadı.</td></tr>';
             updateSortIcons('qr'); updateSelInfo();
             if (!prevCode && list.length) previewQR(list[0].code, list[0].name);
         }
@@ -995,7 +1171,7 @@
                 const id = String(Date.now());
                 const out = await adminPost({ action: 'add', sheet: 'Locations', row: [id, code, name] });
                 if (out.status !== 'success') throw new Error(out.message || 'Hata');
-                QRS.push({ id, code, name, by: (window.KDHAuth && KDHAuth.who() ? KDHAuth.who().ad : '') }); lastSig = '';
+                QRS.push({ id, code, name, by: WHO.ad }); lastSig = '';
                 $('newQrName').value = ''; $('newQrCode').value = '';
                 renderQrTable(); previewQR(code, name); showToast('QR kod kaydedildi');
             } catch (x) { showToast('Kaydedilemedi: ' + x.message, true); }
@@ -1088,7 +1264,7 @@
             setInterval(tickClock, 1000); tickClock();
             const key = adminKey();
             if (!key) return;
-            try { applyData(await fetchAll(key)); showAdminInterface(); }
+            try { applyData(await fetchAll(key)); await loadWho(); showAdminInterface(); }
             catch (e) { if (e.message === 'unauthorized') sessionStorage.removeItem('kdh_admin_key'); /* giriş ekranı açık kalır */ }
         });
     </script>
