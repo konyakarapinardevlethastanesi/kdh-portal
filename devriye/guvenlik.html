@@ -28,6 +28,8 @@
         .anim-shake { animation: shake .9s ease .3s both; }
         .st-opt input { position: absolute; opacity: 0; pointer-events: none; }
         .st-opt input:checked + div { border-color: #0f172a; background: #f1f5f9; box-shadow: 0 0 0 2px #0f172a inset; }
+        .sk { padding: 1rem 0; font-size: 1.9rem; line-height: 1; border-radius: .75rem; border: 2px solid #e2e8f0; background: #f8fafc; color: #0f172a; }
+        .sk-on { border-color: #0f172a; background: #e2e8f0; box-shadow: 0 0 0 2px #0f172a inset; }
         @media (prefers-reduced-motion: reduce) { .anim-pop, .anim-shake { animation: none; } }
     </style>
 </head>
@@ -139,6 +141,12 @@
                 </div>
             </div>
 
+            <div id="sekilBox" class="hidden space-y-2">
+                <p class="text-xs font-bold text-slate-700">Noktadaki gizli etikette hangi şekil var? <span class="text-rose-500">*</span></p>
+                <div id="sekilGrid" class="grid grid-cols-4 gap-2"></div>
+                <p class="text-[11px] text-slate-400">Etiketteki şekli seçiniz. Yanlış seçimde sınırlı hakkınız vardır.</p>
+            </div>
+
             <div>
                 <p class="text-xs font-bold text-slate-700 mb-2">Alan Durumu <span class="text-rose-500">*</span></p>
                 <div class="space-y-2">
@@ -147,11 +155,15 @@
                     <label class="st-opt block relative cursor-pointer"><input type="radio" name="durum" value="Kapı veya Pencere Açık Unutulmuş"><div class="border-2 border-slate-200 rounded-xl px-3 py-3 text-sm font-semibold">🟠 Kapı veya Pencere Açık Unutulmuş</div></label>
                     <label class="st-opt block relative cursor-pointer"><input type="radio" name="durum" value="ACİL DURUM - Ekip Talebi Var"><div class="border-2 border-slate-200 rounded-xl px-3 py-3 text-sm font-semibold">🔴 ACİL DURUM - Destek Ekip İsteniyor</div></label>
                 </div>
-                <textarea id="note" rows="2" maxlength="500" placeholder="Ek açıklama (isteğe bağlı)" class="mt-3 w-full px-3 py-2 rounded-xl border border-slate-300 transition"></textarea>
+                <textarea id="note" rows="2" maxlength="460" placeholder="Ek açıklama (isteğe bağlı)" class="mt-3 w-full px-3 py-2 rounded-xl border border-slate-300 transition"></textarea>
+                <div class="flex justify-between items-start gap-2 mt-1">
+                    <p id="noteReq" class="text-[11px] font-semibold text-slate-400">Ek açıklama (isteğe bağlı)</p>
+                    <span id="noteCnt" class="text-[10px] text-slate-400 tabular-nums shrink-0">0/460</span>
+                </div>
             </div>
 
             <button id="sendBtn" onclick="sendLog()" class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg text-base flex items-center justify-center gap-2">
-                <i class="fa-solid fa-paper-plane"></i> Onayla ve Gönder
+                <i class="fa-solid fa-paper-plane"></i> Gönder
             </button>
             <p id="sendErr" class="hidden text-xs text-rose-600 font-semibold text-center"></p>
         </section>
@@ -179,11 +191,31 @@
         <p>Konya Karapınar Devlet Hastanesi <span id="currentYearSpan"></span> © Tüm Hakları Saklıdır.</p>
     </footer>
 
+    <!-- GÖNDERMEDEN ÖNCE ONAY (yanlış kayıt önleme) -->
+    <div id="cfModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 text-center shadow-2xl anim-pop space-y-3">
+            <div id="cfIcon" class="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl"><i class="fa-solid fa-clipboard-check"></i></div>
+            <h3 class="text-base font-extrabold text-slate-900">Kayıt gönderilsin mi?</h3>
+            <div class="text-left text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+                <div><span class="font-bold text-slate-500">Alan:</span> <span id="cfLoc" class="font-extrabold text-slate-900"></span> <span id="cfKod" class="font-mono text-[10px] text-slate-400"></span></div>
+                <div><span class="font-bold text-slate-500">Durum:</span> <span id="cfDurum" class="font-bold"></span></div>
+                <div><span class="font-bold text-slate-500">Not:</span> <span id="cfNot" class="text-slate-700"></span></div>
+            </div>
+            <p id="cfWarn" class="hidden text-[11px] font-bold text-rose-600">Acil durum bildirimi gönderiyorsunuz. Emin misiniz?</p>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="cfClose()" class="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm">Düzelt</button>
+                <button id="cfOk" onclick="doSend()" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i> Evet, Gönder</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxM95JBfqDilvDtfJk3WSSK-Zulibt5JU7zvS9vI5MDW91je5GUHUwL-nyl66f8NzWM/exec";
         const SESS_KEY = 'kdh_dv_oturum';
         const $ = id => document.getElementById(id);
-        let kod = (new URLSearchParams(location.search).get('kod') || '').trim();
+        // Telefonun kendi kamerasıyla / fotoğraftan açılan QR bağlantısındaki kod ARTIK kullanılmaz: kayıt sadece uygulama içi kamerayla okutularak açılır.
+        const urlKod = (new URLSearchParams(location.search).get('kod') || '').trim();
+        let kod = '';
         let session = null, location_ = null, tickTimer = null;
 
         function show(id) {
@@ -237,17 +269,9 @@
         async function startLoginView() {
             show('v-login');
             const info = $('loginKodInfo');
-            if (kod) {
-                const draw = (ad) => {
-                    info.innerHTML = '';
-                    const l1 = document.createElement('div'); l1.className = 'text-[10px] font-bold uppercase opacity-80'; l1.textContent = 'Okutulan kontrol noktası';
-                    info.appendChild(l1);
-                    if (ad) { const l2 = document.createElement('div'); l2.className = 'text-sm font-extrabold break-words leading-tight mt-0.5'; l2.textContent = ad; info.appendChild(l2); }
-                    const l3 = document.createElement('div'); l3.className = 'font-mono font-bold mt-0.5'; l3.textContent = 'Kod: ' + kod; info.appendChild(l3);
-                    info.classList.remove('hidden');
-                };
-                draw('');
-                api('GET', { action: 'konum', kod }).then(o => { if (o && o.status === 'success' && o.ad) draw(o.ad); }).catch(() => {});
+if (urlKod) {
+                info.textContent = 'Bu QR bağlantısı artık doğrudan açılmaz. Giriş yaptıktan sonra QR kodu uygulama içindeki kamerayla okutunuz.';
+                info.className = 'text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-2.5 font-semibold text-center';
             } else info.classList.add('hidden');
             const sel = $('loginName');
             try {
@@ -286,17 +310,39 @@
         function resetForm() {
             $('note').value = ''; $('sendErr').classList.add('hidden');
             document.querySelector('input[name=durum]').checked = true;
+            noteUi();
         }
+
+        // ---------- YAZARKEN HATA ÖNLEME: sayaç, zorunlu açıklama, taslağı koruma ----------
+        let NOTR = ['ACİL DURUM - Ekip Talebi Var', 'Kapı veya Pencere Açık Unutulmuş'], NOTMIN = 5;   // sunucudan gelen değerle güncellenir
+        const secDurum = () => (document.querySelector('input[name=durum]:checked') || {}).value || '';
+        function noteUi() {
+            const len = $('note').value.length, zor = NOTR.includes(secDurum());
+            $('noteCnt').textContent = len + '/460'; $('noteCnt').className = 'text-[10px] tabular-nums shrink-0 ' + (len > 420 ? 'text-amber-600 font-bold' : 'text-slate-400');
+            $('noteReq').textContent = zor ? 'Bu durumda açıklama yazmanız zorunludur (en az ' + NOTMIN + ' karakter): ne gördünüz, nerede?' : 'Ek açıklama (isteğe bağlı)';
+            $('noteReq').className = 'text-[11px] font-semibold ' + (zor ? 'text-rose-600' : 'text-slate-400');
+            $('note').placeholder = zor ? 'Kısaca yazınız...' : 'Ek açıklama (isteğe bağlı)';
+        }
+        // görünmez/bozuk karakterleri, fazla boşluk ve satırları temizler
+        const temizNot = s => String(s || '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, 460);
+        const TASLAK = 'gv_taslak';        // yazılan not sayfa yenilense de kaybolmasın
+        function taslakKaydet() { try { if (adminMode || !location_) return; sessionStorage.setItem(TASLAK, JSON.stringify({ k: location_.kod, n: $('note').value, d: secDurum() })); } catch (e) { } }
+        function taslakYukle() {
+            try { const t = JSON.parse(sessionStorage.getItem(TASLAK) || 'null'); if (t && !adminMode && location_ && t.k === location_.kod) { $('note').value = t.n || ''; document.querySelectorAll('input[name=durum]').forEach(x => { x.checked = x.value === t.d; }); } } catch (e) { }
+            noteUi();
+        }
+        function taslakSil() { try { sessionStorage.removeItem(TASLAK); } catch (e) { } }
         async function afterLogin() {
-            if (!kod) { show('v-idle'); return; }
+            if (!kod) { startScan(); return; }          // giriş yapınca doğrudan uygulama içi kamera açılır
             show('v-loading');
             try {
                 const out = await api('GET', { action: 'konum', kod });
                 if (out.status !== 'success') { showError('Tanımsız QR Kod', 'Bu QR kod sistemde kayıtlı değil (' + kod + '). Yöneticiye bildiriniz.'); return; }
-                location_ = out;
+                location_ = out; reqId = newReq(); setupSekil(out);
+                if (Array.isArray(out.notZorunlu)) { NOTR = out.notZorunlu; NOTMIN = Number(out.notMin) || 5; }
                 $('locName').textContent = out.ad; $('locCode').textContent = out.kod;
                 $('locCard').classList.remove('hidden'); $('manualBox').classList.add('hidden');
-                resetForm(); show('v-form');
+                resetForm(); taslakYukle(); show('v-form');
             } catch (e) { showError('Bağlantı Hatası', 'Kontrol noktası bilgisi alınamadı. İnternet bağlantınızı kontrol edip QR kodu tekrar okutunuz.'); }
         }
 
@@ -310,20 +356,20 @@
         async function startScan() {
             if (scanning) return;
             show('v-scan'); $('scanMsg').textContent = 'Kamera açılıyor...';
-            if (typeof Html5Qrcode === 'undefined') { $('scanMsg').textContent = 'Kamera modülü yüklenemedi. Telefonun kamerasıyla QR okutabilirsiniz.'; return; }
+            if (typeof Html5Qrcode === 'undefined') { $('scanMsg').textContent = 'Kamera modülü yüklenemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin.'; return; }
             try {
                 scanner = new Html5Qrcode('qr-reader'); scanning = true;
                 await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 230, height: 230 } }, async (text) => {
                     const k = kodCikar(text);
                     if (!k) { $('scanMsg').textContent = 'Bu QR kod devriye noktası değil, tekrar deneyin.'; return; }
                     await stopScan(false);
-                    kod = k; history.replaceState(null, '', '?kod=' + encodeURIComponent(k));
+                    kod = k; history.replaceState(null, '', location.pathname);
                     afterLogin();
                 }, () => {});
                 $('scanMsg').textContent = 'QR kodu çerçevenin içine alın.';
             } catch (e) {
                 scanning = false;
-                $('scanMsg').textContent = 'Kamera açılamadı. Tarayıcıda kamera iznini verin veya telefonun kamerasıyla QR okutun.';
+                $('scanMsg').textContent = 'Kamera açılamadı. Tarayıcıda bu site için kamera iznini verip sayfayı yenileyin.';
             }
         }
         async function stopScan(back) {
@@ -353,43 +399,103 @@
             fill($('staffSelect'), staffList, '-- Personeli seçiniz --', x => x, x => x);
             fill($('locSelect'), locList, '-- Kontrol noktasını seçiniz --', x => x.kod, x => x.ad + ' (' + x.kod + ')');
             if (kod && locList.some(l => l.kod === kod)) $('locSelect').value = kod;
+            $('sekilBox').classList.add('hidden');
             resetForm(); show('v-form');
         }
 
-        async function sendLog() {
-            const btn = $('sendBtn'), old = btn.innerHTML, err = $('sendErr');
+        // ---------- ŞEKİL SEÇTİRME (yönetici panelinden açıksa) ----------
+        let sekilSecim = '', reqId = '', sending = false;
+        const newReq = () => ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2)).slice(0, 40);
+        function setupSekil(o) {
+            sekilSecim = ''; const box = $('sekilBox'), grid = $('sekilGrid');
+            if (o && o.sekil && Array.isArray(o.secenekler) && o.secenekler.length) {
+                grid.innerHTML = '';
+                o.secenekler.forEach(s => { const b = document.createElement('button'); b.type = 'button'; b.className = 'sk'; b.textContent = s; b.onclick = () => pickSekil(b); grid.appendChild(b); });
+                box.classList.remove('hidden');
+            } else box.classList.add('hidden');
+        }
+        function pickSekil(b) { sekilSecim = b.textContent; [...$('sekilGrid').children].forEach(x => x.classList.toggle('sk-on', x === b)); }
+
+        // ---------- GÖNDER: önce özet + onay, sonra gönderim ----------
+        function sendLog() {
+            const err = $('sendErr'); err.classList.add('hidden');
+            const durum = secDurum(), not = temizNot($('note').value);
+            $('note').value = not; noteUi();
+            let ad, kodG;
+            if (adminMode) {
+                kodG = $('locSelect').value; const isim = $('staffSelect').value;
+                if (!isim || !kodG) { err.textContent = 'Lütfen personel ve kontrol noktasını seçiniz.'; err.classList.remove('hidden'); return; }
+                const l = locList.find(x => x.kod === kodG); ad = l ? l.ad : kodG;
+            } else {
+                if (!$('sekilBox').classList.contains('hidden') && !sekilSecim) { err.textContent = 'Lütfen noktadaki etiketteki şekli seçiniz.'; err.classList.remove('hidden'); return; }
+                if (NOTR.includes(durum) && not.length < NOTMIN) { err.textContent = 'Bu durumda açıklama yazmanız zorunludur (en az ' + NOTMIN + ' karakter).'; err.classList.remove('hidden'); $('note').focus(); return; }
+                kodG = location_.kod; ad = location_.ad;
+            }
+            if (!reqId) reqId = newReq();
+            const acil = durum.includes('ACİL');
+            $('cfLoc').textContent = ad; $('cfKod').textContent = kodG; $('cfDurum').textContent = durum; $('cfNot').textContent = not || '—';
+            $('cfDurum').className = 'font-bold ' + (acil ? 'text-rose-600' : 'text-slate-800');
+            $('cfWarn').classList.toggle('hidden', !acil);
+            $('cfIcon').className = 'w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl ' + (acil ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600');
+            $('cfModal').classList.replace('hidden', 'flex');
+        }
+        function cfClose() { $('cfModal').classList.replace('flex', 'hidden'); }
+        async function doSend() {
+            if (sending) return;                                    // çift tıklama / çift gönderim engeli
+            sending = true;
+            const btn = $('cfOk'), old = btn.innerHTML, err = $('sendErr');
             err.classList.add('hidden');
             let payload, adGonder, kodGonder;
-            const durum = document.querySelector('input[name=durum]:checked').value, not = $('note').value.trim();
+            const durum = secDurum(), not = temizNot($('note').value);
             if (adminMode) {
                 kodGonder = $('locSelect').value; const isim = $('staffSelect').value;
-                if (!isim || !kodGonder) { err.textContent = 'Lütfen personel ve kontrol noktasını seçiniz.'; err.classList.remove('hidden'); return; }
                 const l = locList.find(x => x.kod === kodGonder); adGonder = l ? l.ad : kodGonder;
-                payload = { action: 'logEkle', key: adminKey(), isim, kod: kodGonder, durum, not };
+                payload = { action: 'logEkle', key: adminKey(), isim, kod: kodGonder, durum, not, istek: reqId };
             } else {
                 kodGonder = location_.kod; adGonder = location_.ad;
-                payload = { action: 'logEkle', token: session.token, kod: kodGonder, durum, not };
+                payload = { action: 'logEkle', token: session.token, kod: kodGonder, durum, not, istek: reqId };
+                if (sekilSecim) payload.isaret = sekilSecim;
             }
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
             try {
                 const out = await api('POST', payload);
                 if (out.status === 'success') {
+                    cfClose();
                     $('doneLoc').textContent = adGonder; $('doneCode').textContent = 'Kod: ' + kodGonder;
                     $('doneTime').textContent = new Date().toLocaleString('tr-TR', { hourCycle: 'h23' });
                     $('newRecBtn').classList.toggle('hidden', !adminMode);
                     $('scanNextBtn').classList.toggle('hidden', adminMode);
-                    if (!adminMode) { kod = ''; history.replaceState(null, '', location.pathname); }   // aynı noktaya tekrar kayıt gitmesin
+                    reqId = ''; sekilSecim = ''; taslakSil();
+                    if (!adminMode) kod = '';                       // aynı noktaya tekrar kayıt gitmesin
                     show('v-done');
                 } else if (out.message === 'unauthorized') {
+                    cfClose();
                     if (adminMode) { sessionStorage.removeItem('kdh_admin_key'); location.reload(); } else logout();
-                } else { err.textContent = 'Kaydedilemedi: ' + (out.message || 'bilinmeyen hata'); err.classList.remove('hidden'); }
-            } catch (e) { err.textContent = 'Sunucuya ulaşılamadı, kayıt gönderilmedi. Tekrar deneyin.'; err.classList.remove('hidden'); }
-            finally { btn.disabled = false; btn.innerHTML = old; }
+                } else if (out.message === 'isaret_kilit') {
+                    cfClose(); reqId = ''; showError('Çok fazla yanlış seçim', 'Bu nokta için 10 dakika sonra tekrar deneyin ya da yöneticiye bildiriniz.');
+                } else {
+                    cfClose();
+                    const kalan = Number(out.kalan);
+                    const mesaj = out.message === 'isaret_hatali' ? 'Seçtiğiniz şekil yanlış. Noktadaki etiketi tekrar kontrol edip seçiniz.' + (isFinite(kalan) ? ' Kalan hak: ' + kalan : '')
+                        : out.message === 'tekrar_kayit' ? 'Bu nokta için aynı durumda kayıt az önce gönderilmiş. Tekrar göndermenize gerek yok.'
+                        : out.message === 'cok_istek' ? 'Çok sık kayıt gönderiyorsunuz. Biraz bekleyip tekrar deneyin.'
+                        : out.message === 'not_gerekli' ? 'Bu durumda açıklama yazmanız zorunludur. Lütfen kısaca ne olduğunu yazınız.'
+                        : out.message === 'mesgul' ? 'Sistem şu an yoğun. Birkaç saniye sonra tekrar Gönder\'e basın; aynı kayıt iki kez yazılmaz.'
+                        : 'Kaydedilemedi: ' + (out.message || 'bilinmeyen hata');
+                    if (out.message === 'isaret_hatali') { sekilSecim = ''; [...$('sekilGrid').children].forEach(x => x.classList.remove('sk-on')); }
+                    err.textContent = mesaj; err.classList.remove('hidden');
+                }
+            } catch (e) {
+                cfClose(); err.textContent = 'Sunucuya ulaşılamadı, kayıt gönderilmedi. Tekrar deneyin (aynı kayıt iki kez yazılmaz).'; err.classList.remove('hidden');
+            } finally { sending = false; btn.disabled = false; btn.innerHTML = old; }
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            $('note').addEventListener('input', () => { noteUi(); taslakKaydet(); });
+            document.addEventListener('change', e => { if (e.target && e.target.name === 'durum') { noteUi(); taslakKaydet(); } });
             $('currentYearSpan').textContent = new Date().getFullYear();
-            if (await tryAdminMode()) { showAdminForm(); return; }   // yönetici panelinden gelindiyse
+            if (await tryAdminMode()) { kod = urlKod; showAdminForm(); return; }   // yönetici panelinden gelindiyse (QR'sız kayıt)
+            if (urlKod) history.replaceState(null, '', location.pathname);        // QR bağlantısındaki kod kullanılmaz
             session = loadSession();
             if (session) enterSession(); else startLoginView();
         });
