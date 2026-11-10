@@ -103,7 +103,8 @@
         @keyframes yuk{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
         @keyframes halka{0%{transform:scale(.92);opacity:.7}100%{transform:scale(1.55);opacity:0}}
         @keyframes sars{10%,90%{transform:translateX(-3px)}30%,70%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
-        @keyframes bildir{from{opacity:0;transform:translate(-50%,-18px)}to{opacity:1;transform:translate(-50%,0)}}
+        @keyframes bildir{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+        @keyframes bildirCik{to{opacity:0;transform:translateY(-14px)}}
         @keyframes nabiz{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.35)}50%{box-shadow:0 0 0 14px rgba(59,130,246,0)}}
         .yuk{animation:yuk .6s cubic-bezier(.16,1,.3,1) backwards}
         .sars{animation:sars .45s}
@@ -145,7 +146,7 @@
     <canvas id="animatedPortalBg" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
     <!-- ANA PORTAL EKRANI -->
-    <div id="portal" class="hidden relative z-10 max-w-6xl w-full mx-auto px-4 sm:px-6 space-y-5 my-auto">
+    <div id="portal" class="hidden relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-6 space-y-5 my-auto">
         
         <!-- YATAY KURUMSAL BAŞLIK BARI -->
         <div class="header-card rounded-2xl p-4 flex items-center justify-between gap-4">
@@ -199,7 +200,7 @@
         </div>
 
         <!-- 6 MODÜL KARTI GRID DÜZENİ -->
-        <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
 
         <!-- FOOTER -->
         <footer class="text-center text-[10px] dark:text-slate-300 text-slate-500 font-medium">
@@ -228,24 +229,24 @@
                 <button id="girisBtn" type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-extrabold rounded-2xl text-xs uppercase tracking-widest transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2"><span>Portala Giriş Yap</span><i class="fa-solid fa-arrow-right"></i></button>
                 <p id="kapiMsg" class="hidden text-xs font-bold leading-relaxed"></p>
             </form>
-            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 space-y-1 dark:text-slate-400 text-slate-500"><div class="text-[9px] font-semibold tracking-wider">T.C. SAĞLIK BAKANLIĞI • KARAPINAR DEVLET HASTANESİ</div><div class="text-[8px] font-medium tracking-wider opacity-80">Tasarım &amp; Geliştirme: Cihan TİRYAKİ</div></div>
+            <div class="pt-4 border-t dark:border-slate-700 border-slate-200 space-y-1 dark:text-slate-400 text-slate-500"><div class="text-[9px] font-semibold tracking-wider">KONYA KARAPINAR DEVLET HASTANESİ</div><div class="text-[8px] font-medium tracking-wider opacity-80">Tasarım &amp; Geliştirme: Cihan TİRYAKİ</div></div>
         </div>
     </div>
 
     <!-- ALT UYGULAMA SEÇİM PENCERESİ (Anket, Personel vb.) -->
     <div id="modal" onclick="if(event.target===this)modalKapat()" class="hidden fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="modal-card yuk max-w-md w-full p-5 sm:p-6 rounded-2xl space-y-5">
+        <div class="modal-card yuk max-w-3xl w-full p-4 sm:p-6 rounded-2xl space-y-4 sm:space-y-5">
             <div class="text-center space-y-2">
                 <div id="mIc" class="ic w-12 h-12 rounded-xl flex items-center justify-center text-xl mx-auto"></div>
                 <h3 id="mBaslik" class="text-base font-extrabold dark:text-white text-slate-900 leading-snug"></h3>
             </div>
-            <div id="mListe" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1"></div>
+            <div id="mListe" class="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 max-h-[60vh] overflow-y-auto pr-1"></div>
             <button onclick="modalKapat()" class="w-full py-2.5 dark:bg-slate-800 bg-slate-100 hover:dark:bg-slate-700 hover:bg-slate-200 dark:text-slate-300 text-slate-600 font-bold rounded-xl text-xs transition dark:border-slate-600 border-slate-200 border">Vazgeç</button>
         </div>
     </div>
 
     <!-- KİBAR UYARI (yetki / yapım aşaması) -->
-    <div id="toast" onclick="this.classList.add('hidden')" class="hidden fixed top-5 left-1/2 z-[200] w-[92%] max-w-sm modal-card rounded-2xl p-4 cursor-pointer" style="animation:bildir .45s cubic-bezier(.16,1,.3,1)"></div>
+    <div id="toast" onclick="this.classList.add('hidden')" class="hidden fixed top-5 inset-x-0 mx-auto z-[200] w-[92%] max-w-sm modal-card rounded-2xl p-4 cursor-pointer" style="animation:bildir .45s cubic-bezier(.16,1,.3,1)"></div>
 
     <!-- KULLANICI YÖNETİMİ (yönetici) -->
     <div id="kmodal" onclick="if(event.target===this)modalKapat()" class="hidden fixed inset-0 dark:bg-slate-900/80 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -261,8 +262,8 @@
                     <button onclick="kForm(-1)" class="text-[11px] font-bold dark:text-slate-300 text-slate-600 hover:text-blue-500"><i class="fa-solid fa-plus mr-1"></i>Yeni kullanıcı</button>
                 </div>
                 <div class="grid sm:grid-cols-2 gap-2.5">
-                    <input id="kAd" autocomplete="off" placeholder="Kullanıcı adı (örn: yazi_isleri)" class="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60">
-                    <input id="kSifre" autocomplete="off" placeholder="Şifre" class="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <input id="kAd" autocomplete="off" maxlength="40" placeholder="Ad Soyad (örn: Ayşe Yılmaz)" class="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60">
+                    <div class="relative"><input id="kSifre" type="password" autocomplete="new-password" placeholder="Şifre" class="w-full pl-3.5 pr-10 py-2.5 text-xs font-semibold rounded-xl dark:bg-slate-900/70 bg-white/80 border dark:border-slate-600 border-slate-300 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400"><button type="button" onclick="kGoz()" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm dark:text-slate-400 text-slate-500 hover:text-blue-500"><i id="kGoz" class="fa-solid fa-eye"></i></button></div>
                 </div>
                 <div id="kKartBox" class="space-y-2">
                     <div class="flex items-center justify-between"><span class="text-[11px] font-bold dark:text-slate-300 text-slate-600">Açabileceği kartlar</span><span class="text-[11px] font-bold"><button onclick="kHepsi(1)" class="text-blue-500">Tümünü seç</button> <span class="dark:text-slate-500 text-slate-400">•</span> <button onclick="kHepsi(0)" class="text-blue-500">Temizle</button></span></div>
@@ -409,8 +410,8 @@
         }
         function kapiAc(msg) {
             $('portal').classList.add('hidden'); modalKapat();
-            const h = new Date().getHours();
-            $('selam').textContent = h < 5 ? 'İyi Geceler' : h < 12 ? 'Günaydın' : h < 18 ? 'İyi Günler' : h < 22 ? 'İyi Akşamlar' : 'İyi Geceler';
+            const d = new Date(), dk = d.getHours() * 60 + d.getMinutes();
+            $('selam').textContent = dk < 300 ? 'İyi Geceler' : dk < 600 ? 'Günaydın' : dk < 930 ? 'İyi Günler' : dk < 1260 ? 'İyi Akşamlar' : 'İyi Geceler';
             $('kapi').classList.remove('hidden');
             const k = $('kapiKart'); k.classList.remove('yuk'); void k.offsetWidth; k.classList.add('yuk');
             mesaj(msg || '', 'bilgi'); $('sifre').value = ''; setTimeout(() => $('sifre').focus(), 150);
@@ -466,20 +467,21 @@
         // =====================================================================
         function kartHTML(m, i) {
             const kl = !acik(m), son = m.alt ? ['Seçiniz','fa-arrow-right-long group-hover:translate-x-1.5'] : m.url ? ['Uygulamaya Git','fa-arrow-right-long group-hover:translate-x-1.5'] : ['Pek Yakında','fa-clock'];
-            return `<div onclick="ac('${m.key}',event)" style="--c:${rgb(m.renk)};--i:${i}" class="pc portal-card ${kl?'kilit':''} rounded-2xl p-5 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[170px]">
+            return `<div onclick="ac('${m.key}',event)" style="--c:${rgb(m.renk)};--i:${i}" class="pc portal-card ${kl?'kilit':''} rounded-2xl p-6 cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[215px]">
                 <div class="bl absolute -right-6 -bottom-6 w-28 h-28 rounded-full"></div>
                 ${kl ? '<i class="fa-solid fa-lock absolute top-4 right-4 text-xs dark:text-slate-400 text-slate-500"></i>' : ''}
-                <div><div class="ic w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-3 shadow-sm"><i class="fa-solid ${m.ikon}"></i></div>
-                <h2 class="text-base font-bold dark:text-white text-slate-900 transition">${m.ad}</h2>
-                <p class="text-[11px] dark:text-slate-300 text-slate-600 mt-1.5 leading-relaxed font-medium">${m.ack}</p></div>
-                <div class="go mt-4 pt-3 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-[11px] font-bold"><span>${son[0]}</span><i class="fa-solid ${son[1]} transition duration-300"></i></div></div>`;
+                <div><div class="ic w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-sm"><i class="fa-solid ${m.ikon}"></i></div>
+                <h2 class="text-lg font-bold dark:text-white text-slate-900 transition">${m.ad}</h2>
+                <p class="text-xs dark:text-slate-300 text-slate-600 mt-2 leading-relaxed font-medium">${m.ack}</p></div>
+                <div class="go mt-5 pt-3.5 border-t dark:border-slate-600/60 border-slate-200/80 flex items-center justify-between text-xs font-bold"><span>${son[0]}</span><i class="fa-solid ${son[1]} transition duration-300"></i></div></div>`;
         }
         function satirHTML(a, i) {
-            const kl = !var_(a.key), ik = !a.url ? 'fa-clock' : kl ? 'fa-lock' : 'fa-arrow-right';
-            return `<div onclick="ac('${a.key}',event)" style="--c:${rgb(a.renk)};--i:${i}" class="pc ${kl?'kilit':''} p-3 rounded-xl cursor-pointer group flex items-center gap-3 border dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200 transition">
-                <div class="ic w-10 h-10 rounded-lg flex items-center justify-center text-base shrink-0"><i class="fa-solid ${a.ikon}"></i></div>
-                <div class="flex-1 min-w-0"><h4 class="text-xs font-bold dark:text-white text-slate-900 transition">${a.ad}</h4><p class="text-[10px] dark:text-slate-300 text-slate-500">${a.ack}</p></div>
-                <i class="fa-solid ${ik} text-xs go group-hover:translate-x-1 transition"></i></div>`;
+            const kl = !var_(a.key), ik = !a.url ? 'fa-clock' : kl ? 'fa-lock' : '';
+            return `<div onclick="ac('${a.key}',event)" style="--c:${rgb(a.renk)};--i:${i}" class="pc ${kl?'kilit':''} relative p-3 sm:p-4 rounded-xl cursor-pointer group flex flex-col items-center text-center gap-2 border dark:bg-slate-800/90 bg-white dark:border-slate-600 border-slate-200">
+                ${ik ? `<i class="fa-solid ${ik} absolute top-2 right-2.5 text-[10px] dark:text-slate-400 text-slate-500"></i>` : ''}
+                <div class="ic w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl shrink-0"><i class="fa-solid ${a.ikon}"></i></div>
+                <h4 class="text-[11px] sm:text-xs font-bold dark:text-white text-slate-900 leading-snug transition">${a.ad}</h4>
+                <p class="text-[9px] sm:text-[10px] dark:text-slate-300 text-slate-500 leading-snug line-clamp-2">${a.ack}</p></div>`;
         }
         function ac(key, ev) {
             const m = TUM.find(x => x.key === key); if (!m) return;
@@ -503,8 +505,8 @@
         function bildir(t) {
             const [ik, b, m] = MESAJ[t], e = $('toast');
             e.innerHTML = `<div class="flex gap-3 items-start text-left"><div class="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center dark:bg-amber-500/20 bg-amber-50 dark:text-amber-300 text-amber-600"><i class="fa-solid ${ik}"></i></div><div><div class="text-xs font-extrabold dark:text-white text-slate-900">${b}</div><p class="text-[11px] dark:text-slate-300 text-slate-600 mt-0.5 leading-relaxed">${m}</p></div></div>`;
-            e.classList.add('hidden'); void e.offsetWidth; e.classList.remove('hidden');
-            clearTimeout(tt); tt = setTimeout(() => e.classList.add('hidden'), 4800);
+            e.classList.add('hidden'); void e.offsetWidth; e.classList.remove('hidden'); e.style.animation = 'bildir .45s cubic-bezier(.16,1,.3,1)';
+            clearTimeout(tt); tt = setTimeout(() => { e.style.animation = 'bildirCik .35s ease forwards'; tt = setTimeout(() => e.classList.add('hidden'), 350); }, 4500);
         }
         function gecis(m) {
             dokun();
@@ -550,7 +552,7 @@
         }
         function kForm(i) {
             const u = i >= 0 ? KULL[i] : null, y = u && u.ad === 'yonetici';
-            $('kAd').value = u ? u.ad : ''; $('kAd').disabled = !!u; $('kSifre').value = '';
+            $('kAd').value = u ? u.ad : ''; $('kAd').disabled = !!u; $('kSifre').value = ''; $('kSifre').type = 'password'; $('kGoz').className = 'fa-solid fa-eye';
             $('kSifre').placeholder = u ? 'Şifre (değişmeyecekse boş bırakın)' : 'Şifre (en az 6 karakter)';
             $('kBaslik').textContent = u ? 'Düzenle: ' + u.ad : 'Yeni Kullanıcı';
             $('kKartBox').classList.toggle('hidden', !!y); kMsg('');
@@ -559,10 +561,11 @@
                 <span class="ic w-6 h-6 rounded-md flex items-center justify-center text-[10px] shrink-0"><i class="fa-solid ${a.ikon}"></i></span>
                 <span class="min-w-0 leading-tight"><span class="block text-[11px] font-bold dark:text-white text-slate-900 truncate">${a.ad}</span><span class="block text-[9px] dark:text-slate-400 text-slate-500 truncate">${a.ust ? a.ust : 'Ana kart'}</span></span></label>`).join('');
         }
+        function kGoz() { const i = $('kSifre'), g = i.type === 'password'; i.type = g ? 'text' : 'password'; $('kGoz').className = 'fa-solid ' + (g ? 'fa-eye-slash' : 'fa-eye'); }
         function kHepsi(v) { document.querySelectorAll('.kc').forEach(c => c.checked = !!v); }
         async function kullKaydet() {
             const b = $('kBtn'); b.disabled = true; kMsg('');
-            const d = await api({action:'kaydet', ad:$('kAd').value.trim().toLowerCase(), sifre:$('kSifre').value.trim(), kartlar:[...document.querySelectorAll('.kc:checked')].map(x => x.value)});
+            const d = await api({action:'kaydet', ad:$('kAd').value.trim(), sifre:$('kSifre').value.trim(), kartlar:[...document.querySelectorAll('.kc:checked')].map(x => x.value)});
             b.disabled = false;
             if (d.ok) { KULL = d.liste; SILB = -1; kListe(); kForm(-1); kMsg('Kaydedildi.'); } else kMsg(d.mesaj, 1);
         }
