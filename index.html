@@ -100,7 +100,7 @@
         }
 
         /* ===== YENİ: giriş, kart renkleri, kilit, geçiş ===== */
-        @keyframes yuk{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+        @keyframes yuk{from{opacity:0;transform:translateY(-12px) scale(.98)}to{opacity:1;transform:none}}
         @keyframes halka{0%{transform:scale(.92);opacity:.7}100%{transform:scale(1.55);opacity:0}}
         @keyframes sars{10%,90%{transform:translateX(-3px)}30%,70%{transform:translateX(6px)}50%{transform:translateX(-6px)}}
         @keyframes bildir{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
@@ -134,7 +134,18 @@
         .portal-card{transition:transform .3s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .3s,background-color .3s}
         .modal-card{transition:none}
         .dark #kapi{background:rgba(15,23,42,.78)!important}
-        html:not(.dark) #kapi{background:rgba(241,245,249,.82)!important}
+        /* AÇIK TEMA: parlamayı azalt, çizgi ve yazıları belirginleştir */
+        html:not(.dark) #kapi{background:rgba(214,220,229,.88)!important}
+        html:not(.dark) .modal-card{background:#e9ecf1;border:1px solid #b8c0cc}
+        html:not(.dark) .portal-card{background:rgba(238,241,246,.95);border:1px solid #bcc4d0}
+        html:not(.dark) .portal-card:hover{background:#f3f5f8}
+        html:not(.dark) .header-card{background:rgba(238,241,246,.95);border:1px solid #bcc4d0}
+        html:not(.dark) .bg-white,html:not(.dark) [class*="bg-white/"]{background-color:#f3f5f8!important}
+        html:not(.dark) .bg-slate-100{background-color:#dfe4eb!important}
+        html:not(.dark) [class*="border-slate-200"]{border-color:#bcc4d0!important}
+        html:not(.dark) [class*="border-slate-300"]{border-color:#a9b3c1!important}
+        html:not(.dark) .text-slate-500{color:#475569!important}
+        html:not(.dark) .text-slate-600{color:#334155!important}
         @media (hover:none){#cursorGlow{display:none}}
         @media (prefers-reduced-motion:reduce){.orb,.halka,.ekg{animation:none!important}}
     </style>
@@ -523,7 +534,7 @@
         // =====================================================================
         const YAPRAK = MODULLER.flatMap(m => m.alt ? m.alt.map(a => ({...a, ust:m.ad})) : [m]);
         const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        let KULL = [], SILB = -1;
+        let KULL = [], SILB = -1, DUZ = -1;
         async function api(b) {
             const o = oku() || {};
             try {
@@ -552,8 +563,8 @@
         }
         function kForm(i) {
             const u = i >= 0 ? KULL[i] : null, y = u && u.ad === 'yonetici';
-            $('kAd').value = u ? u.ad : ''; $('kAd').disabled = !!u; $('kSifre').value = ''; $('kSifre').type = 'password'; $('kGoz').className = 'fa-solid fa-eye';
-            $('kSifre').placeholder = u ? 'Şifre (değişmeyecekse boş bırakın)' : 'Şifre (en az 6 karakter)';
+            DUZ = i; $('kAd').value = u ? u.ad : ''; $('kAd').disabled = !!y; $('kSifre').value = u ? (u.sifre || '') : ''; $('kSifre').type = 'password'; $('kGoz').className = 'fa-solid fa-eye';
+            $('kSifre').placeholder = 'Şifre (en az 6 karakter)';
             $('kBaslik').textContent = u ? 'Düzenle: ' + u.ad : 'Yeni Kullanıcı';
             $('kKartBox').classList.toggle('hidden', !!y); kMsg('');
             $('kKart').innerHTML = YAPRAK.map(a => `<label class="flex items-center gap-2 p-2 rounded-lg border dark:border-slate-600 border-slate-200 dark:bg-slate-800/60 bg-white cursor-pointer" style="--c:${rgb(a.renk)}">
@@ -565,7 +576,7 @@
         function kHepsi(v) { document.querySelectorAll('.kc').forEach(c => c.checked = !!v); }
         async function kullKaydet() {
             const b = $('kBtn'); b.disabled = true; kMsg('');
-            const d = await api({action:'kaydet', ad:$('kAd').value.trim(), sifre:$('kSifre').value.trim(), kartlar:[...document.querySelectorAll('.kc:checked')].map(x => x.value)});
+            const d = await api({action:'kaydet', eskiAd: DUZ >= 0 ? KULL[DUZ].ad : '', ad:$('kAd').value.trim(), sifre:$('kSifre').value.trim(), kartlar:[...document.querySelectorAll('.kc:checked')].map(x => x.value)});
             b.disabled = false;
             if (d.ok) { KULL = d.liste; SILB = -1; kListe(); kForm(-1); kMsg('Kaydedildi.'); } else kMsg(d.mesaj, 1);
         }
