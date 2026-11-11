@@ -23,6 +23,10 @@
  <div id="step1" class="bg-white rounded-2xl p-5 shadow border space-y-3">
   <h2 class="text-sm font-extrabold">Hastanemizden hangi hizmeti aldınız?</h2><div id="turBtns" class="grid gap-2"></div></div>
  <div id="step2" class="hidden space-y-4">
+  <div id="sayacKutu" class="rounded-2xl p-4 shadow border bg-slate-50 flex items-center justify-between gap-3">
+   <div class="min-w-0"><div class="text-[10px] font-bold text-slate-400 uppercase">Anket sayısı / hedef</div>
+    <select id="sayacAy" onchange="sayacCiz()" class="mt-1 p-1.5 border rounded-lg text-xs font-bold bg-white text-slate-800"></select></div>
+   <div id="sayacDeger" class="text-2xl font-black tabular-nums text-slate-400">-</div></div>
   <div class="bg-white rounded-2xl p-5 shadow border space-y-3"><div class="flex justify-between items-center"><h2 id="turBaslik" class="text-sm font-extrabold"></h2>
    <button onclick="geri()" class="text-xs font-bold text-slate-500">&larr; Değiştir</button></div><div id="alanlar" class="grid sm:grid-cols-2 gap-3"></div></div>
   <div id="sorular" class="space-y-3"></div>
@@ -48,19 +52,39 @@ let tur=null;
 const TCOL={yatan:'#2563eb',ayaktan:'#0d9488',acil:'#ea580c'},TICO={yatan:'fa-bed-pulse',ayaktan:'fa-stethoscope',acil:'fa-truck-medical'};
 $('turBtns').innerHTML=Object.keys(TURLER).map(k=>`<button onclick="sec('${k}')" style="background:${TCOL[k]}" class="py-4 text-white font-bold rounded-xl text-sm shadow flex items-center justify-center gap-2"><i class="fa-solid ${TICO[k]}"></i>${TURLER[k].ad}</button>`).join('');
 const sel=(id,et,list)=>`<div><label class="block text-[11px] font-bold text-slate-600 mb-1">${et} *</label><select id="${id}" class="w-full p-2.5 border rounded-xl text-sm bg-white"><option value="">Seçiniz</option>${list.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>`;
-function sec(k){tur=k;const T=TURLER[k];$('step1').classList.add('hidden');$('step2').classList.remove('hidden');$('turBaslik').textContent=T.ad+' Anketi';$('turBaslik').style.color=TCOL[k];$('gonder').style.background=TCOL[k];
+function sec(k){tur=k;SAYAC=null;KAYIT_ID=yeniId();$('sayacAy').innerHTML='';sayacCiz();sayacYukle();const T=TURLER[k];$('step1').classList.add('hidden');$('step2').classList.remove('hidden');$('turBaslik').textContent=T.ad+' Anketi';$('turBaslik').style.color=TCOL[k];$('gonder').style.background=TCOL[k];
  $('alanlar').innerHTML=(T.katilan?sel('fKatilan','Ankete katılan',['Hasta','Hasta Yakını']):'')+sel('fEk',T.ekEt,T.ek)+(T.sure?sel('fSure','Yatış süresi',SURE):'')+sel('fCins','Cinsiyetiniz',['Kadın','Erkek'])+sel('fYas','Yaş kategoriniz',YAS)+sel('fEgitim','Eğitim durumunuz',EGITIM);
  $('sorular').innerHTML=T.q.map((q,i)=>`<div class="bg-white rounded-2xl p-4 shadow border space-y-2"><div class="text-sm font-semibold"><span class="text-slate-400 font-extrabold mr-1">${i+1}.</span>${esc(q)}</div>
   <div class="grid grid-cols-1 sm:grid-cols-5 gap-1.5">${LIKERT.map((L,k)=>`<label class="lk cursor-pointer" data-s="${5-k}"><input type="radio" name="q${i}" value="${k}" class="sr-only"><span class="block text-center text-[11px] font-bold p-2 border border-slate-300 rounded-lg bg-white text-slate-700">${L}</span></label>`).join('')}</div></div>`).join('');
  scrollTo(0,0);}
 function geri(){location.reload();}
+/* ---- Anket sayısı / hedef (her anket kendi alanında; ay seçilebilir, bulunulan ay varsayılan) ---- */
+const AYLAR=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const HEDEF_N={yatan:24,ayaktan:32,acil:32};
+const _now=new Date(),BU_AY=AYLAR[_now.getMonth()],BU_YIL=String(_now.getFullYear()),BU_KEY=BU_YIL+'|'+BU_AY;
+let SAYAC=null,KAYIT_ID='';
+const yeniId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+function sayacCiz(){if(!tur)return;
+ const sel=$('sayacAy'),eski=sel.value||BU_KEY,keys=new Set(Object.keys(SAYAC||{}));keys.add(BU_KEY);
+ const list=[...keys].sort((x,y)=>{const[a,b]=x.split('|'),[c,d]=y.split('|');return (c-a)||(AYLAR.indexOf(d)-AYLAR.indexOf(b));});
+ sel.innerHTML=list.map(k=>{const[y,a]=k.split('|');return `<option value="${esc(k)}">${esc(a+' '+y)}${k===BU_KEY?' (bu ay)':''}</option>`;}).join('');
+ sel.value=list.includes(eski)?eski:BU_KEY;
+ const h=HEDEF_N[tur],n=SAYAC?Number(SAYAC[sel.value]||0):null,ok=n!==null&&n>=h,box=$('sayacKutu'),val=$('sayacDeger');
+ val.innerHTML=n===null?'-/'+h:n+'/'+h+(ok?' <i class="fa-solid fa-circle-check"></i>':'');
+ val.className='text-2xl font-black tabular-nums '+(n===null?'text-slate-400':ok?'text-emerald-600':'text-rose-600');
+ box.className='rounded-2xl p-4 shadow border flex items-center justify-between gap-3 '+(n===null?'bg-slate-50':ok?'bg-emerald-50 border-emerald-200':'bg-rose-50 border-rose-200');}
+async function sayacYukle(){const k=tur;
+ try{const r=await fetch(API_URL+'?'+new URLSearchParams({islem:'sayac',tur:k})),o=await r.json();
+  if(k===tur&&o.status==='success'&&o.sayilar)SAYAC=o.sayilar;}catch(e){}
+ sayacCiz();}
 async function gonder(){
  const T=TURLER[tur],v=id=>$(id)?$(id).value:'',err=m=>{$('hata').textContent=m;$('hata').classList.remove('hidden');};
  for(const id of ['fKatilan','fEk','fSure','fCins','fYas','fEgitim']) if($(id)&&!v(id)) return err('Lütfen tüm bilgi alanlarını doldurunuz.');
  const answers=[];for(let i=0;i<T.q.length;i++){const r=document.querySelector(`input[name=q${i}]:checked`);if(!r) return err((i+1)+'. soru yanıtlanmadı.');answers.push(LIKERT[+r.value]);}
  $('gonder').disabled=true;$('gonder').textContent='Gönderiliyor...';
- try{const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({tur,katilan:v('fKatilan'),ek:v('fEk'),sure:v('fSure'),cinsiyet:v('fCins'),yas:v('fYas'),egitim:v('fEgitim'),answers,feedback:$('gorus').value})});
+ try{const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({kayitId:KAYIT_ID,tur,katilan:v('fKatilan'),ek:v('fEk'),sure:v('fSure'),cinsiyet:v('fCins'),yas:v('fYas'),egitim:v('fEgitim'),answers,feedback:$('gorus').value})});
   const o=await res.json();if(o.status!=='success')throw new Error(o.message||'Kayıt hatası');
+  if(SAYAC)SAYAC[BU_KEY]=Number(SAYAC[BU_KEY]||0)+1;
   $('step2').classList.add('hidden');$('bitti').classList.remove('hidden');scrollTo(0,0);
  }catch(e){err('Gönderilemedi: '+e.message);$('gonder').disabled=false;$('gonder').textContent='Anketi Gönder';}}
 </script></body></html>
