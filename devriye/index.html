@@ -513,8 +513,10 @@
         </div>
     </div>
 
+    <script src="../portal-ayar.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxM95JBfqDilvDtfJk3WSSK-Zulibt5JU7zvS9vI5MDW91je5GUHUwL-nyl66f8NzWM/exec";
+        // Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
+        const API_URL = ADRESLER.devriye;
         const $ = id => document.getElementById(id);
         const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
         const sleep = ms => new Promise(r => setTimeout(r, ms));
