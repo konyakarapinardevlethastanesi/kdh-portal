@@ -51,11 +51,11 @@
              --rapor-cizgi     : tablo çizgi rengi  (koyu lacivert)
              --rapor-cizgi-kalinlik : çizgi kalınlığı (örnek: .25mm, .3mm, .4mm)
            SAYFA KENAR BOŞLUKLARI: aşağıdaki "margin" satırı; sıra = ÜST SAĞ ALT SOL (mm)
-             Şu an: üst 8mm, sağ 5mm, alt 14mm (sayfa numarası için), sol 5mm
+             Şu an: üst 7mm, sağ 5mm, alt 14mm (sayfa numarası için), sol 5mm
              Yazıcı kenarı keserse sağ ve sol değerini biraz artırın (örnek: 6mm).
            ==================================================================== */
-        :root { --rapor-yazi-tipi: Times New Roman, Helvetica, sans-serif; --rapor-punto: 9pt; --rapor-cizgi: #0b1f4d; --rapor-cizgi-kalinlik: .3mm; }
-        @page { size: A4 portrait; margin: 8mm 5mm 14mm 5mm; /* ÜST SAĞ ALT SOL */
+        :root { --rapor-yazi-tipi: Times New Roman, Helvetica, sans-serif; --rapor-punto: 8pt; --rapor-cizgi: #0b1f4d; --rapor-cizgi-kalinlik: .3mm; }
+        @page { size: A4 portrait; margin: 7mm 5mm 14mm 5mm; /* ÜST SAĞ ALT SOL */
             @bottom-center { content: "Sayfa " counter(page) "/" counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #475569; } }
 
         /* ---------- RAPOR (ekranda önizleme + yazdırma aynı görünüm; A4 dikey) ---------- */
