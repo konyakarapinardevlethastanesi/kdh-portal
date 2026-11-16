@@ -3,7 +3,7 @@
          <link rel="icon" type="image/png" href="/kdh-portal/favicon.png">
          <link rel="shortcut icon" href="/kdh-portal/favicon.ico">
          <link rel="apple-touch-icon" href="/kdh-portal/apple-touch-icon.png">
-<script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+         <script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ====== YAZI BOYUTLARI (px) — buradan değiştirebilirsiniz ====== */
 :root{--fs-ad:13px;--fs-unvan:11px;--fs-sol:7.5px;--fs-tarih:10px;--fs-yilay:11px;--fs-sira:12px;--fs-alt:11px;--fs-satir:10px}
@@ -96,6 +96,12 @@ input[type=date]{cursor:pointer}
 #dpop .df{display:flex;justify-content:space-between;margin-top:6px}
 #dpop .df button{border:0;background:none;color:#2563eb;font-weight:700;cursor:pointer;font-size:12px}
 .pwx{position:relative}.pwx input{padding-right:34px!important}.pwe{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:0!important;background:transparent!important;color:#64748b;cursor:pointer;padding:0!important;border-radius:8px}.pwe:hover{background:#e2e8f0!important;color:#0f172a}
+@keyframes dbl{0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.8);color:#fda4af}50%{box-shadow:0 0 0 8px rgba(244,63,94,0);color:#fbbf24;transform:scale(1.12)}}
+#duyBell.duyblink{animation:dbl 1s infinite;border-color:#f43f5e}
+.duyc{border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-top:10px;background:#fff}
+.duyc h4{font-size:13px;font-weight:800;margin:0}.duyc .dm{font-size:12px;white-space:pre-wrap;margin-top:4px}
+.duyt{display:inline-block;border:1px solid #cbd5e1;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin:3px 4px 0 0;background:#f8fafc}.duyt:hover{background:#e2e8f0}
+.duyb{display:inline-block;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:800;margin-left:6px}
 </style></head>
 <body class="bg-gradient-to-b from-slate-100 to-sky-50 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
 <div id="mainAuthPortal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden select-none">
@@ -114,6 +120,7 @@ input[type=date]{cursor:pointer}
 <div class="flex items-center gap-3"><div class="w-[56px] h-[56px] flex items-center justify-center shrink-0"><img src="logo.png" alt="Logo" class="w-full h-full object-contain"></div>
 <div class="flex flex-col justify-center leading-tight"><div class="text-[11px] font-extrabold text-red-500 uppercase tracking-wide">T.C. Sağlık Bakanlığı</div><div class="text-[10.5px] font-semibold text-slate-200 mt-0.5">Konya İl Sağlık Müdürlüğü</div><h1 class="text-sm font-extrabold text-white mt-0.5">Karapınar Devlet Hastanesi</h1><p class="text-[10px] text-slate-400 mt-0.5">Nöbet, Puantaj ve Fiili Hizmet Paneli</p></div></div>
 <div class="flex items-center space-x-3"><span id="st"></span>
+<button id="duyBell" onclick="duyOpen()" class="hidden relative w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700" title="Duyurular"><i class="fa-solid fa-bell text-xs"></i><span id="duyBadge" class="hidden absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 rounded-full bg-rose-600 text-white text-[9px] font-extrabold leading-[15px]"></span></button>
 <div id="uw" class="hidden relative"><button id="uwChip" onclick="uwToggle()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700"><i class="fa-solid fa-circle-user text-emerald-400"></i><span id="uwName"></span><span id="uwRole" class="text-amber-300"></span><i id="uwCaret" class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i></button>
 <div id="uwPanel" class="hidden absolute right-0 top-full mt-2 w-80 max-h-[75vh] overflow-y-auto bg-white text-slate-800 rounded-xl border border-slate-200 shadow-2xl p-3 space-y-2.5 text-left z-50">
 <div class="flex items-center gap-2"><i class="fa-solid fa-users text-slate-600 text-xs"></i><h4 class="flex-1 text-xs font-extrabold text-slate-800">Kullanıcılar</h4><button onclick="uwToggle()" class="w-6 h-6 rounded-md text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-xmark text-xs"></i></button></div>
@@ -204,8 +211,8 @@ function kodlar(){return`<div class="card"><h3>Nöbet kodları (üst satıra yaz
 function tatil(){return`<div class="card"><h3>Resmi tatiller (Arife işaretli günler o aya +5 saat ekler)</h3><table class="f"><tr><th>Tarih</th><th>Tatil</th><th>Arife</th><th>İdari izin</th><th></th></tr>${D.hol.map((h,i)=>`<tr><td><input type="date" value="${h.t}" onchange="D.hol[${i}].t=this.value;sv();R()"></td><td><input value="${esc(h.a)}" onchange="D.hol[${i}].a=this.value;sv()"></td><td><input type="checkbox" ${h.r?'checked':''} onchange="D.hol[${i}].r=this.checked?1:0;sv();R()"></td><td><input type="checkbox" ${h.i?'checked':''} onchange="D.hol[${i}].i=this.checked?1:0;sv()"></td><td><button onclick="delItem('hol',${i},'Bu tatil')">Sil</button></td></tr>`).join('')}</table><p><button class="p" onclick="D.hol.push({t:'${D.cur.y}-01-01',a:'Yeni tatil',r:0});D.hol.sort((a,b)=>a.t<b.t?-1:1);sv();R()">+ Tatil ekle</button></p></div>`}
 function R(){if(cu()&&cu().codes)D.codes=cu().codes;if(typeof pkHide=='function')pkHide();const sel=document.getElementById('su');sel.innerHTML=Object.keys(D.units).map(u=>`<option ${u==D.cur.u?'selected':''}>${esc(u)}</option>`).join('')||'<option>Birim yok</option>';if(!D.units[D.cur.u]&&Object.keys(D.units)[0])D.cur.u=Object.keys(D.units)[0];
 document.getElementById('sy').value=D.cur.y;document.getElementById('sm').innerHTML=MON.map((x,i)=>`<option value="${i+1}" ${i+1==D.cur.m?'selected':''}>${x}</option>`).join('');
-const T=[['nob','Nöbet Listesi','fa-calendar-days'],['pua','Puantaj','fa-clipboard-list'],['fii','Fiili Hizmet','fa-hourglass-half'],['lst','Nöbet & Puantaj Listeleri','fa-folder-open'],['fkr','Fiili Hizmet Kayıtları','fa-folder-tree']].concat(ROLE=='admin'?[['kod','Ayarlar','fa-sliders'],['gec','İşlem Geçmişi','fa-clock-rotate-left']]:[]);if(ROLE!='admin'&&['kod','tat','gec'].includes(D.tab))D.tab='nob';document.getElementById('tabs').innerHTML=T.map(t=>`<button class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 ${D.tab==t[0]?'bg-white text-slate-900 border-slate-200 shadow-sm':'bg-transparent text-slate-500 border-transparent hover:text-slate-800'}" onclick="D.tab='${t[0]}';sv();R()"><i class="fa-solid ${t[2]}"></i> ${t[1]}</button>`).join('');
-const A=document.getElementById('app'),AB=document.getElementById('autoBar');if(AB)AB.innerHTML='';if(D.tab=='gec')return gecTab();if(D.tab=='kod'||D.tab=='tat'){A.classList.remove('locked');return A.innerHTML=ayarlar()}if(D.tab=='lst'){A.classList.remove('locked');return lstTab()}if(D.tab=='fkr'){A.classList.remove('locked');return fkrTab()}
+const T=[['nob','Nöbet Listesi','fa-calendar-days'],['pua','Puantaj','fa-clipboard-list'],['fii','Fiili Hizmet','fa-hourglass-half'],['lst','Nöbet & Puantaj Listeleri','fa-folder-open'],['fkr','Fiili Hizmet Kayıtları','fa-folder-tree']].concat([['duy','Duyurular','fa-bullhorn']]).concat(ROLE=='admin'?[['kod','Ayarlar','fa-sliders'],['gec','İşlem Geçmişi','fa-clock-rotate-left']]:[]);if(ROLE!='admin'&&['kod','tat','gec'].includes(D.tab))D.tab='nob';document.getElementById('tabs').innerHTML=T.map(t=>`<button class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 ${D.tab==t[0]?'bg-white text-slate-900 border-slate-200 shadow-sm':'bg-transparent text-slate-500 border-transparent hover:text-slate-800'}" onclick="D.tab='${t[0]}';sv();R()"><i class="fa-solid ${t[2]}"></i> ${t[1]}</button>`).join('');
+const A=document.getElementById('app'),AB=document.getElementById('autoBar');if(AB)AB.innerHTML='';if(D.tab=='gec')return gecTab();if(D.tab=='duy'){A.classList.remove('locked');return duyTab()}if(D.tab=='kod'||D.tab=='tat'){A.classList.remove('locked');return A.innerHTML=ayarlar()}if(D.tab=='lst'){A.classList.remove('locked');return lstTab()}if(D.tab=='fkr'){A.classList.remove('locked');return fkrTab()}
 const U=cu();if(!U)return A.innerHTML='<div class="card">Başlamak için “+ Birim” ile bir birim ekleyin (ör. ACİL SERVİS).</div>';
 let h='';if(D.tab=='nob'){const o=(a,b)=>`<option ${a==b?'selected':''}>${b}</option>`;if(AB)AB.innerHTML=`<button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-2" onclick="autoOpen()" title="Otomatik nöbet yazma, temizleme ve nöbet tutmak istemeyenler"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i> Nöbet Sihirbazı</button>`
 h='';}
@@ -302,6 +309,41 @@ async function flush(){tm=null;if(!ROLE)return;setSt('Kaydediliyor…');try{
  setSt('Kaydedildi ✓');updDirty(false);lstInv()}catch(e){setSt('Kaydedilemedi: '+e.message,1);showToast('Kaydedilemedi: '+e.message,1)}}
 window.addEventListener('beforeunload',e=>{if(isDirty()&&!window._lv){e.preventDefault();e.returnValue=''}});
 const newU=n=>({info:{servis:n,yatak:'',h1:'',h1u:'Birim Sorumlusu',h2:'',h2u:'',h3:'',h3u:''},cfg:{tur:24,min:1,max:2,rows:15,rowsF:15},p:[],codes:defCodesCopy(),m:{},_ld:{}});
+/* ====== DUYURULAR ====== */
+let DUY={list:[],mut:null};const DUY_TPL=['Kontrol edildi, değişiklik yok.','Değişiklik listeye işlenmiştir.','Güncel durumdadır.'];
+const duyOkKey=d=>'duyOk:'+WHO+':'+d.id+':'+d.occ,duyIsOk=d=>{try{return localStorage.getItem(duyOkKey(d))=='1'}catch(e){return false}};
+function duyPend(){return ROLE=='user'?DUY.list.filter(d=>d.aktif&&!d.yanit):[]}
+function duyBell(){const b=$('duyBell');if(!b)return;const u=ROLE=='user';b.classList.toggle('hidden',!u);if(!u)return;const n=duyPend().length;b.classList.toggle('duyblink',n>0);b.title=n?n+' duyuru yanıt bekliyor':'Bekleyen duyuru yok';const g=$('duyBadge');g.textContent=n||'';g.classList.toggle('hidden',!n)}
+async function duyLoad(){try{const r=await gj({islem:'duyurular'});if(r&&r.status=='success'){DUY.list=r.duyurular||[];DUY.mut=r.mutemet||null}}catch(e){}duyBell();if(D.tab=='duy'&&!document.querySelector('.mod')&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)))R()}
+function duyAcilis(){const u=duyPend().filter(d=>!duyIsOk(d));if(!u.length)return;
+ modal(`<div style="width:min(560px,92vw)"><h3><i class="fa-solid fa-bullhorn"></i> Duyuru</h3>${u.map(duyCard).join('')}<p style="margin-top:12px"><button class="p" onclick="duyOkAll()"><i class="fa-solid fa-check"></i> Okundu</button></p><div style="font-size:11px;opacity:.7">“Okundu” penceresi kapatır; zil simgesi yanıt verene kadar yanıp söner.</div></div>`)}
+function duyOkAll(){duyPend().forEach(d=>{try{localStorage.setItem(duyOkKey(d),'1')}catch(e){}});cl()}
+const duyTarih=d=>d.hedef?d.hedef.split('-').reverse().join('.'):'';
+function duyCard(d){return`<div class="duyc"><h4>${esc(d.baslik)}${d.hedef?`<span class="duyb" style="background:#fef3c7;color:#92400e">Önemli tarih: ${duyTarih(d)}${d.tekrar=='aylik'?' · her ay':''}</span>`:''}</h4><div class="dm">${esc(d.metin)}</div><div style="font-size:10px;opacity:.6;margin-top:4px">${esc(d.yazan||'')}</div></div>`}
+function duyOpen(){const L=duyPend();
+ if(!L.length){const dn=DUY.list.filter(d=>d.aktif&&d.yanit);return modal(`<div style="width:min(560px,92vw)"><h3><i class="fa-solid fa-bell"></i> Duyurular</h3><div style="font-size:13px;font-weight:700;color:#047857"><i class="fa-solid fa-circle-check"></i> Bekleyen duyuru yok.</div>${dn.map(d=>duyCard(d)+`<div style="font-size:11px;margin:4px 0 0 4px"><b>Yanıtınız:</b> ${esc(d.yanit.metin)} <span style="opacity:.6">(${esc(d.yanit.zaman)})</span></div>`).join('')}<p style="margin-top:12px"><button onclick="cl()">Kapat</button></p></div>`)}
+ modal(`<div style="width:min(600px,94vw)"><h3><i class="fa-solid fa-bell"></i> Yanıt bekleyen duyurular</h3>${L.map((d,i)=>`<div id="dy_${i}">${duyCard(d)}<div style="margin-top:8px"><span style="font-size:11px;font-weight:700">Hazır yanıt:</span><br>${DUY_TPL.map(t=>`<span class="duyt" onclick="$('dyt_${i}').value=this.textContent">${esc(t)}</span>`).join('')}<textarea id="dyt_${i}" rows="2" style="width:100%;margin-top:6px" placeholder="Hazır yanıtlardan birini seçin veya yazın"></textarea><button class="p" style="margin-top:6px" onclick="duyYanit(${i})"><i class="fa-solid fa-paper-plane"></i> Gönder</button></div></div>`).join('')}<p style="margin-top:12px"><button onclick="cl()">Kapat</button></p></div>`)}
+async function duyYanit(i){const d=duyPend()[i];if(!d)return;const t=($('dyt_'+i).value||'').trim();if(!t)return alert('Hazır yanıtlardan birini seçin ya da yazın.');
+ try{chk(await pj({action:'duyuruYanit',id:d.id,occ:d.occ,metin:t}))}catch(e){return alert('Yanıt gönderilemedi: '+e.message)}
+ await duyLoad();cl();showToast('Yanıtınız gönderildi');if(duyPend().length)duyOpen()}
+async function duyEkle(){const b=($('dn_b').value||'').trim(),m=($('dn_m').value||'').trim(),t=$('dn_t').value||'';if(!b||!m)return alert('Başlık ve duyuru metnini yazın.');
+ if($('dn_r').checked&&!t)return alert('Her ay tekrar için önemli tarih seçin.');
+ try{chk(await pj({action:'duyuruEkle',baslik:b,metin:m,tarih:t,tekrar:$('dn_r').checked?'aylik':'',onceGun:+$('dn_g').value}))}catch(e){return alert('Duyuru eklenemedi: '+e.message)}
+ await duyLoad();R();showToast('Duyuru yayınlandı')}
+async function duySil(id){const d=DUY.list.find(x=>x.id==id);const ok=await askConfirm({title:'Duyuru silinsin mi?',text:'Duyuru ve yanıtları silinecek.',ok:'Evet, Sil',summary:'<div><b>'+esc(d?d.baslik:'')+'</b></div>'});if(!ok)return;
+ try{chk(await pj({action:'duyuruSil',id:id}))}catch(e){return alert('Silinemedi: '+e.message)}await duyLoad();R();showToast('Duyuru silindi')}
+function duyTab(){const A=$('app'),mut=ROLE=='mutemet'||ROLE=='admin',M=DUY.mut||{yanitlar:[],bekleyen:{}};
+ const form=mut?`<div class="card"><h3>Yeni duyuru</h3><div style="display:grid;grid-template-columns:1fr;gap:8px"><div><label>Başlık</label><input id="dn_b" maxlength="80" placeholder="Örn. Ay sonu nöbet kontrolü"></div><div><label>Duyuru metni</label><textarea id="dn_m" rows="3" maxlength="600" style="width:100%" placeholder="Örn. Ay sonu nöbetlerini kontrol edelim, ayın 2’sinde puantajı alıp kilitleyeceğim."></textarea></div>
+ <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end"><div><label>Önemli tarih (isteğe bağlı)</label><input id="dn_t" type="date"></div><div><label>Kaç gün önceden gösterilsin</label><input id="dn_g" type="number" min="0" max="60" value="7" style="width:90px"></div></div>
+ <label class="ck"><input type="checkbox" id="dn_r"><span>Her ay tekrarla (aynı gün; her ay yeniden yanıt istenir)</span></label></div><p style="margin-top:8px"><button class="p" onclick="duyEkle()"><i class="fa-solid fa-bullhorn"></i> Duyuru yayınla</button></p><div style="font-size:11px;opacity:.7">Duyurular tüm kullanıcılara gider. Duyuru ve yanıtlar 2 ay saklanır, sonra otomatik silinir (her ay tekrarlayan duyuru silinene kadar kalır).</div></div>`:'';
+ const L=DUY.list;
+ const items=L.length?L.map(d=>{const key=d.id+'|'+d.occ,ys=(M.yanitlar||[]).filter(y=>y.id==d.id&&y.occ==d.occ),bek=(M.bekleyen||{})[key]||[];
+  const st=d.aktif?'<span class="duyb" style="background:#dcfce7;color:#166534">Aktif</span>':'<span class="duyb" style="background:#e2e8f0;color:#475569">'+(d.gecti?'Süresi geçti':'Henüz gösterilmiyor')+'</span>';
+  const own=!mut&&d.yanit?`<div style="font-size:11px;margin-top:6px"><b>Yanıtınız:</b> ${esc(d.yanit.metin)} <span style="opacity:.6">(${esc(d.yanit.zaman)})</span></div>`:(!mut&&d.aktif?'<div style="margin-top:6px"><button class="p" onclick="duyOpen()">Yanıtla</button></div>':'');
+  const adm=mut?`<div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:11px"><b>${ys.length}</b> yanıt${d.aktif?' · <b>'+bek.length+'</b> bekleyen':''}</span><button onclick="duySil('${d.id}')" style="color:#be123c"><i class="fa-solid fa-trash"></i> Sil</button></div>
+   <details style="margin-top:6px;font-size:12px"><summary style="cursor:pointer;font-weight:700">Yanıtlar ve bekleyenler</summary>${ys.length?`<table class="f lt" style="margin-top:6px"><tr><th>Birim</th><th>Kullanıcı</th><th>Yanıt</th><th>Zaman</th></tr>${ys.map(y=>`<tr><td>${esc(y.birim||'—')}</td><td>${esc(y.ad)}</td><td>${esc(y.metin)}</td><td>${esc(y.zaman)}</td></tr>`).join('')}</table>`:'<div style="opacity:.6;margin-top:4px">Henüz yanıt yok.</div>'}${d.aktif&&bek.length?`<div style="margin-top:8px"><b>Yanıt vermeyenler:</b> ${bek.map(b=>esc(b.ad)+(b.birim?' ('+esc(b.birim)+')':'')).join(', ')}</div>`:''}</details>`:'';
+  return duyCard(d).replace('</h4>',st+'</h4>')+own+adm}).join(''):'<div class="card"><div style="opacity:.7;font-size:12px">Duyuru yok.</div></div>';
+ A.innerHTML=form+'<div class="card"><h3>Duyurular</h3>'+items+'</div>'}
 async function boot(){const k=await gj({islem:'kimlik'});chk(k);ROLE=k.rol;WHO=k.ad;
  const o=await gj({islem:'ortak'});let th=null;try{th=await gj({islem:'tatiller'})}catch(e){}if(o.ortak){['leg','legF','leaveX','cntCodes','pickCodes','hol','hosp','gn'].forEach(f=>{if(o.ortak[f]!=null)D[f]=o.ortak[f]});if(o.ortak.codes)D.defCodes=normCodes(o.ortak.codes)}if(th&&th.status=='success'&&Array.isArray(th.tatiller))D.hol=th.tatiller;unifyLeg();syncLeave();if(!(o.ortak&&Array.isArray(o.ortak.cntCodes)))D.cntCodes=defCnt();if(!(o.ortak&&Array.isArray(o.ortak.pickCodes)))D.pickCodes=['Yİ.','R.','NÖİ.','Üİ.','M.','E.','HY.'];if(!D.gn){try{const q=JSON.parse(localStorage.getItem('nobet_gn')||'null');if(q&&q.gs!=null)D.gn=q}catch(e){}}SN.h=holSig();SN.o=sj({codes:D.defCodes,leg:D.leg,legF:D.legF,leaveX:D.leaveX,cntCodes:D.cntCodes,pickCodes:D.pickCodes,hosp:D.hosp,gn:D.gn});
  D.units={};(k.birimler||[]).forEach(b=>{D.units[b]=newU(b);D.units[b]._ld=null});
@@ -309,7 +351,7 @@ async function boot(){const k=await gj({islem:'kimlik'});chk(k);ROLE=k.rol;WHO=k
  const nw=new Date();D.cur.y=nw.getFullYear();D.cur.m=nw.getMonth()+1;
  if(!D.units[D.cur.u])D.cur.u=Object.keys(D.units)[0]||'';
  document.querySelectorAll('.adm').forEach(e=>e.style.display=ROLE=='admin'?'':'none');document.getElementById('mainAuthPortal').style.display='none';document.getElementById('appRoot').style.display='flex';tick();setInterval(tick,1000);
- loginMsg('Liste yükleniyor...');await ensureLoaded();uwInit();R()}
+ loginMsg('Liste yükleniyor...');await ensureLoaded();uwInit();R();await duyLoad();duyAcilis();if(!window._duyT)window._duyT=setInterval(duyLoad,300000)}
 async function login(e){e.preventDefault();const er=document.getElementById('le'),b=e.target.querySelector('button');er.style.display='none';b.disabled=true;const bOld=b.innerHTML;b.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';sessionStorage.setItem(KEY,document.getElementById('pw').value.trim());
  try{await boot()}catch(x){sessionStorage.removeItem(KEY);er.textContent=x.message=='unauthorized'?'Hatalı şifre!':(x.message=='Failed to fetch'?'Sunucuya ulaşılamadı.':(x instanceof SyntaxError?'Sunucudan geçersiz yanıt geldi. Apps Script yeni sürüm olarak yayınlanmamış olabilir.':'Hata: '+x.message));er.style.display='block'}finally{b.disabled=false;b.innerHTML=bOld}}
 async function addU(){if(ROLE!='admin')return alert('Birim ekleme yöneticiye aittir.');const n=(prompt('Birim adı (ör. ACİL SERVİS)')||'').trim();if(!n||D.units[n])return;D.units[n]=newU(n);D.cur.u=n;await flush();R()}
@@ -376,40 +418,66 @@ function dayFill(p){const{y,m}=D.cur,n=dim(y,m),pm0=m==1?12:m-1,py0=m==1?y-1:y,M
  for(let d=1;d<=n;d++){const g=get(p,d);if(g[2]||g[0]!==''||g[1]!=='')continue;{const pv=d>1?get(p,d-1):get(p,dim(py0,pm0),py0,pm0);if(!pv[2]&&parseFloat(pv[1])>=16)continue}const w=new Date(y,m-1,d).getDay();if(w==0||w==6)continue;const t=iso(y,m,d);
   if(D.hol.some(h=>h.r&&h.t==t)){if(c5){M.c[p.id+'_'+d]=[c5.k,String(c5.s)];k++}}else if(!H.has(t)&&c8){M.c[p.id+'_'+d]=[c8.k,String(c8.s)];k++}}return k}
 function fillDay(id){if(chkLock())return;const p=cu().p.find(x=>x.id==id);if(!p)return;const k=dayFill(p);sv();R();showToast(k+' gün gündüz mesaisi yazıldı')}
-function auto(){if(chkLock())return;const U=cu(),{y,m}=D.cur,n=dim(y,m),mn=+U.cfg.min,mx=+U.cfg.max,H=holSet();
- const code=D.codes.find(c=>c.k===AUTO_KOD);if(!code)return alert('Önce Nöbet Sihirbazı penceresinde nöbet kodunu seçin.');
- const P=U.p.filter(p=>inMonth(p,y,m)&&!p.fo);
- if(code.t=='mesai'||+code.s<16){let k=0;P.forEach(p=>{k+=dayFill(p)});sv();R();return showToast(k+' güne mesai yazıldı')}
- const tp=+code.s,c16=D.codes.find(c=>+c.s==16&&c.t!='mesai'),c23=D.codes.find(c=>+c.s==23&&c.t!='mesai'),c8=D.codes.find(c=>+c.s==8&&c.t=='mesai')||D.codes.find(c=>+c.s==8),c5=D.codes.find(c=>+c.s==5&&c.t=='mesai')||D.codes.find(c=>+c.s==5);
- const M=mo(),isAuto=c=>c&&[code,c23,c16,c8,c5].some(x=>x&&c[0]===x.k&&String(c[1])===String(x.s));(M.au||[]).forEach(k=>{if(isAuto(M.c[k]))delete M.c[k]});M.au=[];
- const av={};(U.cfg.avoid||[]).forEach(a=>{(av[a[0]]=av[a[0]]||[]).push(a[1]);(av[a[1]]=av[a[1]]||[]).push(a[0])});
- const pm=m==1?12:m-1,py=m==1?y-1:y,pn=dim(py,pm),nm2=m==12?1:m+1,ny=m==12?y+1:y,sh={},cap={},cnt={},L={},wk={},hasSup=P.some(p=>p.sv);
- P.forEach(p=>{sh[p.id]=[];for(let d=pn-2;d<=pn;d++){const b=parseFloat(get(p,d,py,pm)[1]);if(b>=16)sh[p.id].push(d-pn)}for(let d=1;d<=n;d++){const g=get(p,d),b=parseFloat(g[1]);if(!g[2]&&b>=16)sh[p.id].push(d)}for(let d=1;d<=3;d++){const b=parseFloat(get(p,d,ny,nm2)[1]);if(b>=16)sh[p.id].push(n+d)}const st=stats(p);cap[p.id]=Math.max(0,Math.floor((st.ay-st.h)/tp));cnt[p.id]=0;wk[p.id]=0;L[p.id]=st.h-st.ay});
+/* ===== Nöbet Sihirbazı çekirdeği: çok denemeli planlama ===== */
+function autoPrep(){const U=cu(),{y,m}=D.cur,code=D.codes.find(c=>c.k===AUTO_KOD);if(!code){alert('Önce Nöbet Sihirbazı penceresinde nöbet kodunu seçin.');return null}
+ const P=U.p.filter(p=>inMonth(p,y,m)&&!p.fo),M=mo();
+ if(code.t=='mesai'||+code.s<16){let k=0;P.forEach(p=>{k+=dayFill(p)});sv();R();showToast(k+' güne mesai yazıldı');return{done:1}}
+ const c16=D.codes.find(c=>+c.s==16&&c.t!='mesai'),c23=(U.cfg.supKod&&D.codes.find(c=>c.k===U.cfg.supKod))||D.codes.find(c=>+c.s==23&&c.t!='mesai'),c8=D.codes.find(c=>+c.s==8&&c.t=='mesai')||D.codes.find(c=>+c.s==8),c5=D.codes.find(c=>+c.s==5&&c.t=='mesai')||D.codes.find(c=>+c.s==5);
+ const isAuto=c=>c&&[code,c23,c16,c8,c5].some(x=>x&&c[0]===x.k&&String(c[1])===String(x.s));(M.au||[]).forEach(k=>{if(isAuto(M.c[k]))delete M.c[k]});M.au=[];
+ const B={};P.forEach(p=>{const st=stats(p);B[p.id]={h:st.h,ay:st.ay}});
+ return{U,y,m,n:dim(y,m),P,M,code,c16,c23,c8,c5,B,base:JSON.stringify(M.c),mn:+U.cfg.min,mx:+U.cfg.max,H:holSet()}}
+function autoAttempt(X){const{U,y,m,n,P,M,code,c16,c23,c8,c5,B,mn,mx,H}=X,tp=+code.s;M.c=JSON.parse(X.base);M.au=[];
+ const pm=m==1?12:m-1,py=m==1?y-1:y,pn=dim(py,pm),nm2=m==12?1:m+1,ny=m==12?y+1:y,sh={},cap={},cnt={},L={},wk={},ms={},av={},wt={},hasSup=P.some(p=>p.sv);
+ (U.cfg.avoid||[]).forEach(a=>{(av[a[0]]=av[a[0]]||[]).push(a[1]);(av[a[1]]=av[a[1]]||[]).push(a[0])});(U.cfg.want||[]).forEach(a=>{(wt[a[0]]=wt[a[0]]||[]).push(a[1]);(wt[a[1]]=wt[a[1]]||[]).push(a[0])});
+ const byId={},idx={},co={};P.forEach((p,i)=>{byId[p.id]=p;idx[p.id]=i});const onDay=Array.from({length:n+2},()=>new Set());
+ const ck=(a,b)=>a<b?a+'|'+b:b+'|'+a,coSum=(p,d)=>{let t=0;onDay[d].forEach(q=>{t+=co[ck(p.id,q)]||0});return t},runLen=(p,d)=>{const on=new Set([...onDay[d]].map(q=>idx[q]));let r=1,a=idx[p.id]-1,b=idx[p.id]+1;while(on.has(a)){r++;a--}while(on.has(b)){r++;b++}return r};
+ P.forEach(p=>{sh[p.id]=[];for(let d=pn-2;d<=pn;d++){const b=parseFloat(get(p,d,py,pm)[1]);if(b>=16)sh[p.id].push(d-pn)}for(let d=1;d<=n;d++){const g=get(p,d),b=parseFloat(g[1]);if(!g[2]&&b>=16){sh[p.id].push(d);onDay[d].add(p.id)}}for(let d=1;d<=3;d++){const b=parseFloat(get(p,d,ny,nm2)[1]);if(b>=16)sh[p.id].push(n+d)}
+  const b=B[p.id];cap[p.id]=Math.max(0,Math.ceil((b.ay-b.h)/tp));cnt[p.id]=0;wk[p.id]=0;ms[p.id]=0;L[p.id]=b.h-b.ay});
  const sum=()=>P.reduce((a,p)=>a+cap[p.id],0),ok=(p,d,g)=>sh[p.id].every(q=>Math.abs(d-q)>=g+1),isWe=d=>{const w=new Date(y,m-1,d).getDay();return w==0||w==6||H.has(iso(y,m,d))};
  const workAt=(p,d)=>{const g=d<=n?get(p,d):get(p,d-n,ny,nm2);return!g[2]&&parseFloat(g[1])>0&&!isL(g[1])};
  const low=[],noSup=[];let put=0,put16=0,mes=0;
- for(let d=1;d<=n;d++){const we=isWe(d),is=p=>{const g=get(p,d);return!g[2]&&parseFloat(g[1])>=16};
-  let have=P.filter(is).length,supHave=P.some(p=>p.sv&&is(p));const tg=Math.max(mn,Math.min(mx,Math.round(sum()/(n-d+1))));
-  const elig=(p,g,useCap)=>{const x=get(p,d);return!x[2]&&x[0]===''&&x[1]===''&&(!useCap||cap[p.id]>0)&&ok(p,d,g)&&!workAt(p,d+1)&&!(p.sv&&!p.mt&&!we)&&!(av[p.id]&&P.some(q=>av[p.id].indexOf(q.id)>=0&&is(q)))};
-  const pick=(g,useCap,lim,c,onlySup,noSv)=>{const list=P.filter(p=>elig(p,g,useCap)&&(!onlySup||p.sv)&&!(noSv&&p.sv)).map(p=>[L[p.id]+(we?wk[p.id]*4:0)+(p.sv&&!onlySup?1000:0)+Math.random()*34,p]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
-   for(const p of list){if(have>=lim)break;if(av[p.id]&&P.some(q=>av[p.id].indexOf(q.id)>=0&&is(q)))continue;const cc=(p.sv&&!we&&c23)?c23:c,hh=+cc.s;M.c[p.id+'_'+d]=[cc.k,String(cc.s)];M.au.push(p.id+'_'+d);sh[p.id].push(d);cap[p.id]=Math.max(0,cap[p.id]-1);cnt[p.id]++;L[p.id]+=hh;if(we)wk[p.id]++;have++;put++;if(hh==16)put16++;if(p.sv)supHave=true;if(onlySup)break}};
+ const elig=(p,d,g,useCap)=>{const x=get(p,d);return!x[2]&&x[0]===''&&x[1]===''&&(!useCap||cap[p.id]>0)&&ok(p,d,g)&&!workAt(p,d+1)&&!(p.sv&&!p.mt&&!isWe(d))&&!(av[p.id]&&av[p.id].some(q=>onDay[d].has(q)))};
+ const place=(p,d,cc)=>{const hh=+cc.s;M.c[p.id+'_'+d]=[cc.k,String(cc.s)];M.au.push(p.id+'_'+d);sh[p.id].push(d);cap[p.id]=Math.max(0,cap[p.id]-1);cnt[p.id]++;L[p.id]+=hh;if(isWe(d))wk[p.id]++;onDay[d].forEach(q=>{const k=ck(p.id,q);co[k]=(co[k]||0)+1});onDay[d].add(p.id);put++;if(hh==16)put16++};
+ const codeFor=(p,d,c)=>(p.sv&&!isWe(d)&&c23)?c23:c;
+ for(let d=1;d<=n;d++){const we=isWe(d);let supHave=P.some(p=>p.sv&&onDay[d].has(p.id));const tg=Math.max(mn,Math.min(mx,Math.round(sum()/(n-d+1))));
+  const pick=(g,useCap,lim,c,onlySup,noSv)=>{const list=P.filter(p=>!onDay[d].has(p.id)&&elig(p,d,g,useCap)&&(!onlySup||p.sv)&&!(noSv&&p.sv)).map(p=>[L[p.id]+(we?wk[p.id]*4:0)+(p.sv&&!onlySup?1000:0)+Math.random()*45+coSum(p,d)*10+(runLen(p,d)>=3?30*(runLen(p,d)-2):0)-((wt[p.id]||[]).some(q=>onDay[d].has(q))?60:0),p]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+   for(const p of list){if(onDay[d].size>=lim)break;if(onDay[d].has(p.id)||!elig(p,d,g,useCap))continue;place(p,d,codeFor(p,d,c));if(p.sv)supHave=true;
+    (wt[p.id]||[]).forEach(q=>{const o=byId[q];if(o&&onDay[d].size<lim&&!onDay[d].has(q)&&!(noSv&&o.sv)&&!(onlySup&&!o.sv)&&elig(o,d,g,useCap)){place(o,d,codeFor(o,d,c));if(o.sv)supHave=true}});if(onlySup)break}};
   if(hasSup&&!supHave){for(const g of[2,1]){pick(g,true,mx,code,true);if(supHave)break}if(!supHave)for(const g of[2,1]){pick(g,false,mx,code,true);if(supHave)break}if(!supHave)noSup.push(d)}
   pick(2,true,tg,code);pick(1,true,tg,code);
-  if(have<mn){pick(2,false,mn,code);pick(1,false,mn,code)}
-  if(have<mn&&c16)pick(1,false,mn,c16,false,true);
-  if(have<mn)low.push(d)}
- /* süpervizörler hafta içi mesaiye de gelir (nöbetten sonraki gün hariç) */
- P.filter(p=>p.sv).forEach(p=>{for(let d=1;d<=n;d++){const w=new Date(y,m-1,d).getDay();if(w==0||w==6)continue;const t=iso(y,m,d),ar=D.hol.some(h=>h.r&&h.t==t);if(!ar&&H.has(t))continue;const c=ar?c5:c8;if(!c)continue;const x=get(p,d);if(x[2]||x[0]!==''||x[1]!=='')continue;const pv=d>1?get(p,d-1):get(p,pn,py,pm);if(!pv[2]&&parseFloat(pv[1])>=16)continue;M.c[p.id+'_'+d]=[c.k,String(c.s)];M.au.push(p.id+'_'+d);mes++}});
- sv();R();const over=P.filter(p=>L[p.id]>0.01).length;let t=put+' nöbet yazıldı'+(put16?' ('+put16+' tanesi 16 saatlik)':'')+(mes?', süpervizörlere '+mes+' gün mesai':'')+'. Aylık mesaiyi aşıp fazla mesaiye giren: '+over+' kişi.',warn=false;
- if(low.length){t+='\n\n'+low.join(', ')+'. günlerde '+mn+' kişiye ulaşılamadı (nöbet sonrası boş gün kuralı / izinler). Elle tamamlayabilirsiniz.';warn=true}
- if(noSup.length){t+='\n\nSüpervizör bulunamayan günler: '+noSup.join(', ')+'. (Hafta içi nöbet için süpervizörde “Mesai günlerinde de nöbet tutabilir” işaretli olmalı.)';warn=true}
- if(warn)alert(t);else showToast(t)}
+  if(onDay[d].size<mn){pick(2,false,mn,code);pick(1,false,mn,code)}
+  if(onDay[d].size<mn&&c16)pick(1,false,mn,c16,false,true);
+  if(onDay[d].size<mn)low.push(d)}
+ /* süpervizör hafta içi mesaisi */
+ const mesDays=p=>{const r=[];for(let d=1;d<=n;d++){const w=new Date(y,m-1,d).getDay();if(w==0||w==6)continue;const t=iso(y,m,d),ar=D.hol.some(h=>h.r&&h.t==t);if(!ar&&H.has(t))continue;const c=ar?c5:c8;if(!c)continue;const x=get(p,d);if(x[2]||x[0]!==''||x[1]!=='')continue;const pv=d>1?get(p,d-1):get(p,pn,py,pm);if(!pv[2]&&parseFloat(pv[1])>=16)continue;r.push([d,c])}return r};
+ const supMes=p=>p.sv?mesDays(p).reduce((a,x)=>a+(+x[1].s),0):0;
+ /* eksik mesai kalmasın: aylık saatine ulaşamayanlara ek nöbet */
+ for(let it=0;it<500;it++){const defs=P.map(p=>({p,d:-(L[p.id]+supMes(p))})).filter(x=>x.d>0.01).sort((a,b)=>b.d-a.d);if(!defs.length)break;let did=false;
+  for(const x of defs){const p=x.p,use=(x.d<=16&&c16&&!p.sv)?c16:code;
+   for(const g of[2,1]){const days=[];for(let d=1;d<=n;d++){if(onDay[d].size>=mx||!elig(p,d,g,false))continue;days.push([onDay[d].size+Math.random()*0.9+(isWe(d)?wk[p.id]*0.3:0),d])}
+    if(days.length){days.sort((a,b)=>a[0]-b[0]);const d=days[0][1];place(p,d,codeFor(p,d,use));did=true;break}}
+   if(did)break}
+  if(!did)break}
+ P.filter(p=>p.sv).forEach(p=>mesDays(p).forEach(x=>{M.c[p.id+'_'+x[0]]=[x[1].k,String(x[1].s)];M.au.push(p.id+'_'+x[0]);ms[p.id]+=+x[1].s;mes++}));
+ const fin=P.map(p=>L[p.id]+ms[p.id]),defs=fin.filter(v=>v<-0.01),over=fin.filter(v=>v>0.01).length,spread=fin.length?Math.max(...fin)-Math.min(...fin):0;
+ let wantDays=0;(U.cfg.want||[]).forEach(a=>{for(let d=1;d<=n;d++)if(onDay[d].has(a[0])&&onDay[d].has(a[1]))wantDays++});
+ const wishK=new Set((U.cfg.want||[]).map(a=>ck(a[0],a[1])));let rep=0;Object.keys(co).forEach(k=>{const v=co[k];if(v>1&&!wishK.has(k))rep+=(v-1)*(v-1)});let runs=0;for(let d=1;d<=n;d++){const ids=[...onDay[d]].map(q=>idx[q]).sort((a,b)=>a-b);let r=1;for(let t=1;t<=ids.length;t++){if(t<ids.length&&ids[t]==ids[t-1]+1)r++;else{if(r>=3)runs+=r-2;r=1}}}
+ const score=1.5*rep+6*runs+1000*defs.length+8*defs.reduce((a,v)=>a-v,0)+400*low.length+400*noSup.length+2*spread-Math.min(wantDays,40)*3;
+ return{score,snap:JSON.stringify(M.c),au:M.au.slice(),put,put16,mes,low,noSup,defN:defs.length,over,wantDays}}
+function autoApply(X,b){const{M,P,mn}=X;M.c=JSON.parse(b.snap);M.au=b.au;sv();R();
+ const eks=P.filter(p=>{try{return stats(p).fz<-0.01}catch(e){return false}}),over=P.filter(p=>{try{return stats(p).fz>0.01}catch(e){return false}}).length;
+ let t=b.put+' nöbet yazıldı'+(b.put16?' ('+b.put16+' tanesi 16 saatlik)':'')+(b.mes?', süpervizörlere '+b.mes+' gün mesai':'')+'. '+(eks.length?'Eksik mesai kalan: '+eks.map(p=>p.ad).join(', ')+'.':'Kimsede eksik mesai kalmadı.')+' Fazla mesaiye giren: '+over+' kişi.'+((X.U.cfg.want||[]).length?' Birlikte isteyenler '+b.wantDays+' gün aynı güne yazıldı.':''),warn=false;
+ if(b.low.length){t+='\n\n'+b.low.join(', ')+'. günlerde '+mn+' kişiye ulaşılamadı (nöbet sonrası boş gün kuralı / izinler / birlikte olmasın kuralı). Elle tamamlayabilirsiniz.';warn=true}
+ if(b.noSup.length){t+='\n\nSüpervizör bulunamayan günler: '+b.noSup.join(', ')+'. (Hafta içi nöbet için süpervizörde “Mesai günlerinde de nöbet tutabilir” işaretli olmalı.)';warn=true}
+ if(eks.length)warn=true;if(warn)alert(t);else showToast(t)}
+
 function autoOpen(){const U=cu();if(!U)return;const{y,m}=D.cur,P=U.p.filter(p=>inMonth(p,y,m)&&!p.fo),av=U.cfg.avoid||[],nm=id=>{const p=U.p.find(x=>x.id==id);return p?p.ad:'(silinmiş)'};
  AUTO_KOD='';
  modal(`<div style="width:min(780px,94vw)"><h3><i class="fa-solid fa-wand-magic-sparkles"></i> Nöbet Sihirbazı · ${esc(U.info.servis||D.cur.u)} · ${MON[m-1]} ${y}</h3>
  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end">
   <div style="flex:1;min-width:170px"><label>Nöbet kodu</label><select onchange="AUTO_KOD=this.value"><option value="">— Nöbet kodunu seçin —</option>${D.codes.map(c=>`<option value="${esc(c.k)}">${esc(c.k)} · ${c.s} saat${c.t=='mesai'?' (mesai)':''}</option>`).join('')}</select></div>
   <div style="flex:1;min-width:130px"><label>Günlük nöbetçi (nöbet aralığı)</label><select onchange="const a=this.value.split('-');cu().cfg.min=+a[0];cu().cfg.max=+a[1];sv()">${Array.from({length:12},(_,i)=>i+1).map(i=>`<option ${U.cfg.min==i?'selected':''}>${i}-${i+1}</option>`).join('')}</select></div>
+  <div style="flex:1;min-width:190px"><label>Süpervizör hafta içi nöbet kodu</label><select onchange="cu().cfg.supKod=this.value;sv()"><option value="">Otomatik (23 saatlik kod)</option>${D.codes.map(c=>`<option value="${esc(c.k)}" ${U.cfg.supKod==c.k?'selected':''}>${esc(c.k)} · ${c.s} saat</option>`).join('')}</select></div>
   <button class="p" onclick="autoRun()"><i class="fa-solid fa-wand-magic-sparkles"></i> Otomatik doldur</button>
   <button onclick="cl();clearAuto()"><i class="fa-solid fa-wand-magic-sparkles"></i> Otomatik yazılanları sil</button>
   <button onclick="cl();clearMonth(0)"><i class="fa-solid fa-eraser"></i> Tüm nöbetleri temizle (elle yazdıklarım dahil)</button>
@@ -421,18 +489,35 @@ function autoOpen(){const U=cu();if(!U)return;const{y,m}=D.cur,P=U.p.filter(p=>i
   <datalist id="av_dl">${P.map(p=>`<option value="${esc(p.ad)}"></option>`).join('')}</datalist>
   <p id="av_err" style="color:#e11d48;font-size:12px;margin:6px 0 0"></p>
   <div>${av.length?av.map((a,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:10px;margin-top:6px"><span style="flex:1;font-weight:700;font-size:12px">${esc(nm(a[0]))} <span style="opacity:.5">⟷</span> ${esc(nm(a[1]))}</span><button onclick="avDel(${i})" style="color:#be123c">Kaldır</button></div>`).join(''):'<div style="font-size:12px;opacity:.6;margin-top:6px">Henüz kimse eklenmedi.</div>'}</div></div>
+ <div style="margin-top:14px;border-top:1px solid #e2e8f0;padding-top:10px"><b>Birlikte nöbet tutmak isteyenler</b>
+  <div style="font-size:11px;opacity:.7">İki kişiyi seçip Kaydet de; otomatik doldurma bu kişileri mümkün olduğunca aynı güne yazar (kural dışı kalırsa ayrı yazılabilir).</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:flex-end;margin-top:6px"><div><label>1. kişi</label><input id="wt_a" list="av_dl" placeholder="Ara veya seç" autocomplete="off"></div><div><label>2. kişi</label><input id="wt_b" list="av_dl" placeholder="Ara veya seç" autocomplete="off"></div><button class="p" onclick="wtAdd()">Kaydet</button></div>
+  <p id="wt_err" style="color:#e11d48;font-size:12px;margin:6px 0 0"></p>
+  <div>${(U.cfg.want||[]).length?(U.cfg.want||[]).map((a,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:10px;margin-top:6px"><span style="flex:1;font-weight:700;font-size:12px">${esc(nm(a[0]))} <span style="opacity:.5">⟷</span> ${esc(nm(a[1]))}</span><button onclick="wtDel(${i})" style="color:#be123c">Kaldır</button></div>`).join(''):'<div style="font-size:12px;opacity:.6;margin-top:6px">Henüz kimse eklenmedi.</div>'}</div></div>
  <details style="margin-top:12px;font-size:12px;line-height:1.6"><summary style="cursor:pointer;font-weight:700">Kurallar ve nöbet kodları</summary><b>Nöbet kodları:</b> ${D.codes.map(c=>'<span style="border:1px solid #cbd5e1;border-radius:12px;padding:1px 8px;margin-right:4px;display:inline-block">'+esc(c.k)+' → '+c.s+' saat</span>').join('')}<ul style="margin:8px 0 0 16px;list-style:disc"><li>Her güne seçilen aralıkta (${U.cfg.min}–${U.cfg.max}) kişi, seçilen nöbet koduyla yazılır; aylık saat aşılsa da gün tamamlanır (fazla mesai).</li><li>Her güne bir süpervizör aranır. Hafta içi 23 saatlik kod (sabah mesai + gece nöbet), hafta sonu / tatilde seçilen kod yazılır. Süpervizörlere nöbet dışı hafta içi günlere mesai yazılır.</li><li><b>Nöbetten sonraki gün hiçbir şey yazılamaz</b> (24, 23, 16, mesai). Nöbetler arası önce 2 gün, olmazsa 1 gün boşluk bırakılır.</li><li>Kişi yetmezse 16 saatlik kodla tamamlanır; yine olmazsa o gün uyarılır.</li><li>Elle yazılan hücrelere, izinli / raporlu / geçici görevli, başlamamış ve ayrılmış günlere dokunulmaz.</li></ul></details>
  <p style="margin-top:12px"><button onclick="cl()">Kapat</button></p></div>`)}
 function avAdd(){const U=cu(),P=U.p.filter(p=>inMonth(p,D.cur.y,D.cur.m)&&!p.fo),f=v=>P.find(p=>tu(p.ad)==tu(v)),a=f($('av_a').value),b=f($('av_b').value),er=$('av_err');
  if(!a||!b){er.textContent='İki kişiyi de listeden seçin (yazarak arayabilirsiniz).';return}
  if(a.id==b.id){er.textContent='Aynı kişiyi iki kez seçtiniz.';return}
  const av=U.cfg.avoid=U.cfg.avoid||[];if(av.some(x=>(x[0]==a.id&&x[1]==b.id)||(x[0]==b.id&&x[1]==a.id))){er.textContent='Bu çift zaten kayıtlı.';return}
+ if((U.cfg.want||[]).some(x=>(x[0]==a.id&&x[1]==b.id)||(x[0]==b.id&&x[1]==a.id))){er.textContent='Bu çift “birlikte isteyenler” listesinde; önce oradan kaldırın.';return}
  av.push([a.id,b.id]);sv();autoOpen()}
+function wtAdd(){const U=cu(),P=U.p.filter(p=>inMonth(p,D.cur.y,D.cur.m)&&!p.fo),f=v=>P.find(p=>tu(p.ad)==tu(v)),a=f($('wt_a').value),b=f($('wt_b').value),er=$('wt_err');
+ if(!a||!b){er.textContent='İki kişiyi de listeden seçin (yazarak arayabilirsiniz).';return}
+ if(a.id==b.id){er.textContent='Aynı kişiyi iki kez seçtiniz.';return}
+ if((U.cfg.avoid||[]).some(x=>(x[0]==a.id&&x[1]==b.id)||(x[0]==b.id&&x[1]==a.id))){er.textContent='Bu çift “birlikte istemeyenler” listesinde; önce oradan kaldırın.';return}
+ const w=U.cfg.want=U.cfg.want||[];if(w.some(x=>(x[0]==a.id&&x[1]==b.id)||(x[0]==b.id&&x[1]==a.id))){er.textContent='Bu çift zaten kayıtlı.';return}
+ w.push([a.id,b.id]);sv();autoOpen()}
+function wtDel(i){const U=cu();(U.cfg.want||[]).splice(i,1);sv();autoOpen()}
 function avDel(i){const U=cu();(U.cfg.avoid||[]).splice(i,1);sv();autoOpen()}
-function autoRun(){if(chkLock())return;if(!D.codes.find(c=>c.k===AUTO_KOD))return alert('Önce nöbet kodunu seçin.');cl();const ov=document.createElement('div');ov.id='autoThink';ov.style.cssText='position:fixed;inset:0;z-index:92;background:rgba(15,23,42,.72);display:flex;align-items:center;justify-content:center';
- ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px 28px;min-width:320px;text-align:center;box-shadow:0 20px 50px #0006"><i class="fa-solid fa-wand-magic-sparkles fa-beat" style="font-size:26px;color:#4f46e5"></i><div id="atMsg" style="font-weight:800;margin-top:10px;font-size:13px;color:#1e293b"></div><div style="height:6px;background:#e2e8f0;border-radius:99px;margin-top:12px;overflow:hidden"><div id="atBar" style="height:100%;width:0;background:#4f46e5;transition:width .5s"></div></div></div>';document.body.appendChild(ov);
- const T=['Personel, izin ve rapor durumları inceleniyor…','Nöbet sonrası boş gün kuralı kontrol ediliyor…','Birlikte tutmak istemeyenler ayrılıyor…','Süpervizör ve dengeli dağılım hazırlanıyor…','Liste yazılıyor…'];let i=0;
- const step=()=>{$('atMsg').textContent=T[i];$('atBar').style.width=((i+1)/T.length*100)+'%';i++;if(i<T.length)setTimeout(step,480);else setTimeout(()=>{try{auto()}catch(e){alert('Otomatik doldurma hatası: '+e.message)}finally{ov.remove()}},480)};step()}
+async function autoRun(){if(chkLock())return;if(!D.codes.find(c=>c.k===AUTO_KOD))return alert('Önce nöbet kodunu seçin.');cl();const ov=document.createElement('div');ov.id='autoThink';ov.style.cssText='position:fixed;inset:0;z-index:92;background:rgba(15,23,42,.72);display:flex;align-items:center;justify-content:center';
+ ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px 28px;min-width:340px;max-width:92vw;text-align:center;box-shadow:0 20px 50px #0006"><i class="fa-solid fa-wand-magic-sparkles fa-beat" style="font-size:26px;color:#4f46e5"></i><div id="atMsg" style="font-weight:800;margin-top:10px;font-size:13px;color:#1e293b"></div><div id="atSub" style="font-size:11px;color:#64748b;margin-top:4px;min-height:15px"></div><div style="height:6px;background:#e2e8f0;border-radius:99px;margin-top:12px;overflow:hidden"><div id="atBar" style="height:100%;width:0;background:#4f46e5;transition:width .3s"></div></div></div>';document.body.appendChild(ov);
+ const wait=ms=>new Promise(r=>setTimeout(r,ms)),T=['Personel, izin ve rapor durumları inceleniyor…','Aylık mesai ihtiyacı hesaplanıyor…','Nöbet sonrası boş gün kuralı kontrol ediliyor…','Birlikte tutmak istemeyenler ayrılıyor, isteyenler yan yana yazılıyor…','Süpervizör ve dengeli dağılım deneniyor…','En iyi plan seçiliyor…'];
+ try{await wait(80);const X=autoPrep();if(!X||X.done)return;const N=80,t0=Date.now();let best=null;
+  for(let i=0;i<N;i++){const r=autoAttempt(X);if(!best||r.score<best.score)best=r;
+   if(i%4==3||i==N-1){$('atMsg').textContent=T[Math.min(T.length-1,Math.floor(i/N*T.length))];$('atSub').textContent='Deneme '+(i+1)+'/'+N+' · en iyi plan: '+(best.defN?best.defN+' kişide eksik mesai':'eksik mesai yok')+(best.low.length?' · '+best.low.length+' günde eksik kişi':'');$('atBar').style.width=((i+1)/N*100)+'%';await wait(30)}}
+  const rest=4200-(Date.now()-t0);if(rest>0)await wait(rest);
+  autoApply(X,best)}catch(e){console.error(e);alert('Otomatik doldurma hatası: '+e.message)}finally{ov.remove()}}
 
 function inMonth(p,y,m){const a=iso(y,m,1),z=iso(y,m,dim(y,m));return(!p.bas||p.bas<=z)&&(!p.ayr||(p.ayrMb?p.ayr>=a:p.ayr>a))}
 function inPeriod(p,y,m){const pm=m==1?12:m-1,py=m==1?y-1:y,a=iso(py,pm,15),z=iso(y,m,14);return(!p.bas||p.bas<=z)&&(!p.ayr||(p.ayrMb?p.ayr>=a:p.ayr>a))}
