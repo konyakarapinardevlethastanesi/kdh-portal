@@ -1,0 +1,1052 @@
+// ==============================================================
+// uygulama.js — Tebliğ Tebellüğ arayüzü (şablon, belge, yazdırma)
+// Bu dosyada şifre / anahtar YOKTUR. Veriler sunucudan (js/api.js) gelir.
+// ==============================================================
+const SB_SVG_DOC = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="56" fill="none" stroke="#dc2626" stroke-width="3" stroke-dasharray="4 3"/><circle cx="60" cy="60" r="46" fill="none" stroke="#dc2626" stroke-width="2.2"/><circle cx="60" cy="60" r="33" fill="none" stroke="#dc2626" stroke-width="1.5"/><text x="60" y="21" text-anchor="middle" fill="#dc2626" font-size="7.5" font-weight="bold" font-family="Arial">T.C. SAĞLIK BAKANLIĞI</text><path d="M56 36 A9 9 0 1 0 64 36 A7 7 0 1 1 56 36 Z" fill="#dc2626"/><polygon points="60,33 61.5,37 65.5,37 62.2,39.3 63.4,43 60,40.8 56.6,43 57.8,39.3 54.5,37 58.5,37" fill="#dc2626"/><rect x="58.5" y="46" width="3" height="36" rx="1.5" fill="#dc2626"/><path d="M58 53 C46 47, 36 50, 34 55 C42 55, 50 56, 58 58 Z" fill="#dc2626"/><path d="M62 53 C74 47, 84 50, 86 55 C78 55, 70 56, 62 58 Z" fill="#dc2626"/><path d="M54 62 C49 65, 68 69, 64 73 C60 76, 52 77, 56 80" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+// Belge logosu: GitHub'da html ile aynı klasördeki logo.png kullanılır (bulunamazsa sırayla diğer adlar, en sonda yedek çizim)
+const LOGO_TRY = ['logo.png', 'Logo.png', 'logo.jpg', 'logo.jpeg', 'logo.webp', 'logo.svg'];
+function logoErr(img) {
+    const i = (+img.dataset.i || 0) + 1;
+    if (i < LOGO_TRY.length) { img.dataset.i = i; img.src = LOGO_TRY[i]; }
+    else { img.onerror = null; img.outerHTML = SB_SVG_DOC; }
+}
+async function waitImgs(root) {
+    for (let k = 0; k < 6; k++) {
+        const pend = [...root.querySelectorAll('img')].filter(im => !im.complete);
+        if (!pend.length) break;
+        await Promise.race([Promise.all(pend.map(im => new Promise(r => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }); }))), new Promise(r => setTimeout(r, 1200))]);
+        await new Promise(r => setTimeout(r, 60));
+    }
+}
+const SB_SVG_HEADER = `<div class="w-full h-full flex items-center justify-center">${SB_SVG_DOC}</div>`;
+
+// ==========================================================
+// BÖLÜM — 1. GENEL YARDIMCILAR
+// ==========================================================
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pad = n => String(n).padStart(2, '0');
+const fmtD = s => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? `${m[3]}.${m[2]}.${m[1]}` : (s || ''); };
+const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const nowStr = () => { const d = new Date(); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+
+// ==========================================================
+// BÖLÜM — 2. VARSAYILAN ALANLAR VE ŞABLONLAR (ilk kurulumda sunucuya yüklenir)
+// ==========================================================
+const DEFAULT_FIELDS = [
+    { code: 'KURUM', label: 'Kurum Seçimi (Ekli)', type: 'liste', gid: 'g_kurum', builtIn: true },
+    { code: 'KARAR_TARIHI', label: 'Karar Tarihi', type: 'date', builtIn: true },
+    { code: 'KARAR_SAYISI', label: 'Karar Sayısı', type: 'text', builtIn: true },
+    { code: 'TARIH', label: 'Ayrılış / Başlayış Tarihi', type: 'date_mesai', builtIn: true },
+    { code: 'UNVANI', label: 'Ünvanı', type: 'text', builtIn: false },
+    { code: 'GOREV_YERI', label: 'Görev Yeri / Birimi', type: 'text', builtIn: false }
+];
+
+const DEFAULT_TEMPLATES = [
+    {
+        id: 'tpl_ayrilis',
+        name: 'Görevden Ayrılış Tebliğ Tebellüğ',
+        title: 'TEBLİĞ TEBELLÜĞ BELGESİ',
+        line1: '{KURUM} {KARAR_TARIHI} tarih ve {KARAR_SAYISI} sayılı atama kararı gereği; {TARIH} tarihi{MESAI_BITIMI} itibariyle Karapınar Devlet hastanesindeki görevimden ayrılmak üzere tebellüğ ettim.',
+        line2: '',
+        selectedFields: ['KURUM', 'KARAR_TARIHI', 'KARAR_SAYISI', 'TARIH'],
+        locked: true
+    },
+    {
+        id: 'tpl_baslayis',
+        name: 'Göreve Başlayış Tebliğ Tebellüğ',
+        title: 'TEBLİĞ TEBELLÜĞ BELGESİ',
+        line1: '{KURUM} {KARAR_TARIHI} tarih ve {KARAR_SAYISI} sayılı atama kararı gereği; {TARIH} tarihi{MESAI_BITIMI} itibariyle Karapınar Devlet hastanesindeki görevime başlamak üzere tebellüğ ettim.',
+        line2: '',
+        selectedFields: ['KURUM', 'KARAR_TARIHI', 'KARAR_SAYISI', 'TARIH'],
+        locked: false
+    }
+];
+
+// ==========================================================
+// BÖLÜM — 3. DURUM (STATE) VE İŞLEM GEÇMİŞİ (15 gün)
+// ==========================================================
+const STORE_KEY = 'kdh_teblig_tebellug_v5';   // yalnızca eski tarayıcı verisini sunucuya aktarmak için okunur
+const DEFAULT_UNVAN = 'Tıbbi Sekreter';
+const clone = o => JSON.parse(JSON.stringify(o));
+const DEFAULT_KURUMLAR = ['Konya İl Sağlık Müdürlüğü', 'T.C. Sağlık Bakanlığı Yönetim Hizmetleri Genel Müdürlüğü', 'Ankara İl Sağlık Müdürlüğü', 'İstanbul İl Sağlık Müdürlüğü'];
+let STATE = { fields: [], templates: [], docs: [], listGroups: [], users: [], tebligEdenler: [], logs: [] };   // veriler sunucudan (Google Sheets) gelir
+let selectedTplId = 'tpl_ayrilis';
+let ROLE = '', USER = '', CUR_UID = '';
+const isAdmin = () => ROLE === 'yonetici';
+const who = () => USER || (isAdmin() ? 'Yönetici' : 'Kullanıcı');
+const curUnvan = () => { const u = (STATE.users || []).find(x => x.id === CUR_UID); return (u && u.unvan) || DEFAULT_UNVAN; };
+const groupOf = f => (f && f.type === 'liste') ? (STATE.listGroups || []).find(g => g.id === f.gid) : null;
+
+// Sunucudan gelen (ya da eski tarayıcıdan aktarılan) veriyi düzenler; eski adlandırmaları yenisine çevirir.
+function normalizeState() {
+    ['fields', 'templates', 'docs', 'listGroups', 'tebligEdenler', 'logs', 'users'].forEach(k => { if (!Array.isArray(STATE[k])) STATE[k] = []; });
+    STATE.fields.forEach(f => { if (f.type === 'kurum') { f.type = 'liste'; f.gid = 'g_kurum'; } });
+    // eski "Atama Tarihi / Atama Sayısı" kayıtlarını yeni adlara taşı
+    const REN = { ATAMA_TARIH: ['KARAR_TARIHI', 'Karar Tarihi'], ATAMA_SAYI: ['KARAR_SAYISI', 'Karar Sayısı'] };
+    const fixTxt = s => Object.keys(REN).reduce((a, k) => a.split('{' + k + '}').join('{' + REN[k][0] + '}'), String(s || ''));
+    const fixArr = a => Array.isArray(a) ? a.map(c => REN[c] ? REN[c][0] : c) : a;
+    STATE.fields.forEach(f => { const r = REN[f.code]; if (r) { f.code = r[0]; f.label = r[1]; } });
+    STATE.templates.forEach(x => { x.line1 = fixTxt(((x.line1 || '') + ' ' + (x.line2 || '')).trim()); x.line2 = ''; x.selectedFields = fixArr(x.selectedFields); });
+    STATE.docs.forEach(d => {
+        d.tplLine1 = fixTxt(((d.tplLine1 || '') + ' ' + (d.tplLine2 || '')).trim()); d.tplLine2 = ''; d.selectedFields = fixArr(d.selectedFields);
+        if (d.fieldValues) Object.keys(REN).forEach(k => { if (k in d.fieldValues) { d.fieldValues[REN[k][0]] = d.fieldValues[k]; delete d.fieldValues[k]; } });
+    });
+    STATE.users.forEach(u => { if (!u.unvan) u.unvan = DEFAULT_UNVAN; });
+    pruneLogs();
+    if (!STATE.templates.some(t => t.id === selectedTplId)) selectedTplId = STATE.templates[0] ? STATE.templates[0].id : '';
+}
+// Geçmiş: yalnız önemli işlemler (belge / şablon / kullanıcı) tutulur, son 15 gün saklanır; 16. gün silinir.
+const LOG_DAYS = 15;
+const LOG_QUIET = /^(Liste|Seçenek|Tebliğ eden)/;   // küçük liste/seçenek değişiklikleri geçmişe yazılmaz
+function logTs(x) {
+    if (x.ts) return x.ts;
+    const m = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2}):(\d{2})/.exec(x.tarih || '');
+    return m ? new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]).getTime() : 0;
+}
+function pruneLogs() {
+    const c = new Date(); c.setHours(0, 0, 0, 0); c.setDate(c.getDate() - (LOG_DAYS - 1));
+    const before = STATE.logs.length;
+    STATE.logs = STATE.logs.filter(x => logTs(x) >= c.getTime() && !LOG_QUIET.test(x.islem || ''));
+    return STATE.logs.length !== before;
+}
+function addLog(islem, kayit, ayrinti = '') {
+    if (!LOG_QUIET.test(islem)) STATE.logs.unshift({ id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), ts: Date.now(), tarih: nowStr(), user: who(), islem, kayit, ayrinti });
+    pruneLogs();
+    saveState();
+}
+
+// ==========================================================
+// BÖLÜM — 4. TAMLAMA EKİ VE BİLDİRİMLER
+// ==========================================================
+function kurumEki(ad) {
+    const clean = String(ad || '').trim();
+    if (!clean) return "Konya İl Sağlık Müdürlüğü’nün";
+    const vowels = clean.match(/[aeıioöuüAEIİOÖUÜ]/g);
+    if (!vowels) return clean + "’nın";
+    const last = vowels[vowels.length - 1].toLocaleLowerCase('tr');
+    const ek = (last === 'e' || last === 'i') ? 'nin' : (last === 'a' || last === 'ı') ? 'nın' : (last === 'ö' || last === 'ü') ? 'nün' : 'nun';
+    return `${clean}’${ek}`;
+}
+
+function showToast(msg, bad) {
+    const t = document.createElement('div');
+    t.className = 'fixed bottom-4 right-4 z-[95] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 anim-fade ' + (bad ? 'bg-rose-600' : 'bg-slate-900');
+    t.innerHTML = '<i class="fa-solid ' + (bad ? 'fa-circle-exclamation' : 'fa-bell text-amber-400') + '"></i> ' + esc(msg);
+    document.body.appendChild(t); setTimeout(() => t.remove(), 3500);
+}
+
+// ==========================================================
+// BÖLÜM — 5. GİRİŞ / OTURUM (giriş işlemi js/api.js içindedir)
+// ==========================================================
+function loginAs(u) { ROLE = u.yetki === 'Yönetici' ? 'yonetici' : 'kullanici'; USER = u.ad; CUR_UID = u.id; }
+function showApp() {
+    uwInit();
+    $('mainAuthPortal').classList.add('hidden');
+    $('adminInterface').classList.remove('hidden'); $('adminInterface').classList.add('flex');
+    $('currentYearSpan').textContent = new Date().getFullYear();
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
+    initYearSelect();
+    showTab('templates');
+}
+
+// ==========================================================
+// BÖLÜM — 6. KULLANICILAR (yönetici paneli)
+// ==========================================================
+// ---- Kullanıcı alanı (yönetici: kullanıcı / ünvan / şifre) — işlemler sunucuda yapılır ----
+const EN_KISA_SIFRE = 8;
+let UW = { open: false };
+const mainAdmin = () => STATE.users.find(u => u.main) || {};
+function uwInit() {
+    $('uwName').textContent = who(); $('uwRole').textContent = '· ' + (isAdmin() ? 'Yönetici' : 'Kullanıcı');
+    $('uwCaret').classList.toggle('hidden', !isAdmin()); $('uw').classList.remove('hidden');
+}
+function uwToggle() {
+    if (!isAdmin()) return;
+    UW.open = !UW.open; $('uwPanel').classList.toggle('hidden', !UW.open);
+    $('uwCaret').className = 'fa-solid fa-chevron-' + (UW.open ? 'up' : 'down') + ' text-[8px] text-slate-400';
+    if (UW.open) { $('uwAdminAd').value = mainAdmin().ad || ''; $('uwAdminUnvan').value = mainAdmin().unvan || DEFAULT_UNVAN; $('uwAdminSifre').value = ''; uwRender(); }
+}
+function uwRender() {
+    $('uwList').innerHTML = STATE.users.map(u => `<div class="flex items-center gap-1.5 py-1 border-b border-slate-100">
+            <div class="flex-1 min-w-0"><div class="text-[11px] font-bold text-slate-800 truncate" title="${esc(u.ad)}">${esc(u.ad)}</div>
+            <div class="text-[10px] text-slate-500 truncate">${esc(u.unvan || DEFAULT_UNVAN)}${u.main ? ' · ana yönetici' : ''}</div></div>
+            <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold ${u.yetki === 'Yönetici' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}">${esc(u.yetki)}</span>
+            ${u.main ? '' : `<button onclick="uwEdit('${esc(u.id)}')" title="Ad / ünvan / şifre düzenle" class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-pen text-[10px]"></i></button>
+            <button onclick="uwDel('${esc(u.id)}')" title="Sil" class="w-6 h-6 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash text-[10px]"></i></button>`}</div>`).join('');
+}
+async function uwSaveAdminName() {
+    const ad = $('uwAdminAd').value.trim().replace(/\s+/g, ' '), unvan = $('uwAdminUnvan').value.trim().replace(/\s+/g, ' '), sifre = $('uwAdminSifre').value;
+    if (ad.length < 2) return showToast('Yönetici adını yazın', true);
+    if (sifre && sifre.length < EN_KISA_SIFRE) return showToast(`Şifre en az ${EN_KISA_SIFRE} karakter olmalı`, true);
+    try {
+        const y = await sunucuCagir('kullaniciGuncelle', { id: 'main', ad, unvan, sifre });
+        STATE.users = y.kullanicilar; if (CUR_UID === 'main') USER = ad;
+        $('uwAdminSifre').value = '';
+        addLog('Kullanıcı güncellendi', ad); uwInit(); uwRender(); showToast('Yönetici bilgileri kaydedildi');
+    } catch (x) { showToast(x.message, true); }
+}
+async function uwAdd() {
+    const ad = $('uwAd').value.trim().replace(/\s+/g, ' '), unvan = $('uwUnvan').value.trim().replace(/\s+/g, ' '), sifre = $('uwSifre').value, yetki = $('uwYetki').value, err = $('uwErr');
+    err.classList.add('hidden');
+    const bad = m => { err.textContent = m; err.classList.remove('hidden'); };
+    if (ad.length < 2) return bad('Ad soyad yazın.');
+    if (sifre.length < EN_KISA_SIFRE) return bad(`Şifre en az ${EN_KISA_SIFRE} karakter olmalı.`);
+    try {
+        const y = await sunucuCagir('kullaniciEkle', { ad, unvan, sifre, yetki });
+        STATE.users = y.kullanicilar;
+        addLog('Kullanıcı eklendi', ad, yetki);
+        $('uwAd').value = ''; $('uwUnvan').value = ''; $('uwSifre').value = ''; uwRender(); showToast('Kullanıcı eklendi');
+    } catch (x) { bad(x.message); }
+}
+function uwEdit(id) {
+    const u = STATE.users.find(x => x.id === id); if (!u || u.main) return;
+    openEditModal({
+        title: 'Kullanıcıyı Düzenle', l1: 'Ad Soyad', v1: u.ad,
+        l2: `Yeni Şifre (boş bırakırsanız değişmez · en az ${EN_KISA_SIFRE} karakter)`, v2: '',
+        l3: 'Ünvanı', v3: u.unvan || DEFAULT_UNVAN,
+        save: async (v1, v2, v3) => {
+            const ad = v1.trim().replace(/\s+/g, ' ');
+            if (ad.length < 2) throw new Error('Ad soyad yazın.');
+            if (v2 && v2.length < EN_KISA_SIFRE) throw new Error(`Şifre en az ${EN_KISA_SIFRE} karakter olmalı.`);
+            const y = await sunucuCagir('kullaniciGuncelle', { id, ad, unvan: String(v3 || '').trim().replace(/\s+/g, ' '), sifre: v2 });
+            STATE.users = y.kullanicilar; if (CUR_UID === id) USER = ad;
+            addLog('Kullanıcı güncellendi', ad); uwInit(); uwRender();
+        }
+    });
+}
+async function uwDel(id) {
+    const u = STATE.users.find(x => x.id === id); if (!u || u.main) return;
+    if (id === CUR_UID) return showToast('Kendi hesabınızı silemezsiniz', true);
+    const ok = await askConfirm({ title: 'Kullanıcı silinsin mi?', text: 'Bu kullanıcı artık şifresiyle giriş yapamaz.', summary: `<div><b>Kullanıcı:</b> ${esc(u.ad)}</div><div><b>Yetki:</b> ${esc(u.yetki)}</div>` });
+    if (!ok) return;
+    try {
+        const y = await sunucuCagir('kullaniciSil', { id });
+        STATE.users = y.kullanicilar; addLog('Kullanıcı silindi', u.ad); uwRender(); showToast('Kullanıcı silindi');
+    } catch (x) { showToast(x.message, true); }
+}
+
+// ==========================================================
+// BÖLÜM — 7. SEKMELER
+// ==========================================================
+const TABS = ['templates', 'docs', 'lists', 'log'];
+let curTab = 'templates';
+function showTab(t) {
+    curTab = t;
+    const on = 'bg-white text-slate-900 border-slate-200 shadow-sm', off = 'bg-transparent text-slate-500 border-transparent hover:text-slate-800';
+    TABS.forEach(x => {
+        $('sec-' + x).classList.toggle('hidden', x !== t);
+        $('btn-' + x).className = 'px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap ' + (x === t ? on : off) + (x === 'log' && !isAdmin() ? ' hidden' : '');
+    });
+    renderCurrent();
+    if (typeof yenile === 'function' && TOKEN) yenile(true);   // diğer kullanıcıların değişikliklerini getir
+}
+function renderCurrent() {
+    $('tplCount').textContent = STATE.templates.length;
+    $('docCount').textContent = STATE.docs.length;
+    if (curTab === 'templates') renderTemplates();
+    else if (curTab === 'docs') renderDocs();
+    else if (curTab === 'lists') renderLists();
+    else if (curTab === 'log') renderLog();
+}
+function initYearSelect() {
+    const keep = $('docYil').value;
+    const ny = new Date().getFullYear(), ys = new Set([ny]);
+    STATE.docs.forEach(d => { if (d.yil) ys.add(+d.yil); });
+    const years = [...ys].sort((a, b) => b - a);
+    $('docYil').innerHTML = '<option value="">Tüm Yıllar</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+    if (keep && years.includes(+keep)) $('docYil').value = keep;
+}
+
+// ==========================================================
+// BÖLÜM — 8. ŞABLONLAR (oluştur / düzenle / alan seçimi)
+// ==========================================================
+function getSelectedTemplate() {
+    return STATE.templates.find(t => t.id === selectedTplId) || STATE.templates[0];
+}
+
+function renderTemplates() {
+    const q = ($('tplSearch').value || '').toLocaleLowerCase('tr');
+    const list = STATE.templates.filter(t => !q || t.name.toLocaleLowerCase('tr').includes(q));
+    if (list.length && !list.some(t => t.id === selectedTplId)) selectedTplId = list[0].id;
+    const adm = isAdmin();
+    $('tplList').innerHTML = list.length ? list.map((t, i) => {
+        const active = t.id === selectedTplId;
+        return `
+        <div onclick="selectTemplate('${esc(t.id)}')" class="p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-2 ${active ? 'bg-sky-600 text-white border-sky-600 shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'}">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold shrink-0 ${active ? 'bg-white text-sky-700' : 'bg-slate-200 text-slate-700'}">${i + 1}</span>
+                <div class="text-xs font-extrabold truncate">${esc(t.name)}</div>
+            </div>
+            ${adm ? `<div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
+                <button onclick="openTplModal('${esc(t.id)}')" title="Düzenle" class="w-7 h-7 rounded-lg ${active ? 'bg-sky-700 text-white hover:bg-sky-800' : 'bg-white text-blue-600 hover:bg-blue-50 border border-slate-200'}"><i class="fa-solid fa-pen text-[11px]"></i></button>
+                <button onclick="deleteTpl('${esc(t.id)}')" title="Sil" class="w-7 h-7 rounded-lg ${active ? 'bg-sky-700 text-rose-200 hover:bg-sky-800' : 'bg-white text-rose-600 hover:bg-rose-50 border border-slate-200'}"><i class="fa-solid fa-trash text-[11px]"></i></button>
+            </div>` : ''}
+        </div>`;
+    }).join('') : `<div class="p-6 text-center text-xs text-slate-400 font-semibold">${STATE.templates.length ? 'Aranan konuya uygun şablon bulunamadı.' : (adm ? 'Kayıtlı şablon yok. "Yeni Şablon" ile ekleyin.' : 'Kayıtlı şablon yok. Yöneticiden şablon eklemesini isteyin.')}</div>`;
+    const sel = getSelectedTemplate();
+    $('selTplName').textContent = sel ? sel.name : '-';
+    $('tplPreviewTextOnly').innerHTML = sel ? `
+        <div class="text-center font-bold text-base underline underline-offset-4">${esc(sel.title || 'TEBLİĞ TEBELLÜĞ BELGESİ')}</div>
+        <p class="indent-8 text-justify" style="font-family:'Times New Roman',Times,serif;font-size:16px">${esc(((sel.line1 || '') + ' ' + (sel.line2 || '')).trim())}</p>` : '';
+}
+
+function selectTemplate(id) {
+    selectedTplId = id;
+    renderTemplates();
+}
+function editSelectedTpl() {
+    const sel = getSelectedTemplate();
+    if (sel) openTplModal(sel.id);
+}
+
+let editingTplId = null;
+let lastFocusedTextarea = null;
+let tempSelectedFields = [];
+let REMOVED_AT = {};   // işareti kaldırılan alanın metindeki yeri (tekrar işaretlenince aynı yere döner)
+
+function openTplModal(id = null) {
+    if (!isAdmin()) return;
+    editingTplId = id;
+    const t = id ? STATE.templates.find(x => x.id === id) : null;
+    $('tplModalTitle').querySelector('span').textContent = t ? 'Şablonu Düzenle' : 'Yeni Tebliğ Tebellüğ Şablonu';
+    $('tName').value = t ? t.name : '';
+    $('tTitle').value = t ? t.title : 'TEBLİĞ TEBELLÜĞ BELGESİ';
+    $('tLine1').value = t ? ((t.line1 || '') + ' ' + (t.line2 || '')).trim() : '{KURUM} {KARAR_TARIHI} tarih ve {KARAR_SAYISI} sayılı atama kararı gereği; ';
+    lastFocusedTextarea = $('tLine1');
+    REMOVED_AT = {};
+    tempSelectedFields = t && Array.isArray(t.selectedFields) ? [...t.selectedFields] : ['KURUM', 'KARAR_TARIHI', 'KARAR_SAYISI'];
+    $('newFieldBox').classList.add('hidden');
+    renderFieldsChecklist();
+    renderTypeSelect();
+    $('tplModal').classList.remove('hidden');
+}
+
+function closeTplModal() {
+    $('tplModal').classList.add('hidden');
+    editingTplId = null;
+}
+
+function fieldTypeName(f) {
+    if (f.type === 'liste') { const g = groupOf(f); return 'Liste: ' + (g ? g.ad : '?'); }
+    return { date: 'Tarih', date_mesai: 'Tarih + Mesai', text: 'Metin' }[f.type] || 'Metin';
+}
+function renderTypeSelect() {
+    const sel = $('nfType'), prev = sel.value;
+    sel.innerHTML = '<option value="text">Metin Kutusu</option><option value="date">Tarih (Açılır Takvim)</option><option value="date_mesai">Tarih + Mesai Bitimi Tiki</option>'
+        + STATE.listGroups.map(g => `<option value="liste:${esc(g.id)}">Açılır Liste: ${esc(g.ad)}</option>`).join('');
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+function toggleNewFieldForm() {
+    $('newFieldBox').classList.toggle('hidden');
+    if (!$('newFieldBox').classList.contains('hidden')) {
+        $('nfLabel').value = '';
+        setTimeout(() => $('nfLabel').focus(), 50);
+    }
+}
+
+function toFieldCode(label) {
+    const map = { 'Ç':'C', 'Ğ':'G', 'İ':'I', 'I':'I', 'Ö':'O', 'Ş':'S', 'Ü':'U', 'ç':'C', 'ğ':'G', 'ı':'I', 'i':'I', 'ö':'O', 'ş':'S', 'ü':'U' };
+    return label.replace(/[ÇĞIİÖŞÜçğıiöşü]/g, c => map[c] || c)
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || ('ALAN_' + Date.now());
+}
+
+function createCustomField() {
+    const label = $('nfLabel').value.trim();
+    const tv = $('nfType').value, type = tv.startsWith('liste:') ? 'liste' : tv, gid = tv.startsWith('liste:') ? tv.slice(6) : null;
+    if (!label) return showToast('Lütfen alan adını yazın', true);
+
+    let code = toFieldCode(label);
+    if (STATE.fields.some(f => f.code === code)) {
+        code = code + '_' + String(Date.now()).slice(-3);
+    }
+
+    STATE.fields.push({ code, label, type, gid, builtIn: false });
+    if (!tempSelectedFields.includes(code)) tempSelectedFields.push(code);
+    saveState();
+
+    $('nfLabel').value = '';
+    $('newFieldBox').classList.add('hidden');
+    renderFieldsChecklist();
+    insertCodeAtCursor(code);
+    showToast(`"{${code}}" alanı eklendi ve seçildi`);
+}
+
+function deleteCustomField(code) {
+    removeCodeFromText(code);
+    STATE.fields = STATE.fields.filter(f => f.code !== code);
+    tempSelectedFields = tempSelectedFields.filter(c => c !== code);
+    saveState();
+    renderFieldsChecklist();
+}
+
+function removeCodeFromText(code) {
+    const fd = STATE.fields.find(x => x.code === code);
+    let v = $('tLine1').value;
+    const tk = fd && fd.type === 'date_mesai' ? `{${code}} tarihi{MESAI_BITIMI}` : `{${code}}`;
+    const at = v.indexOf(tk) >= 0 ? v.indexOf(tk) : v.indexOf(`{${code}}`);
+    if (at >= 0) REMOVED_AT[code] = at;
+    v = v.split(`{${code}} tarihi{MESAI_BITIMI}`).join('').split(`{${code}}`).join('');
+    if (fd && fd.type === 'date_mesai') v = v.split('{MESAI_BITIMI}').join('');
+    $('tLine1').value = v.replace(/[ \t]{2,}/g, ' ').trim();
+}
+function toggleFieldSelection(code, checked) {
+    if (checked) {
+        if (!tempSelectedFields.includes(code)) tempSelectedFields.push(code);
+        const ta = $('tLine1');
+        if (!ta.value.includes(`{${code}}`)) {
+            if (REMOVED_AT[code] != null) { const pos = Math.min(REMOVED_AT[code], ta.value.length); ta.selectionStart = ta.selectionEnd = pos; }
+            insertCodeAtCursor(code);
+        }
+        return;
+    }
+    tempSelectedFields = tempSelectedFields.filter(c => c !== code);
+    removeCodeFromText(code);
+}
+
+function insertCodeAtCursor(code) {
+    const ta = $('tLine1');
+    const fd = STATE.fields.find(x => x.code === code);
+    const token = fd && fd.type === 'date_mesai' ? `{${code}} tarihi{MESAI_BITIMI}` : `{${code}}`;
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? ta.value.length;
+    const pre = ta.value.slice(0, start), post = ta.value.slice(end);
+    const ins = (pre && !/[\s(]$/.test(pre) ? ' ' : '') + token + (post && !/^[\s.,;:)]/.test(post) ? ' ' : '');
+    ta.value = pre + ins + post;
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = pre.length + ins.length;
+    delete REMOVED_AT[code];
+    if (!tempSelectedFields.includes(code)) {
+        tempSelectedFields.push(code);
+        renderFieldsChecklist();
+    }
+}
+
+function renderFieldsChecklist() {
+    $('fieldsChecklist').innerHTML = STATE.fields.map(f => {
+        const checked = tempSelectedFields.includes(f.code);
+        return `
+        <div class="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5">
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer min-w-0 flex-1">
+                <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleFieldSelection('${esc(f.code)}', this.checked)" class="w-4 h-4 rounded text-slate-900 shrink-0">
+                <span class="truncate" title="${esc(f.label)}">${esc(f.label)}</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">${fieldTypeName(f)}</span>
+            </label>
+            <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertCodeAtCursor('${esc(f.code)}')" title="Metne ekle" class="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-mono font-bold text-[10px] rounded">
+                    +{${esc(f.code)}}
+                </button>
+                ${!f.builtIn ? `<button type="button" onclick="deleteCustomField('${esc(f.code)}')" title="Alanı sil" class="w-5 h-5 rounded text-rose-500 hover:bg-rose-50"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function saveTemplate() {
+    const name = $('tName').value.trim();
+    const title = $('tTitle').value.trim() || 'TEBLİĞ TEBELLÜĞ BELGESİ';
+    const line1 = $('tLine1').value.replace(/\s+/g, ' ').trim();   // tek paragraf
+    const line2 = '';
+    if (!name || !line1) return showToast('Lütfen şablon konusu ve metni doldurun', true);
+
+    const combined = line1;
+    STATE.fields.forEach(f => {
+        if (combined.includes(`{${f.code}}`) && !tempSelectedFields.includes(f.code)) {
+            tempSelectedFields.push(f.code);
+        }
+    });
+
+    if (editingTplId) {
+        const t = STATE.templates.find(x => x.id === editingTplId);
+        if (t) {
+            t.name = name; t.title = title; t.line1 = line1; t.line2 = line2;
+            t.selectedFields = [...tempSelectedFields];
+            addLog('Şablon güncellendi', name);
+        }
+    } else {
+        const newId = 'tpl_' + Date.now();
+        STATE.templates.push({ id: newId, name, title, line1, line2, selectedFields: [...tempSelectedFields], locked: false });
+        selectedTplId = newId;
+        addLog('Yeni şablon eklendi', name);
+    }
+    saveState();
+    renderCurrent();
+    closeTplModal();
+    showToast('Şablon kaydedildi');
+}
+
+async function deleteTpl(id) {
+    const t = STATE.templates.find(x => x.id === id);
+    if (!t || !isAdmin()) return;
+    const ok = await askConfirm({
+        title: 'Şablon silinsin mi?',
+        text: 'Seçili şablon listeden silinecektir.',
+        summary: `<div><b>Konu:</b> ${esc(t.name)}</div>`
+    });
+    if (!ok) return;
+    STATE.templates = STATE.templates.filter(x => x.id !== id);
+    if (selectedTplId === id) selectedTplId = STATE.templates[0]?.id || '';
+    addLog('Şablon silindi', t.name);
+    saveState();
+    renderCurrent();
+    showToast('Şablon silindi');
+}
+
+// ==========================================================
+// BÖLÜM — 9. BELGE METNİ VE A4 ÇIKTISI (Times New Roman 12 punto)
+// ==========================================================
+function fillTemplateParagraphs(d) {
+    const vals = d.fieldValues || {};
+    const mesaiStr = d.mesaiBitimi ? ' mesai bitimi' : '';
+
+    const replaceTokens = str => {
+        let out = String(str || '');
+        STATE.fields.forEach(f => {
+            let v = vals[f.code] || '';
+            const grp = groupOf(f);
+            if (f.type === 'liste' && grp && grp.ek) {
+                v = v ? kurumEki(v) : '____________________’nın';
+            } else if (f.type === 'date' || f.type === 'date_mesai') {
+                v = v ? fmtD(v) : '__.__.____';
+            } else {
+                v = v.trim() || '_______';
+            }
+            out = out.split(`{${f.code}}`).join(v);
+        });
+        const legacyTarih = vals.TARIH ? fmtD(vals.TARIH) : '__.__.____';
+        out = out.split('{AYRILIS_TARIH}').join(legacyTarih);
+        out = out.split('{MESAI_BITIMI}').join(mesaiStr);
+        return out;
+    };
+
+    return {
+        text: replaceTokens(((d.tplLine1 || '') + ' ' + (d.tplLine2 || '')).trim())
+    };
+}
+
+function docHTML(d) {
+    const { text } = fillTemplateParagraphs(d);
+    const tTarih = d.tebligTarih ? fmtD(d.tebligTarih) : '__.__.____';
+    const docTitle = d.tplTitle || 'TEBLİĞ TEBELLÜĞ BELGESİ';
+    const ln = n => '<div class="ln"></div>'.repeat(n);
+    return `
+    <div class="tt-page">
+        <div class="tt-top">
+            <img class="tt-logo" src="logo.png" alt="" data-i="0" onerror="logoErr(this)">
+            ${ln(1)}
+            <div class="c b">T.C.</div>
+            <div class="c b">KONYA VALİLİĞİ</div>
+            <div class="c b">İL SAĞLIK MÜDÜRLÜĞÜ</div>
+            <div class="c b">Konya Karapınar Devlet Hastanesi</div>
+        </div>
+        ${ln(3)}
+        <div class="c b">${esc(docTitle)}</div>
+        ${ln(1)}
+        <p class="tt-p">${esc(text)}</p>
+        ${ln(3)}
+        <div class="tt-sign">
+            <div><div class="h">Tebliğ Eden</div><div>${esc(d.tebligEdenAd)}</div><div>${esc(d.tebligEdenUnvan)}</div></div>
+            <div><div class="h">Tebliğ Tarihi</div><div>${esc(tTarih)}</div></div>
+            <div><div class="h">Tebellüğ Eden</div><div>${esc(d.tebellugAd)}</div><div>${esc(d.tebellugSicil)}</div></div>
+        </div>
+        <div class="tt-rule"></div>
+        <div class="tt-foot">
+            <div>Ulus Mah. 133215. Sok. No:1/A Karapınar/KONYA<br>Telefon: 332 224 00 00<br>Kep Adresi: konyakarapinardevlethastanesi@hs01.kep.tr</div>
+            <div class="r">Bilgi İçin: ${esc(curUnvan())} ${esc(who())}<br>e- posta: <a>konyadhsl5@saglik.gov.tr</a></div>
+        </div>
+    </div>`;
+}
+
+// ==========================================================
+// BÖLÜM — 10. BELGE OLUŞTURMA FORMU
+// ==========================================================
+let editingDocId = null;
+let activeModalTpl = null;
+
+function buildDynamicFormInputs(tpl, existingValues = {}, mesaiChecked = true) {
+    const codes = Array.isArray(tpl.selectedFields) && tpl.selectedFields.length
+        ? tpl.selectedFields
+        : [];
+
+    const activeFields = codes.map(c => STATE.fields.find(f => f.code === c)).filter(Boolean);
+
+    $('dynamicFieldsContainer').innerHTML = activeFields.map(f => {
+        const g = groupOf(f);
+        const val = existingValues[f.code] ?? (g ? (g.items[0] ? g.items[0].ad : '') : '');
+        if (g) {
+            const kList = g.items.map(x => x.ad);
+            if (val && !kList.includes(val)) kList.unshift(val);
+            return `
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-700 mb-1">${esc(f.label)} <span class="text-rose-500">*</span></label>
+                <select data-fcode="${esc(f.code)}" class="ed dyn-input" onchange="updateLiveSnippet()">
+                    ${kList.length ? kList.map(k => `<option value="${esc(k)}" ${k === val ? 'selected' : ''}>${esc(k)}</option>`).join('') : `<option value="">— "${esc(g.ad)}" listesine seçenek ekleyin —</option>`}
+                </select>
+            </div>`;
+        }
+        if (f.type === 'date') {
+            return `
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">${esc(f.label)} <span class="text-rose-500">*</span></label>
+                <input type="date" data-fcode="${esc(f.code)}" value="${esc(val)}" class="ed dyn-input" onchange="updateLiveSnippet()">
+            </div>`;
+        }
+        if (f.type === 'date_mesai') {
+            return `
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">${esc(f.label)} <span class="text-rose-500">*</span></label>
+                <input type="date" data-fcode="${esc(f.code)}" value="${esc(val)}" class="ed dyn-input" onchange="updateLiveSnippet()">
+                <label class="flex items-center gap-2 mt-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                    <input type="checkbox" id="fMesaiBitimi" ${mesaiChecked ? 'checked' : ''} onchange="updateLiveSnippet()" class="w-4 h-4 rounded text-slate-900">
+                    <span>Mesai bitimi</span>
+                </label>
+            </div>`;
+        }
+        // Metin ve diğer özel alanlar için form girdisi düzeltildi (artık ekranda eksiksiz görünür)
+        return `
+        <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">${esc(f.label)} <span class="text-rose-500">*</span></label>
+            <input type="text" data-fcode="${esc(f.code)}" value="${esc(val)}" placeholder="${esc(f.label)}" class="ed dyn-input" oninput="updateLiveSnippet()">
+        </div>`;
+    }).join('');
+}
+
+function populateTebligEdenSelect(selectedTeAd) {
+    const teOpts = ['<option value="">— Tebliğ Eden Seçiniz —</option>'].concat(
+        STATE.tebligEdenler.map(x => `<option value="${esc(x.id)}" data-ad="${esc(x.ad)}" data-unvan="${esc(x.unvan)}" ${x.ad === selectedTeAd ? 'selected' : ''}>${esc(x.ad)} (${esc(x.unvan)})</option>`)
+    );
+    if (selectedTeAd && !STATE.tebligEdenler.some(x => x.ad === selectedTeAd)) {
+        teOpts.splice(1, 0, `<option value="__custom__" data-ad="${esc(selectedTeAd)}" selected>${esc(selectedTeAd)}</option>`);
+    }
+    $('fTebligEdenSel').innerHTML = teOpts.join('');
+}
+
+function onSelectTebligEden() {
+    const sel = $('fTebligEdenSel');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset.unvan) {
+        $('fTebligEdenUnvan').value = opt.dataset.unvan;
+    }
+}
+
+function getModalFormData() {
+    const sel = $('fTebligEdenSel');
+    const opt = sel.options[sel.selectedIndex];
+    const teAd = opt && opt.value ? (opt.dataset.ad || opt.textContent) : '';
+    const tpl = activeModalTpl || getSelectedTemplate();
+
+    const fieldValues = {};
+    document.querySelectorAll('#dynamicFieldsContainer .dyn-input').forEach(el => {
+        fieldValues[el.dataset.fcode] = el.value;
+    });
+    const mesaiEl = $('fMesaiBitimi');
+
+    return {
+        tplId: tpl.id,
+        tplName: tpl.name,
+        tplTitle: tpl.title,
+        tplLine1: tpl.line1,
+        tplLine2: tpl.line2,
+        selectedFields: tpl.selectedFields || [],
+        fieldValues,
+        mesaiBitimi: mesaiEl ? mesaiEl.checked : false,
+        tebligTarih: $('fTebligTarih').value,
+        tebligEdenAd: teAd.trim(),
+        tebligEdenUnvan: $('fTebligEdenUnvan').value.trim(),
+        tebellugAd: $('fTebellugAd').value.trim(),
+        tebellugSicil: $('fTebellugSicil').value.trim()
+    };
+}
+
+function updateLiveSnippet() {
+    const d = getModalFormData();
+    const { text } = fillTemplateParagraphs(d);
+    $('liveSnippet').innerHTML = `<p class="text-justify">${esc(text)}</p>`;
+}
+
+function openCreateFromTemplate() {
+    editingDocId = null;
+    activeModalTpl = getSelectedTemplate();
+    if (!activeModalTpl) return showToast('Önce bir şablon seçin', true);
+    $('docModalTitle').querySelector('span').textContent = 'Tebliğ Tebellüğ Belgesi Oluştur';
+    $('docModalTplBadge').textContent = 'Konu: ' + activeModalTpl.name;
+
+    buildDynamicFormInputs(activeModalTpl, {}, true);
+    populateTebligEdenSelect('');
+    $('fTebligTarih').value = todayIso();
+    $('fTebligEdenUnvan').value = '';
+    $('fTebellugAd').value = '';
+    $('fTebellugSicil').value = '';
+
+    updateLiveSnippet();
+    $('docModal').classList.remove('hidden');
+}
+
+function openEditDocModal(id) {
+    const d = STATE.docs.find(x => x.id === id);
+    if (!d) return;
+    editingDocId = id;
+    activeModalTpl = {
+        id: d.tplId || 'tpl_ayrilis',
+        name: d.tplName || 'Tebliğ Tebellüğ Belgesi',
+        title: d.tplTitle || 'TEBLİĞ TEBELLÜĞ BELGESİ',
+        line1: d.tplLine1,
+        line2: d.tplLine2,
+        selectedFields: d.selectedFields || Object.keys(d.fieldValues || {})
+    };
+    $('docModalTitle').querySelector('span').textContent = 'Kaydedilen Belgeyi Düzenle';
+    $('docModalTplBadge').textContent = 'Konu: ' + activeModalTpl.name;
+
+    buildDynamicFormInputs(activeModalTpl, d.fieldValues || {}, d.mesaiBitimi !== false);
+    populateTebligEdenSelect(d.tebligEdenAd);
+    $('fTebligTarih').value = d.tebligTarih || todayIso();
+    $('fTebligEdenUnvan').value = d.tebligEdenUnvan || '';
+    $('fTebellugAd').value = d.tebellugAd || '';
+    $('fTebellugSicil').value = d.tebellugSicil || '';
+
+    updateLiveSnippet();
+    $('docModal').classList.remove('hidden');
+}
+
+function closeDocModal() {
+    $('docModal').classList.add('hidden');
+    editingDocId = null;
+}
+
+function saveDoc(alsoPrint) {
+    const d = getModalFormData();
+    for (const [code, val] of Object.entries(d.fieldValues)) {
+        if (!String(val || '').trim()) {
+            const f = STATE.fields.find(x => x.code === code);
+            return showToast(`Lütfen "${f ? f.label : code}" alanını doldurun`, true);
+        }
+    }
+    if (!d.tebligTarih) return showToast('Lütfen tebliğ tarihini seçin', true);
+    if (!d.tebligEdenAd) return showToast('Lütfen tebliğ edeni seçin', true);
+    if (!d.tebellugAd) return showToast('Lütfen tebellüğ eden adı soyadını girin', true);
+    if (!d.tebellugSicil) return showToast('Lütfen tebellüğ eden sicil numarasını girin', true);
+
+    const isEdit = !!editingDocId;
+    const id = isEdit ? editingDocId : String(Date.now());
+    const yil = +(d.tebligTarih || todayIso()).slice(0, 4);
+    const rec = { id, yil, ...d, by: who() };
+
+    if (isEdit) {
+        const idx = STATE.docs.findIndex(x => x.id === id);
+        if (idx >= 0) STATE.docs[idx] = rec;
+        addLog('Belge güncellendi', `${d.tebellugAd} (${d.tebellugSicil})`, d.tplName);
+    } else {
+        STATE.docs.push(rec);
+        addLog('Belge oluşturuldu', `${d.tebellugAd} (${d.tebellugSicil})`, d.tplName);
+    }
+
+    saveState();
+    initYearSelect();
+    renderCurrent();
+    closeDocModal();
+    showToast(`${d.tebellugAd} adına belge kaydedildi`);
+    if (alsoPrint) printDoc(rec);
+}
+
+// ==========================================================
+// BÖLÜM — 11. KAYITLI BELGELER
+// ==========================================================
+function renderDocs() {
+    const q = ($('docSearch').value || '').toLocaleLowerCase('tr');
+    const y = $('docYil').value;
+    const list = STATE.docs.filter(d => {
+        if (y && +d.yil !== +y) return false;
+        if (!q) return true;
+        const extra = Object.values(d.fieldValues || {}).join(' ');
+        const hay = `${d.tebellugAd} ${d.tebellugSicil} ${d.tplName} ${d.tebligEdenAd} ${extra}`.toLocaleLowerCase('tr');
+        return hay.includes(q);
+    }).sort((a, b) => String(b.id).localeCompare(String(a.id)));
+
+    $('docInfo').textContent = list.length + ' belge';
+    $('docBody').innerHTML = list.length ? list.map((d, i) => `
+        <tr data-id="${esc(d.id)}" class="hover:bg-slate-50">
+            <td class="p-3 text-slate-400">${i + 1}</td>
+            <td class="p-3 font-bold text-slate-800">${esc(d.tebellugAd)}</td>
+            <td class="p-3 font-semibold text-slate-600">${esc(d.tebellugSicil)}</td>
+            <td class="p-3 font-semibold text-slate-700">${esc(d.tplName || '-')}</td>
+            <td class="p-3 text-slate-700">
+                <div class="font-semibold">${esc(d.tebligEdenAd)}</div>
+                <div class="text-[11px] text-slate-500">${esc(d.tebligEdenUnvan)}</div>
+            </td>
+            <td class="p-3 text-slate-600 whitespace-nowrap">${esc(fmtD(d.tebligTarih))}</td>
+            <td class="p-3 text-[11px] font-semibold text-slate-500 whitespace-nowrap">${esc(d.by) || '-'}</td>
+            <td class="p-3 text-right whitespace-nowrap">
+                <button onclick="openEditDocModal('${esc(d.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="previewDocById('${esc(d.id)}')" title="Önizle" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 mr-1"><i class="fa-solid fa-eye"></i></button>
+                <button onclick="printDocById('${esc(d.id)}')" title="Yazdır" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 mr-1"><i class="fa-solid fa-print"></i></button>
+                ${isAdmin() ? `<button onclick="deleteDoc('${esc(d.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}
+            </td>
+        </tr>
+    `).join('') : '<tr><td colspan="8" class="p-8 text-center text-slate-400 font-semibold">Henüz kayıtlı tebliğ tebellüğ belgesi yok. İlk sekmeden şablon seçip oluşturabilirsiniz.</td></tr>';
+}
+
+async function deleteDoc(id) {
+    if (!isAdmin()) return;
+    const d = STATE.docs.find(x => x.id === id); if (!d) return;
+    const ok = await askConfirm({
+        title: 'Belge silinsin mi?',
+        text: 'Seçilen tebliğ tebellüğ belgesi kalıcı olarak silinecek.',
+        summary: `<div><b>Tebellüğ Eden:</b> ${esc(d.tebellugAd)} (${esc(d.tebellugSicil)})</div><div><b>Konu:</b> ${esc(d.tplName)}</div>`
+    });
+    if (!ok) return;
+    const tr = document.querySelector(`tr[data-id="${id}"]`);
+    if (tr) { tr.classList.add('row-removing'); await sleep(400); }
+    STATE.docs = STATE.docs.filter(x => x.id !== id);
+    addLog('Belge silindi', `${d.tebellugAd} (${d.tebellugSicil})`);
+    saveState();
+    renderCurrent();
+    showToast('Belge silindi');
+}
+
+let pvDoc = null;
+// ==========================================================
+// BÖLÜM — 12. ÖNİZLEME VE YAZDIRMA
+// ==========================================================
+function openPreview(d) {
+    pvDoc = d;
+    $('pvTitle').textContent = 'Önizleme · ' + (d.tebellugAd || 'Tebliğ Tebellüğ Belgesi');
+    $('pvPage').innerHTML = docHTML(d);
+    $('pvModal').classList.remove('hidden');
+    $('pvModal').classList.add('flex');
+    const z = Math.min(1, (window.innerWidth - 32) / 794);
+    $('pvPage').style.zoom = z;
+}
+function closePreview() {
+    $('pvModal').classList.add('hidden');
+    $('pvModal').classList.remove('flex');
+    pvDoc = null;
+}
+function printDoc(d) {
+    addLog('Belge yazdırıldı', `${d.tebellugAd} (${d.tebellugSicil})`);
+    $('printArea').innerHTML = docHTML(d);
+    const old = document.title;
+    document.title = `Teblig_Tebellug_${(d.tebellugAd || 'Belge').replace(/\s+/g, '_')}`;
+    waitImgs($('printArea')).then(() => setTimeout(() => {
+        window.print();
+        document.title = old;
+    }, 100));
+}
+function previewFromModal() { openPreview(getModalFormData()); }
+function printPreview() { if (pvDoc) printDoc(pvDoc); }
+function previewDocById(id) { const d = STATE.docs.find(x => x.id === id); if (d) openPreview(d); }
+function printDocById(id) { const d = STATE.docs.find(x => x.id === id); if (d) printDoc(d); }
+
+// ==========================================================
+// BÖLÜM — 13. LİSTELER (KURUMLAR) VE TEBLİĞ EDENLER
+// ==========================================================
+function renderLists() {
+    const adm = isAdmin();
+    $('groupsWrap').innerHTML = STATE.listGroups.length ? STATE.listGroups.map(g => `
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3" style="border-top:4px solid #1d4ed8">
+            <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2 flex-1 min-w-0">
+                    <i class="fa-solid fa-building-columns text-blue-600"></i> <span class="truncate">${esc(g.ad)}</span>
+                    <span class="text-[10px] font-semibold text-slate-400 shrink-0">(${g.items.length} seçenek)</span>
+                </h2>
+                ${adm ? `<label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 cursor-pointer select-none" title="Metinde “…’nın / …’nin” gibi tamlama eki otomatik eklenir"><input type="checkbox" ${g.ek ? 'checked' : ''} onchange="toggleEk('${esc(g.id)}', this.checked)" class="w-3.5 h-3.5 rounded"> Tamlama eki (’nın/’nin)</label>
+                <button onclick="editGroup('${esc(g.id)}')" title="Liste adını düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="delGroup('${esc(g.id)}')" title="Listeyi sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+            </div>
+            ${adm ? `<form class="flex gap-2" onsubmit="addItem(event,'${esc(g.id)}')">
+                <input type="text" id="gi_${esc(g.id)}" required placeholder="Yeni seçenek ekle..." class="flex-1 p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
+                <button type="submit" class="px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Ekle</button>
+            </form>` : ''}
+            <div class="overflow-y-auto max-h-72"><table class="w-full text-xs"><tbody class="divide-y">
+                ${g.items.length ? g.items.map((k, i) => `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 text-slate-400 w-8">${i + 1}</td>
+                    <td class="p-2.5 font-semibold text-slate-800">${esc(k.ad)}</td>
+                    <td class="p-2.5 text-right whitespace-nowrap">${adm ? `<button onclick="editItem('${esc(g.id)}','${esc(k.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="delItem('${esc(g.id)}','${esc(k.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`).join('') : '<tr><td class="p-4 text-center text-slate-400 font-semibold">Bu listede seçenek yok.</td></tr>'}
+            </tbody></table></div>
+        </div>`).join('') : '<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400 font-semibold">Açılır liste alanı yok. Yönetici yeni liste oluşturabilir.</div>';
+
+    $('teBody').innerHTML = STATE.tebligEdenler.length ? STATE.tebligEdenler.map((t, i) => `
+        <tr class="hover:bg-slate-50">
+            <td class="p-2.5 text-slate-400 w-8">${i + 1}</td>
+            <td class="p-2.5">
+                <div class="font-bold text-slate-800">${esc(t.ad)}</div>
+                <div class="text-[11px] text-slate-500">${esc(t.unvan)}</div>
+            </td>
+            <td class="p-2.5 text-right whitespace-nowrap">${adm ? `
+                <button onclick="editTebligEden('${esc(t.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="delTebligEden('${esc(t.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td>
+        </tr>`).join('') : '<tr><td class="p-5 text-center text-slate-400 font-semibold">Kayıtlı tebliğ eden kişi yok.</td></tr>';
+}
+
+const gById = id => STATE.listGroups.find(x => x.id === id);
+function addGroup(e) {
+    e.preventDefault();
+    const ad = $('newGroupAd').value.trim().replace(/\s+/g, ' '); if (!ad) return;
+    if (STATE.listGroups.some(g => g.ad.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'))) return showToast('Bu adla bir liste zaten var', true);
+    STATE.listGroups.push({ id: 'g' + Date.now(), ad, ek: false, items: [] });
+    addLog('Liste alanı oluşturuldu', ad); $('newGroupAd').value = ''; renderLists(); showToast('"' + ad + '" listesi oluşturuldu; şablonda alan türü olarak seçebilirsiniz');
+}
+function editGroup(id) {
+    const g = gById(id); if (!g) return;
+    openEditModal({ title: 'Liste Adını Düzenle', l1: 'Liste / Alan Adı', v1: g.ad, save: v1 => {
+        const ad = v1.trim().replace(/\s+/g, ' '); if (!ad) throw new Error('Ad boş olamaz.');
+        g.ad = ad; addLog('Liste adı güncellendi', ad); renderLists();
+    }});
+}
+async function delGroup(id) {
+    const g = gById(id); if (!g) return;
+    const used = STATE.fields.filter(f => f.type === 'liste' && f.gid === id);
+    const ok = await askConfirm({ title: 'Liste silinsin mi?', text: 'Liste ve seçenekleri silinir; şablon alan türü listesinden de kalkar.' + (used.length ? ' Bu listeyi kullanan alanlar da silinir; şablon metinlerinde ilgili kodlar olduğu gibi kalır.' : ''), summary: `<div><b>Liste:</b> ${esc(g.ad)} (${g.items.length} seçenek)</div>` + (used.length ? `<div><b>Silinecek alanlar:</b> ${esc(used.map(f => f.label).join(', '))}</div>` : '') });
+    if (!ok) return;
+    STATE.listGroups = STATE.listGroups.filter(x => x.id !== id);
+    STATE.fields = STATE.fields.filter(f => !(f.type === 'liste' && f.gid === id));
+    addLog('Liste alanı silindi', g.ad); renderLists(); showToast('Liste silindi');
+}
+function toggleEk(id, on) { const g = gById(id); if (!g) return; g.ek = !!on; saveState(); showToast(on ? 'Tamlama eki açıldı' : 'Tamlama eki kapatıldı'); }
+function addItem(e, gid) {
+    e.preventDefault(); const g = gById(gid); if (!g) return;
+    const inp = $('gi_' + gid), ad = inp.value.trim().replace(/\s+/g, ' '); if (!ad) return;
+    if (g.items.some(x => x.ad.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'))) return showToast('Bu seçenek zaten kayıtlı', true);
+    g.items.push({ id: String(Date.now()) + Math.floor(Math.random() * 99), ad });
+    addLog('Seçenek eklendi', ad, g.ad); renderLists(); showToast('Seçenek eklendi');
+    const n = $('gi_' + gid); if (n) n.focus();
+}
+function editItem(gid, id) {
+    const g = gById(gid), k = g && g.items.find(x => x.id === id); if (!k) return;
+    openEditModal({ title: 'Seçeneği Düzenle · ' + g.ad, l1: 'Seçenek', v1: k.ad, save: v1 => {
+        const ad = v1.trim().replace(/\s+/g, ' '); if (!ad) throw new Error('Seçenek boş olamaz.');
+        k.ad = ad; addLog('Seçenek güncellendi', ad, g.ad); renderLists();
+    }});
+}
+async function delItem(gid, id) {
+    const g = gById(gid), k = g && g.items.find(x => x.id === id); if (!k) return;
+    const ok = await askConfirm({ title: 'Seçenek silinsin mi?', text: 'Listeden kaldırılır; eski belgeler etkilenmez.', summary: `<div><b>${esc(g.ad)}:</b> ${esc(k.ad)}</div>` });
+    if (!ok) return;
+    g.items = g.items.filter(x => x.id !== id); addLog('Seçenek silindi', k.ad, g.ad); renderLists(); showToast('Silindi');
+}
+
+function addTebligEden(e) {
+    e.preventDefault();
+    const ad = $('newTeAd').value.trim().replace(/\s+/g, ' ');
+    const unvan = $('newTeUnvan').value.trim().replace(/\s+/g, ' ');
+    if (!ad || !unvan) return;
+    STATE.tebligEdenler.push({ id: String(Date.now()), ad, unvan });
+    addLog('Tebliğ eden eklendi', `${ad} (${unvan})`);
+    $('newTeAd').value = ''; $('newTeUnvan').value = '';
+    renderLists(); showToast('Tebliğ eden eklendi');
+}
+function editTebligEden(id) {
+    const t = STATE.tebligEdenler.find(x => x.id === id); if (!t) return;
+    openEditModal({
+        title: 'Tebliğ Edeni Düzenle', l1: 'Adı Soyadı', v1: t.ad, l2: 'Ünvanı', v2: t.unvan,
+        save: (v1, v2) => {
+            const ad = v1.trim().replace(/\s+/g, ' '), unvan = v2.trim().replace(/\s+/g, ' ');
+            if (!ad || !unvan) throw new Error('Ad soyad ve ünvan boş olamaz.');
+            t.ad = ad; t.unvan = unvan; addLog('Tebliğ eden güncellendi', `${ad} (${unvan})`); renderLists();
+        }
+    });
+}
+async function delTebligEden(id) {
+    const t = STATE.tebligEdenler.find(x => x.id === id); if (!t) return;
+    const ok = await askConfirm({ title: 'Kayıt silinsin mi?', text: 'Tebliğ eden listesinden kaldırılır.', summary: `<div><b>Adı Soyadı:</b> ${esc(t.ad)}</div><div><b>Ünvanı:</b> ${esc(t.unvan)}</div>` });
+    if (!ok) return;
+    STATE.tebligEdenler = STATE.tebligEdenler.filter(x => x.id !== id);
+    addLog('Tebliğ eden silindi', `${t.ad} (${t.unvan})`);
+    renderLists(); showToast('Silindi');
+}
+
+// ==========================================================
+// BÖLÜM — 14. İŞLEM GEÇMİŞİ EKRANI
+// ==========================================================
+function renderLog() {
+    if (pruneLogs()) saveState();
+    const q = ($('lgSearch').value || '').toLocaleLowerCase('tr');
+    const list = STATE.logs.filter(x => !q || `${x.user} ${x.islem} ${x.kayit} ${x.ayrinti}`.toLocaleLowerCase('tr').includes(q));
+    $('lgInfo').textContent = list.length + ' işlem · son ' + LOG_DAYS + ' gün saklanır';
+    const tone = i => /silindi/i.test(i) ? 'bg-rose-100 text-rose-700' : /yazdır/i.test(i) ? 'bg-blue-100 text-blue-700' : /güncellendi/i.test(i) ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700';
+    $('lgBody').innerHTML = list.length ? list.map(x => `
+        <tr class="hover:bg-slate-50">
+            <td class="p-2.5 whitespace-nowrap text-slate-600 tabular-nums">${esc(x.tarih)}</td>
+            <td class="p-2.5 font-bold text-slate-800 whitespace-nowrap">${esc(x.user)}</td>
+            <td class="p-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${tone(x.islem)}">${esc(x.islem)}</span></td>
+            <td class="p-2.5 text-slate-700">${esc(x.kayit) || '-'}</td>
+            <td class="p-2.5 text-slate-500">${esc(x.ayrinti)}</td>
+        </tr>`).join('') : '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-semibold">Henüz işlem kaydı yok.</td></tr>';
+}
+
+// ==========================================================
+// BÖLÜM — 15. ONAY VE DÜZENLEME PENCERELERİ
+// ==========================================================
+let cfRes = null;
+function askConfirm(o) {
+    return new Promise(res => {
+        cfRes = res;
+        $('cfTitle').textContent = o.title;
+        $('cfText').textContent = o.text || '';
+        const s = $('cfSummary'); s.innerHTML = o.summary || ''; s.classList.toggle('hidden', !o.summary);
+        $('cfModal').classList.remove('hidden');
+    });
+}
+function cfAnswer(yes) {
+    $('cfModal').classList.add('hidden');
+    const r = cfRes; cfRes = null; if (r) r(!!yes);
+}
+
+let editCtx = null;
+function openEditModal(ctx) {
+    editCtx = ctx; $('editTitle').querySelector('span').textContent = ctx.title;
+    $('editLabel1').textContent = ctx.l1; $('editInput1').value = ctx.v1;
+    $('editRow2').classList.toggle('hidden', !ctx.l2); if (ctx.l2) { $('editLabel2').textContent = ctx.l2; $('editInput2').value = ctx.v2; }
+    $('editRow3').classList.toggle('hidden', !ctx.l3); if (ctx.l3) { $('editLabel3').textContent = ctx.l3; $('editInput3').value = ctx.v3; }
+    $('editErr').classList.add('hidden'); $('editModal').classList.remove('hidden'); setTimeout(() => $('editInput1').focus(), 50);
+}
+function closeEdit() { $('editModal').classList.add('hidden'); editCtx = null; }
+async function saveEdit() {
+    if (!editCtx) return;
+    try { await editCtx.save($('editInput1').value, $('editInput2').value, $('editInput3').value); closeEdit(); showToast('Değişiklik kaydedildi'); }
+    catch (x) { $('editErr').textContent = x.message; $('editErr').classList.remove('hidden'); }
+}
+
+function tickClock() { const n = new Date(); $('clockDate').textContent = n.toLocaleDateString('tr-TR'); $('clockTime').textContent = n.toLocaleTimeString('tr-TR', { hourCycle: 'h23' }); }
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (!$('cfModal').classList.contains('hidden')) cfAnswer(false);
+        else if (!$('pvModal').classList.contains('hidden')) closePreview();
+        else if (!$('editModal').classList.contains('hidden')) closeEdit();
+        else if (!$('tplModal').classList.contains('hidden')) closeTplModal();
+        else if (!$('docModal').classList.contains('hidden')) closeDocModal();
+    }
+});
+document.addEventListener('pointerdown', e => {
+    const b = e.target.closest && e.target.closest('button'); if (!b || b.disabled) return;
+    const r = b.getBoundingClientRect(), s = Math.max(r.width, r.height), d = document.createElement('span');
+    d.className = 'ripple'; d.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX - r.left - s / 2}px;top:${e.clientY - r.top - s / 2}px`;
+    b.appendChild(d); setTimeout(() => d.remove(), 600);
+});
+
+(function initPortalAnimation() {
+    const canvas = $('animatedPortalBg'); if (!canvas) return;
+    const ctx = canvas.getContext('2d'); let width, height;
+    function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    const ps = []; for (let i = 0; i < 40; i++) ps.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 3 + 1, sx: (Math.random() - 0.5) * 0.3, sy: -Math.random() * 0.5 - 0.2, o: Math.random() * 0.5 + 0.2 });
+    (function animate() {
+        if (canvas.offsetParent === null) return;   // giriş ekranı kapandıysa animasyon durur
+        ctx.clearRect(0, 0, width, height);
+        ps.forEach(p => { p.x += p.sx; p.y += p.sy; if (p.y < -10) p.y = height + 10; ctx.save(); ctx.globalAlpha = p.o; ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.restore(); });
+        requestAnimationFrame(animate);
+    })();
+
+})();
+
+// ==========================================================
+// BÖLÜM — 16. BAŞLANGIÇ
+// ==========================================================
+window.addEventListener('DOMContentLoaded', () => {
+    setInterval(tickClock, 1000); tickClock();
+    oturumuGeriYukle();      // (js/api.js) sekme açıkken sayfa yenilenirse oturum devam eder
+});
+    

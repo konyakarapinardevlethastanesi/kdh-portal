@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tebliğ Tebellüğ Belgeleri - Konya Karapınar Devlet Hastanesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
+        button { cursor: pointer; position: relative; overflow: hidden; transition: transform .16s cubic-bezier(.3,1.5,.5,1), filter .15s ease, background-color .15s ease, box-shadow .18s ease; -webkit-tap-highlight-color: transparent; }
+        button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 7px 14px -7px rgba(15,23,42,.5); }
+        button:active:not(:disabled) { transform: translateY(1px) scale(.94); filter: brightness(.86); box-shadow: inset 0 3px 8px rgba(0,0,0,.28); transition-duration: .06s; }
+        .ripple { position: absolute; border-radius: 9999px; background: currentColor; opacity: .3; transform: scale(0); animation: rip .55s ease-out forwards; pointer-events: none; }
+        @keyframes rip { to { transform: scale(3); opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .ripple { display: none; } button:hover:not(:disabled), button:active:not(:disabled) { transform: none; } }
+        button:focus-visible, select:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+        select { cursor: pointer; }
+
+        @keyframes popIn { 0% { opacity: 0; transform: scale(.7) translateY(24px); } 60% { opacity: 1; transform: scale(1.04); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shake { 0%,100% { transform: rotate(0); } 15% { transform: rotate(-14deg); } 30% { transform: rotate(11deg); } 45% { transform: rotate(-8deg); } 60% { transform: rotate(6deg); } 75% { transform: rotate(-3deg); } }
+        @keyframes ring { 0% { transform: scale(.85); opacity: .7; } 100% { transform: scale(1.8); opacity: 0; } }
+        .anim-pop { animation: popIn .38s cubic-bezier(.2,.9,.3,1.2) both; }
+        .anim-fade { animation: fadeIn .22s ease both; }
+        .anim-shake { animation: shake .9s ease .3s both; }
+        .pulse-ring::before, .pulse-ring::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: rgba(244,63,94,.35); animation: ring 1.8s ease-out infinite; }
+        .pulse-ring::after { animation-delay: .9s; }
+        tr.row-removing { transition: all .45s ease; opacity: 0; transform: translateX(40px); background: #fee2e2; }
+
+        .ed { width: 100%; min-width: 0; padding: .48rem .6rem; border: 1px solid #cbd5e1; border-radius: .5rem; font-size: .78rem; background: #fff; color: #0f172a; }
+        .ed:focus { outline: none; box-shadow: 0 0 0 2px #0f172a; }
+        textarea.ed { resize: vertical; line-height: 1.45; }
+        .th { padding: .6rem .6rem; text-align: left; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; color: #475569; background: #f1f5f9; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+
+        @page { size: A4 portrait; margin: 0; }
+        #printArea { display: none; }
+        /* Word belgesi ölçüleri: A4, kenar boşlukları 25 mm, Times New Roman 12 pt */
+        .tt-page { position: relative; width: 210mm; height: 296mm; box-sizing: border-box; padding: 25mm; overflow: hidden; background: #fff; color: #000; font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.24; text-rendering: geometricPrecision; font-kerning: normal; }
+        .tt-page .c { text-align: center; }
+        .tt-page .b { font-weight: 700; }
+        .tt-page .ln { height: 1.24em; }
+        .tt-top { position: relative; }
+        .tt-logo, .tt-top > svg { position: absolute; left: -3.8mm; top: -13.4mm; width: 25mm; height: 25mm; object-fit: contain; }
+        .tt-p { margin: 0; text-align: justify; text-align-last: left; text-indent: 12.5mm; font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.24; }
+        .tt-sign { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 1.2mm; text-align: center; }
+        .tt-sign .h { font-weight: 700; text-decoration: underline; }
+        .tt-rule { position: absolute; left: 15mm; right: 15mm; bottom: 22.4mm; border-top: 1.5pt solid #ee0000; }
+        .tt-foot { position: absolute; left: 15mm; right: 15mm; bottom: 5.2mm; display: flex; justify-content: space-between; align-items: flex-start; gap: 4mm; font-size: 12pt; line-height: 1.15; }
+        .tt-foot .r { text-align: right; }
+        .tt-foot a { color: #0563c1; text-decoration: underline; }
+        #pvPage { width: 210mm; min-height: 296mm; background: #fff; box-shadow: 0 6px 30px rgba(0,0,0,.35); transform-origin: top center; }
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+            body > *:not(#printArea) { display: none !important; }
+            #printArea { display: block !important; width: 210mm !important; margin: 0 !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-slate-100 to-sky-50 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- ==================== 1. GİRİŞ ==================== -->
+    <div id="mainAuthPortal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-hidden select-none">
+        <canvas id="animatedPortalBg" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+        <div class="max-w-md w-full space-y-5 my-auto relative z-10">
+            <div class="text-center space-y-2">
+                <div class="w-[88px] h-[88px] flex items-center justify-center p-1 mx-auto drop-shadow-2xl">
+                    <img src="logo.png" alt="Logo" onerror="this.outerHTML=SB_SVG_HEADER" class="w-full h-full object-contain filter drop-shadow-lg">
+                </div>
+                <div class="text-[12px] font-bold tracking-widest text-red-500 uppercase">T.C. Sağlık Bakanlığı</div>
+                <div class="text-[12px] font-semibold text-slate-200">Konya İl Sağlık Müdürlüğü</div>
+                <h1 class="text-xl font-black text-white">Karapınar Devlet Hastanesi</h1>
+                <p class="text-[11px] text-slate-400 font-bold">Tebliğ - Tebellüğ Belge Sistemi</p>
+            </div>
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border border-slate-200/80 space-y-4">
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
+                        <i class="fa-solid fa-user-gear text-slate-900"></i> Kullanıcı / Yönetici Girişi
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Şifre <span class="text-rose-500">*</span></label>
+                        <input type="password" id="passwordInput" required placeholder="••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs text-center tracking-widest font-bold focus:ring-2 focus:ring-slate-900">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
+                    </button>
+                    <p id="loginError" class="text-xs text-rose-600 hidden font-semibold text-center">Hatalı şifre!</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="adminInterface" class="hidden flex-col flex-grow">
+        <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-[56px] h-[56px] flex items-center justify-center shrink-0">
+                        <img src="logo.png" alt="Logo" onerror="this.outerHTML=SB_SVG_HEADER" class="w-full h-full object-contain">
+                    </div>
+                    <div class="flex flex-col justify-center leading-tight">
+                        <div class="text-[11px] font-extrabold text-red-500 uppercase tracking-wide">T.C. Sağlık Bakanlığı</div>
+                        <div class="text-[10.5px] font-semibold text-slate-200 mt-0.5">Konya İl Sağlık Müdürlüğü</div>
+                        <h1 class="text-sm font-extrabold text-white mt-0.5">Karapınar Devlet Hastanesi</h1>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Tebliğ - Tebellüğ Belge Paneli</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div id="uw" class="hidden relative">
+                        <button id="uwChip" onclick="uwToggle()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700">
+                            <i class="fa-solid fa-circle-user text-emerald-400"></i><span id="uwName"></span><span id="uwRole" class="text-amber-300"></span><i id="uwCaret" class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        <div id="uwPanel" class="hidden absolute right-0 top-full mt-2 w-80 max-h-[78vh] overflow-y-auto bg-white text-slate-800 rounded-xl border border-slate-200 shadow-2xl p-3 space-y-3 text-left z-50">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-users text-slate-600 text-xs"></i><h4 class="flex-1 text-xs font-extrabold text-slate-800">Kullanıcılar</h4><button onclick="uwToggle()" class="w-6 h-6 rounded-md text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-xmark text-xs"></i></button></div>
+                            <div class="space-y-1 border border-amber-200 bg-amber-50 rounded-lg p-2">
+                                <label class="block text-[10px] font-extrabold text-amber-800 uppercase">Yönetici Adı, Ünvanı ve Şifresi (ana yönetici)</label>
+                                <input id="uwAdminAd" type="text" maxlength="40" placeholder="Yöneticinin Adı Soyadı" class="ed">
+                                <input id="uwAdminSifre" type="text" maxlength="64" autocomplete="off" placeholder="Yeni şifre (değiştirmeyecekseniz boş bırakın)" class="ed">
+                                <div class="flex gap-1.5"><input id="uwAdminUnvan" type="text" maxlength="40" placeholder="Ünvanı (Örn: Tıbbi Sekreter)" class="ed"><button onclick="uwSaveAdminName()" class="shrink-0 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px]">Kaydet</button></div>
+                            </div>
+                            <div id="uwList" class="max-h-52 overflow-y-auto"></div>
+                            <div class="space-y-1.5 border-t border-slate-100 pt-2.5">
+                                <input id="uwAd" type="text" maxlength="40" placeholder="Ad Soyad" class="ed">
+                                <input id="uwUnvan" type="text" maxlength="40" placeholder="Ünvanı (Örn: Tıbbi Sekreter)" class="ed">
+                                <input id="uwSifre" type="text" maxlength="40" autocomplete="off" placeholder="Şifre (en az 8 karakter)" class="ed">
+                                <div class="flex gap-1.5"><select id="uwYetki" class="ed"><option value="Kullanıcı">Kullanıcı</option><option value="Yönetici">Yönetici</option></select>
+                                <button id="uwEkle" onclick="uwAdd()" class="shrink-0 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-user-plus"></i> Ekle</button></div>
+                                <p id="uwErr" class="hidden text-[11px] text-rose-600 font-semibold"></p>
+                                <p class="text-[10px] text-slate-400 leading-snug">Giriş sadece şifreyle yapılır; her kullanıcının şifresi farklı ve en az 8 karakter olmalıdır. Şifreler sunucuda şifrelenmiş özet olarak saklanır, kimse göremez. Unutulursa kalem düğmesiyle yenisi verilir.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right leading-tight shrink-0 hidden sm:block">
+                        <div id="clockDate" class="text-[11px] text-slate-400 font-semibold tabular-nums">--.--.----</div>
+                        <div id="clockTime" class="text-xs font-extrabold text-red-500 tabular-nums">--:--:--</div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-700"></div>
+                    <button onclick="logoutClick()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
+
+            <div class="flex gap-2 border-b border-slate-300 overflow-x-auto items-end">
+                <button id="btn-templates" onclick="showTab('templates')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-file-lines"></i> Tebliğ Tebellüğ Şablonları <span id="tplCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+                <button id="btn-docs" onclick="showTab('docs')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-folder-open"></i> Kayıtlı Tebliğ Belgeleri <span id="docCount" class="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">0</span></button>
+                <button id="btn-lists" onclick="showTab('lists')" class="px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-building-user"></i> Kurumlar ve Tebliğ Edenler</button>
+                <button id="btn-log" onclick="showTab('log')" class="admin-only px-4 py-2 text-xs font-bold rounded-t-xl border flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> İşlem Geçmişi</button>
+            </div>
+
+            <!-- SEKME 1: TEBLİĞ TEBELLÜĞ ŞABLONLARI -->
+            <section id="sec-templates" class="hidden space-y-4 anim-fade">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-md p-4 space-y-3" style="border-top:4px solid #dc2626">
+                        <div class="flex items-center justify-between gap-2">
+                            <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group text-red-600"></i> Kayıtlı Şablonlar
+                            </h2>
+                            <button onclick="openTplModal()" class="admin-only px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Yeni Şablon
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="tplSearch" oninput="renderTemplates()" placeholder="Konuya göre şablon ara..." class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900">
+                        </div>
+                        <div id="tplList" class="space-y-2 max-h-[600px] overflow-y-auto pr-1"></div>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-md p-4 space-y-3" style="border-top:4px solid #0f172a">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <div class="text-[10px] font-bold uppercase text-slate-400">Seçili Şablon Konusu</div>
+                                <h3 id="selTplName" class="text-sm font-extrabold text-slate-900">-</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="editSelectedTpl()" class="admin-only px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen"></i> Şablonu Düzenle
+                                </button>
+                                <button onclick="openCreateFromTemplate()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs flex items-center gap-2 shadow-md">
+                                    <i class="fa-solid fa-check-circle"></i> Seç ve Oluştur
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+                            <div id="tplPreviewTextOnly" class="font-serif text-[15px] text-slate-900 leading-relaxed space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEKME 2: KAYITLI TEBLİĞ BELGELERİ -->
+            <section id="sec-docs" class="hidden space-y-4 anim-fade">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-md flex flex-wrap items-center gap-3" style="border-top:4px solid #1d4ed8">
+                    <div class="relative flex-1 min-w-[220px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="docSearch" oninput="renderDocs()" placeholder="Tebellüğ eden adı soyadı, sicil no, konu veya metin ara..." class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900">
+                    </div>
+                    <select id="docYil" onchange="renderDocs()" class="px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-semibold text-slate-700"></select>
+                    <span id="docInfo" class="text-[11px] text-slate-500 font-semibold"></span>
+                    <button onclick="openCreateFromTemplate()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-plus"></i> Yeni Belge Oluştur
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr>
+                                    <th class="th w-10">No</th>
+                                    <th class="th">Tebellüğ Eden</th>
+                                    <th class="th">Sicil No</th>
+                                    <th class="th">Şablon Konusu</th>
+                                    <th class="th">Tebliğ Eden</th>
+                                    <th class="th">Tebliğ Tarihi</th>
+                                    <th class="th">Kaydeden</th>
+                                    <th class="th text-right">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEKME 3: KURUMLAR VE TEBLİĞ EDENLER -->
+            <section id="sec-lists" class="hidden space-y-6 anim-fade">
+                <div class="space-y-6">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4" style="border-top:4px solid #15803d">
+                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-user-tie text-emerald-600"></i> Tebliğ Edenler
+                            <span class="text-[10px] font-semibold text-slate-400">(Adı Soyadı ve Ünvanı seçenekleri)</span>
+                        </h2>
+                        <form class="admin-only grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2" onsubmit="addTebligEden(event)">
+                            <input type="text" id="newTeAd" required placeholder="Adı Soyadı (Örn: Dr. Ahmet YILMAZ)" class="p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
+                            <input type="text" id="newTeUnvan" required placeholder="Ünvanı (Örn: Başhekim)" class="p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
+                            <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Ekle
+                            </button>
+                        </form>
+                        <div class="overflow-y-auto max-h-64">
+                            <table class="w-full text-xs"><tbody id="teBody" class="divide-y"></tbody></table>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="admin-only bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3" style="border-top:4px solid #7c3aed">
+                            <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-violet-600"></i> Yeni Açılır Liste Alanı Oluştur
+                            </h2>
+                            <p class="text-[11px] text-slate-500 leading-snug">Örn: <b>Hastane Adı</b>. Oluşturduğunuz liste, şablondaki <b>Yeni Alan Ekle</b> bölümünde tür listesine eklenir; seçenekleri aşağıdan yönetirsiniz.</p>
+                            <form class="flex gap-2" onsubmit="addGroup(event)">
+                                <input type="text" id="newGroupAd" required placeholder="Liste / alan adı (Örn: Hastane Adı)" class="flex-1 p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
+                                <button type="submit" class="px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Oluştur</button>
+                            </form>
+                        </div>
+                        <div id="groupsWrap" class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start"></div>
+                    </div>
+
+                    
+                </div>
+            </section>
+
+            <!-- SEKME 4: İŞLEM GEÇMİŞİ -->
+            <section id="sec-log" class="hidden space-y-4 anim-fade">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-2">
+                    <div class="relative flex-1 min-w-[180px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="lgSearch" oninput="renderLog()" placeholder="Kayıt veya ayrıntı ara..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-slate-900">
+                    </div>
+                    <span id="lgInfo" class="text-[11px] text-slate-500 font-semibold"></span>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto"><table class="w-full text-xs">
+                        <thead><tr><th class="th">Tarih</th><th class="th">Kullanıcı</th><th class="th">İşlem</th><th class="th">Kayıt</th><th class="th">Ayrıntı</th></tr></thead>
+                        <tbody id="lgBody" class="divide-y"></tbody>
+                    </table></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-slate-900 text-slate-400 py-1 text-center text-[10px] leading-4 border-t border-slate-800">
+            <p>Konya Karapınar Devlet Hastanesi <span id="currentYearSpan"></span> © Tüm Hakları Saklıdır.</p>
+        </footer>
+    </div>
+
+    <div id="printArea"></div>
+
+    <!-- MODAL 1: BELGE OLUŞTUR / DÜZENLE EKRANI -->
+    <div id="docModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[65] hidden flex items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl anim-pop space-y-4 max-h-[92vh] overflow-y-auto" style="border-top:4px solid #dc2626">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 id="docModalTitle" class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-file-signature text-red-600"></i> <span>Tebliğ Tebellüğ Belgesi Oluştur</span>
+                    </h3>
+                    <p id="docModalTplBadge" class="text-[11px] font-semibold text-slate-500 mt-0.5"></p>
+                </div>
+                <button onclick="closeDocModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div id="dynamicFieldsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 leading-relaxed">
+                    <div class="text-[10px] font-extrabold uppercase text-slate-400 mb-1">Oluşacak Belge Metni</div>
+                    <div id="liveSnippet" class="font-serif text-[13px] text-slate-900 space-y-1"></div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tebliğ Tarihi <span class="text-rose-500">*</span></label>
+                        <input type="date" id="fTebligTarih" class="ed">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tebliğ Eden (Listeden) <span class="text-rose-500">*</span></label>
+                        <select id="fTebligEdenSel" class="ed" onchange="onSelectTebligEden()"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tebliğ Eden Ünvanı <span class="text-rose-500">*</span></label>
+                        <input type="text" id="fTebligEdenUnvan" placeholder="Ünvanı" class="ed">
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tebellüğ Eden Adı Soyadı <span class="text-rose-500">*</span></label>
+                        <input type="text" id="fTebellugAd" placeholder="Personelin Adı Soyadı" class="ed">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tebellüğ Eden Sicil No <span class="text-rose-500">*</span></label>
+                        <input type="text" id="fTebellugSicil" placeholder="Sicil Numarası" class="ed">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button onclick="closeDocModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button onclick="previewFromModal()" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-eye"></i> Önizle
+                </button>
+                <button onclick="saveDoc(false)" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> Kaydet
+                </button>
+                <button onclick="saveDoc(true)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-print"></i> Yazdır ve Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: YENİ ŞABLON EKLE / DÜZENLE -->
+    <div id="tplModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl anim-pop space-y-4 max-h-[92vh] overflow-y-auto" style="border-top:4px solid #0f172a">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 id="tplModalTitle" class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-file-circle-plus text-blue-600"></i> <span>Yeni Tebliğ Tebellüğ Şablonu</span>
+                </h3>
+                <button onclick="closeTplModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Şablon Konusu (Listede Görünecek Ad) <span class="text-rose-500">*</span></label>
+                        <input type="text" id="tName" placeholder="Örn: Görevden Ayrılış Tebliğ Tebellüğ" class="ed">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Belge Başlığı <span class="text-rose-500">*</span></label>
+                        <input type="text" id="tTitle" value="TEBLİĞ TEBELLÜĞ BELGESİ" class="ed">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Belge Metni <span class="text-[10px] font-semibold text-slate-400">(tek paragraf · iki yana yaslı · Times New Roman 12 punto)</span> <span class="text-rose-500">*</span></label>
+                    <textarea id="tLine1" rows="6" placeholder="Örnek: {KURUM} {KARAR_TARIHI} tarih ve {KARAR_SAYISI} sayılı atama kararı gereği; {TARIH} tarihi{MESAI_BITIMI} itibariyle Karapınar Devlet hastanesindeki görevimden ayrılmak üzere tebellüğ ettim." class="ed"></textarea>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <div class="text-xs font-extrabold text-slate-800">Kullanabileceğiniz Otomatik Alanlar & Form Seçimi</div>
+                            <p class="text-[11px] text-slate-500">Kutucuğunu <b>işaretlediğiniz</b> alanlar "Seç ve Oluştur" ekranında sorulur. Kod etiketine tıklayarak paragrafa ekleyebilirsiniz.</p>
+                        </div>
+                        <button type="button" onclick="toggleNewFieldForm()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Yeni Alan Ekle
+                        </button>
+                    </div>
+
+                    <div id="newFieldBox" class="hidden bg-white border border-blue-200 rounded-xl p-3 space-y-2">
+                        <div class="text-[11px] font-extrabold text-blue-800">Yeni Otomatik Alan Tanımla</div>
+                        <p class="text-[10px] text-slate-500 leading-snug">Tür listesindeki "Açılır Liste" seçenekleri <b>Kurumlar</b> sekmesinde oluşturduğunuz listelerdir (Kurum, Hastane Adı vb.). Yeni liste eklemek veya silmek için <button type="button" onclick="closeTplModal();showTab('lists')" class="underline font-bold text-blue-700">Kurumlar sekmesine git</button>.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <input type="text" id="nfLabel" placeholder="Alan Adı (Örn: Görev Yeri)" class="ed">
+                            <select id="nfType" class="ed"></select>
+                            <button type="button" onclick="createCustomField()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs">
+                                Alanı Oluştur ve Ekle
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="fieldsChecklist" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button onclick="closeTplModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button onclick="saveTemplate()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> Şablonu Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÖNİZLEME MODALI -->
+    <div id="pvModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[75] hidden flex-col anim-fade">
+        <div class="bg-slate-900 text-white px-4 py-2.5 flex flex-wrap items-center gap-2 shadow-lg">
+            <i class="fa-solid fa-eye text-amber-400"></i>
+            <h3 id="pvTitle" class="text-sm font-extrabold flex-1 min-w-[180px]">Belge Önizleme</h3>
+            <button onclick="printPreview()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-print"></i> Yazdır</button>
+            <button onclick="closePreview()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-xmark"></i> Kapat</button>
+        </div>
+        <div id="pvScroll" class="flex-1 overflow-auto p-4 flex justify-center items-start">
+            <div id="pvOuter"><div id="pvPage"></div></div>
+        </div>
+    </div>
+
+    <!-- ONAY / SİLME UYARI MODALI -->
+    <div id="cfModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl anim-pop space-y-4">
+            <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+                <div class="pulse-ring absolute inset-0 rounded-full"></div>
+                <div class="relative w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-3xl anim-shake"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </div>
+            <h3 id="cfTitle" class="text-base font-extrabold text-slate-900"></h3>
+            <p id="cfText" class="text-xs text-slate-500 leading-relaxed"></p>
+            <div id="cfSummary" class="hidden text-left text-[11px] bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-0.5"></div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="cfAnswer(false)" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button onclick="cfAnswer(true)" class="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-trash"></i> Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DÜZENLEME MODALI -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[85] hidden flex items-center justify-center p-4 anim-fade">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl anim-pop space-y-4">
+            <h3 id="editTitle" class="text-base font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-blue-600"></i> <span>Düzenle</span></h3>
+            <div><label id="editLabel1" class="block text-xs font-bold text-slate-700 mb-1"></label><input type="text" id="editInput1" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800"></div>
+            <div id="editRow2"><label id="editLabel2" class="block text-xs font-bold text-slate-700 mb-1"></label><input type="text" id="editInput2" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800"></div>
+            <div id="editRow3" class="hidden"><label id="editLabel3" class="block text-xs font-bold text-slate-700 mb-1"></label><input type="text" id="editInput3" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-800"></div>
+            <p id="editErr" class="hidden text-xs text-rose-600 font-semibold"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="closeEdit()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Vazgeç</button>
+                <button onclick="saveEdit()" class="py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <noscript><div style="position:fixed;inset:0;background:#020617;color:#fff;display:flex;align-items:center;justify-content:center;font-family:sans-serif">Bu sistem için JavaScript gereklidir.</div></noscript>
+    <script src="js/ayarlar.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/uygulama.js"></script>
+</body>
+</html>
