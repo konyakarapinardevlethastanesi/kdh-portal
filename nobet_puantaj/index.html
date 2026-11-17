@@ -3,7 +3,7 @@
         <link rel="icon" type="image/png" href="/kdh-portal/favicon.png">
         <link rel="shortcut icon" href="/kdh-portal/favicon.ico">
         <link rel="apple-touch-icon" href="/kdh-portal/apple-touch-icon.png">
-<script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ====== YAZI BOYUTLARI (px) — buradan değiştirebilirsiniz ====== */
 :root{--fs-ad:13px;--fs-unvan:11px;--fs-sol:7.5px;--fs-tarih:10px;--fs-yilay:11px;--fs-sira:12px;--fs-alt:11px;--fs-satir:10px}
@@ -315,7 +315,7 @@ pages+=`<div class="pg"><table style="width:100%"><tr><td class="t1">${esc(hospT
 return wn+pages}
 
 const API="https://script.google.com/macros/s/AKfycbzmGY_LfosJOu9YgvkJNLtpZSesHFwlmfX69uaT3FsjOvuEYgeFGdjwzlfrk6eeY7AmGg/exec",KEY='kdh_nobet_key';let ROLE='',SN={o:'',b:{},m:{}},tm=null;
-const gj=async p=>(await fetch(API+'?'+new URLSearchParams(Object.assign({key:sessionStorage.getItem(KEY)||''},p)))).json();
+const gj=async p=>(await fetch(API+'?'+new URLSearchParams(Object.assign({key:sessionStorage.getItem(KEY)||'',_t:Date.now()},p)),{cache:'no-store'})).json();
 const pj=async b=>{b.key=sessionStorage.getItem(KEY)||'';return (await fetch(API,{method:'POST',body:JSON.stringify(b)})).json()};
 const setSt=(t,e)=>{const x=document.getElementById('st');if(x){x.textContent=t;x.className=e?'e':''}};
 const chk=r=>{if(!r||r.status!=='success')throw new Error((r&&r.message)||'Hata')};
@@ -339,11 +339,11 @@ function busyWrap(n,label){const f=window[n];if(typeof f!='function')return;wind
  done();return r}}
 [['saveRec','Kaydediliyor…'],['saveHome','Kaydediliyor…'],['exportXlsx','İndiriliyor…'],['autoRun','Dolduruluyor…'],['duyYanit','Gönderiliyor…'],['duyEkle','Yayınlanıyor…'],['duySil','Siliniyor…'],['uwAdd','Ekleniyor…'],['uwDel','Siliniyor…'],['uwPassSave','Kaydediliyor…'],['uwBirimSave','Kaydediliyor…'],['saveUb','Kaydediliyor…'],['addUSave','Ekleniyor…'],['flush','Kaydediliyor…']].forEach(x=>busyWrap(x[0],x[1]));
 /* ====== DUYURULAR ====== */
-let DUY={list:[],mut:null};const DUY_TPL=['Kontrol edildi, değişiklik yok.','Değişiklik listeye işlenmiştir.','Güncel durumdadır.'];
+let DUY={list:[],mut:null,sent:{}};const DUY_TPL=['Kontrol edildi, değişiklik yok.','Değişiklik listeye işlenmiştir.','Güncel durumdadır.'];
 const duyOkKey=d=>'duyOk:'+WHO+':'+d.id+':'+d.occ,duyIsOk=d=>{try{return localStorage.getItem(duyOkKey(d))=='1'}catch(e){return false}};
 function duyPend(){return ROLE=='user'?DUY.list.filter(d=>d.aktif&&!d.yanit):[]}
 function duyBell(){const b=$('duyBell');if(!b)return;const u=ROLE=='user';b.classList.toggle('hidden',!u);if(!u)return;const n=duyPend().length;b.classList.toggle('duyblink',n>0);b.title=n?n+' duyuru yanıt bekliyor':'Bekleyen duyuru yok';const g=$('duyBadge');g.textContent=n||'';g.classList.toggle('hidden',!n)}
-async function duyLoad(){try{const r=await gj({islem:'duyurular'});if(r&&r.status=='success'){DUY.list=r.duyurular||[];DUY.mut=r.mutemet||null}}catch(e){}duyBell();if(D.tab=='duy'&&!document.querySelector('.mod')&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)))R()}
+async function duyLoad(){try{const r=await gj({islem:'duyurular'});if(r&&r.status=='success'){DUY.list=r.duyurular||[];DUY.mut=r.mutemet||null;DUY.list.forEach(d=>{const k=d.id+'|'+d.occ;if(d.yanit)delete DUY.sent[k];else if(DUY.sent[k])d.yanit={metin:DUY.sent[k],zaman:'az önce'}})}}catch(e){}duyBell();if(D.tab=='duy'&&!document.querySelector('.mod')&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)))R()}
 function duyAcilis(){const u=duyPend().filter(d=>!duyIsOk(d));if(!u.length)return;
  modal(`<div style="width:min(560px,92vw)"><h3><i class="fa-solid fa-bullhorn"></i> Duyuru</h3>${u.map(duyCard).join('')}<p style="margin-top:12px"><button class="p" onclick="duyOkAll()"><i class="fa-solid fa-check"></i> Okundu</button></p><div style="font-size:11px;opacity:.7">“Okundu” penceresi kapatır; zil simgesi yanıt verene kadar yanıp söner.</div></div>`)}
 function duyOkAll(){duyPend().forEach(d=>{try{localStorage.setItem(duyOkKey(d),'1')}catch(e){}});cl()}
@@ -354,7 +354,7 @@ function duyOpen(){const L=duyPend();
  modal(`<div style="width:min(600px,94vw)"><h3><i class="fa-solid fa-bell"></i> Yanıt bekleyen duyurular</h3>${L.map((d,i)=>`<div id="dy_${i}">${duyCard(d)}<div style="margin-top:8px"><span style="font-size:11px;font-weight:700">Hazır yanıt:</span><br>${DUY_TPL.map(t=>`<span class="duyt" onclick="$('dyt_${i}').value=this.textContent">${esc(t)}</span>`).join('')}<textarea id="dyt_${i}" rows="2" style="width:100%;margin-top:6px" placeholder="Hazır yanıtlardan birini seçin veya yazın"></textarea><button class="p" style="margin-top:6px" onclick="duyYanit(${i})"><i class="fa-solid fa-paper-plane"></i> Gönder</button></div></div>`).join('')}<p style="margin-top:12px"><button onclick="cl()">Kapat</button></p></div>`)}
 async function duyYanit(i){const d=duyPend()[i];if(!d)return;const t=($('dyt_'+i).value||'').trim();if(!t)return alert('Hazır yanıtlardan birini seçin ya da yazın.');
  try{chk(await pj({action:'duyuruYanit',id:d.id,occ:d.occ,metin:t}))}catch(e){return alert('Yanıt gönderilemedi: '+e.message)}
- await duyLoad();cl();showToast('Yanıtınız gönderildi');if(duyPend().length)duyOpen()}
+ DUY.sent[d.id+'|'+d.occ]=t;d.yanit={metin:t,zaman:'az önce'};duyBell();cl();await duyLoad();cl();showToast('Yanıtınız gönderildi');if(duyPend().length)duyOpen()}
 async function duyEkle(){const b=($('dn_b').value||'').trim(),m=($('dn_m').value||'').trim(),t=$('dn_t').value||'';if(!b||!m)return alert('Başlık ve duyuru metnini yazın.');
  if($('dn_r').checked&&!t)return alert('Her ay tekrar için önemli tarih seçin.');
  try{chk(await pj({action:'duyuruEkle',baslik:b,metin:m,tarih:t,tekrar:$('dn_r').checked?'aylik':'',onceGun:+$('dn_g').value}))}catch(e){return alert('Duyuru eklenemedi: '+e.message)}
