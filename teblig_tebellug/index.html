@@ -6,9 +6,6 @@
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tebliğ Tebellüğ Belgeleri - Konya Karapınar Devlet Hastanesi</title>
-            <link rel="icon" type="image/png" href="/kdh-portal/favicon.png">
-            <link rel="shortcut icon" href="/kdh-portal/favicon.ico">
-            <link rel="apple-touch-icon" href="/kdh-portal/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -123,14 +120,14 @@
                             <div class="space-y-1 border border-amber-200 bg-amber-50 rounded-lg p-2">
                                 <label class="block text-[10px] font-extrabold text-amber-800 uppercase">Yönetici Adı, Ünvanı ve Şifresi (ana yönetici)</label>
                                 <input id="uwAdminAd" type="text" maxlength="40" placeholder="Yöneticinin Adı Soyadı" class="ed">
-                                <input id="uwAdminSifre" type="text" maxlength="64" autocomplete="off" placeholder="Yeni şifre (değiştirmeyecekseniz boş bırakın)" class="ed">
+                                <input id="uwAdminSifre" type="password" maxlength="64" autocomplete="new-password" placeholder="Yeni şifre (değiştirmeyecekseniz boş bırakın)" class="ed">
                                 <div class="flex gap-1.5"><input id="uwAdminUnvan" type="text" maxlength="40" placeholder="Ünvanı (Örn: Tıbbi Sekreter)" class="ed"><button onclick="uwSaveAdminName()" class="shrink-0 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px]">Kaydet</button></div>
                             </div>
                             <div id="uwList" class="max-h-52 overflow-y-auto"></div>
                             <div class="space-y-1.5 border-t border-slate-100 pt-2.5">
                                 <input id="uwAd" type="text" maxlength="40" placeholder="Ad Soyad" class="ed">
                                 <input id="uwUnvan" type="text" maxlength="40" placeholder="Ünvanı (Örn: Tıbbi Sekreter)" class="ed">
-                                <input id="uwSifre" type="text" maxlength="40" autocomplete="off" placeholder="Şifre (en az 8 karakter)" class="ed">
+                                <input id="uwSifre" type="password" maxlength="64" autocomplete="new-password" placeholder="Şifre (en az 8 karakter)" class="ed">
                                 <div class="flex gap-1.5"><select id="uwYetki" class="ed"><option value="Kullanıcı">Kullanıcı</option><option value="Yönetici">Yönetici</option></select>
                                 <button id="uwEkle" onclick="uwAdd()" class="shrink-0 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-user-plus"></i> Ekle</button></div>
                                 <p id="uwErr" class="hidden text-[11px] text-rose-600 font-semibold"></p>
@@ -241,7 +238,7 @@
                             <i class="fa-solid fa-user-tie text-emerald-600"></i> Tebliğ Edenler
                             <span class="text-[10px] font-semibold text-slate-400">(Adı Soyadı ve Ünvanı seçenekleri)</span>
                         </h2>
-                        <form class="admin-only grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2" onsubmit="addTebligEden(event)">
+                        <form class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2" onsubmit="addTebligEden(event)">
                             <input type="text" id="newTeAd" required placeholder="Adı Soyadı (Örn: Dr. Ahmet YILMAZ)" class="p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
                             <input type="text" id="newTeUnvan" required placeholder="Ünvanı (Örn: Başhekim)" class="p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
                             <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5">
@@ -320,7 +317,7 @@
                 <div class="border-t border-slate-100 pt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tebliğ Tarihi <span class="text-rose-500">*</span></label>
-                        <input type="date" id="fTebligTarih" class="ed">
+                        <input type="date" id="fTebligTarih" class="ed" onchange="TEBLIG_TARIH_ELLE = true">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tebliğ Eden (Listeden) <span class="text-rose-500">*</span></label>
@@ -390,7 +387,7 @@
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div>
                             <div class="text-xs font-extrabold text-slate-800">Kullanabileceğiniz Otomatik Alanlar & Form Seçimi</div>
-                            <p class="text-[11px] text-slate-500">Kutucuğunu <b>işaretlediğiniz</b> alanlar "Seç ve Oluştur" ekranında sorulur. Kod etiketine tıklayarak paragrafa ekleyebilirsiniz.</p>
+                            <p class="text-[11px] text-slate-500">Kutucuğunu <b>işaretlediğiniz</b> alanlar "Seç ve Oluştur" ekranında sorulur. Metinde imleci (fareyle) nereye koyarsanız alan oraya eklenir; işareti kaldırınca metinde nerede olursa kalkar.</p>
                         </div>
                         <button type="button" onclick="toggleNewFieldForm()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5">
                             <i class="fa-solid fa-plus"></i> Yeni Alan Ekle
@@ -398,12 +395,12 @@
                     </div>
 
                     <div id="newFieldBox" class="hidden bg-white border border-blue-200 rounded-xl p-3 space-y-2">
-                        <div class="text-[11px] font-extrabold text-blue-800">Yeni Otomatik Alan Tanımla</div>
+                        <div id="nfTitle" class="text-[11px] font-extrabold text-blue-800">Yeni Otomatik Alan Tanımla</div>
                         <p class="text-[10px] text-slate-500 leading-snug">Tür listesindeki "Açılır Liste" seçenekleri <b>Kurumlar</b> sekmesinde oluşturduğunuz listelerdir (Kurum, Hastane Adı vb.). Yeni liste eklemek veya silmek için <button type="button" onclick="closeTplModal();showTab('lists')" class="underline font-bold text-blue-700">Kurumlar sekmesine git</button>.</p>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <input type="text" id="nfLabel" placeholder="Alan Adı (Örn: Görev Yeri)" class="ed">
                             <select id="nfType" class="ed"></select>
-                            <button type="button" onclick="createCustomField()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs">
+                            <button type="button" id="nfBtn" onclick="createCustomField()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs">
                                 Alanı Oluştur ve Ekle
                             </button>
                         </div>
@@ -474,7 +471,7 @@
      ============================================================ -->
 <script>
 const AYARLAR = {
-    SUNUCU_ADRESI: 'https://script.google.com/macros/s/AKfycbyhqr1DawydOy5m3smRxMSP47_JMFokNz4k2ycQdktUTylsBqESGe1bbxphJV_eA_wRAQ/exec',   // örn: https://script.google.com/macros/s/....../exec
+    SUNUCU_ADRESI: 'BURAYA_WEB_UYGULAMASI_ADRESI_YAPISTIRIN',   // örn: https://script.google.com/macros/s/....../exec
     BOSTA_CIKIS_DK: 20          // bu kadar dakika işlem yapılmazsa otomatik çıkış
 };
 </script>
@@ -523,7 +520,7 @@ function oturumDustu() {
 // ---------- 2. Değişiklikleri bulma ve kaydetme ----------
 // Her kayıt kimliğiyle ayrı gönderilir; iki kişi aynı anda çalışsa da birbirinin kaydını ezmez.
 const KOLEKSIYON_ANAHTARLARI = { fields: 'code', templates: 'id', docs: 'id', listGroups: 'id', tebligEdenler: 'id', logs: 'id' };
-const SADECE_YONETICI = ['fields', 'templates', 'listGroups', 'tebligEdenler'];
+const SADECE_YONETICI = ['fields', 'templates'];   // kurum listesi ve tebliğ edenlere kullanıcı da ekleyip düzenleyebilir (silme yalnız yönetici)
 let SNAP = {};                                  // sunucudaki son bilinen hâl
 const SYNC = { zamanlayici: null, calisiyor: false, tekrar: false };
 
@@ -816,6 +813,23 @@ function showToast(msg, bad) {
 // ==========================================================
 // BÖLÜM — 5. GİRİŞ / OTURUM (giriş işlemi SUNUCU İLETİŞİMİ bölümü içindedir)
 // ==========================================================
+// Şifre kutularına "göster / gizle" (göz) düğmesi ekler
+function sifreGozEkle(inp) {
+    if (!inp || inp._eye) return;
+    const sar = document.createElement('div'); sar.style.position = 'relative';
+    inp.parentNode.insertBefore(sar, inp); sar.appendChild(inp);
+    inp.style.paddingRight = '2.4rem';
+    const b = document.createElement('button');
+    b.type = 'button'; b.tabIndex = -1; b.title = 'Şifreyi göster / gizle';
+    b.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;color:#64748b';
+    b.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    b.addEventListener('click', () => {
+        const gizli = inp.type === 'password';
+        inp.type = gizli ? 'text' : 'password';
+        b.firstChild.className = 'fa-solid ' + (gizli ? 'fa-eye-slash' : 'fa-eye');
+    });
+    sar.appendChild(b); inp._eye = b;
+}
 function loginAs(u) { ROLE = u.yetki === 'Yönetici' ? 'yonetici' : 'kullanici'; USER = u.ad; CUR_UID = u.id; }
 function showApp() {
     uwInit();
@@ -880,7 +894,7 @@ function uwEdit(id) {
     const u = STATE.users.find(x => x.id === id); if (!u || u.main) return;
     openEditModal({
         title: 'Kullanıcıyı Düzenle', l1: 'Ad Soyad', v1: u.ad,
-        l2: `Yeni Şifre (boş bırakırsanız değişmez · en az ${EN_KISA_SIFRE} karakter)`, v2: '',
+        l2: `Yeni Şifre (boş bırakırsanız değişmez · en az ${EN_KISA_SIFRE} karakter)`, v2: '', sifre2: true,
         l3: 'Ünvanı', v3: u.unvan || DEFAULT_UNVAN,
         save: async (v1, v2, v3) => {
             const ad = v1.trim().replace(/\s+/g, ' ');
@@ -938,13 +952,18 @@ function initYearSelect() {
 // ==========================================================
 // BÖLÜM — 8. ŞABLONLAR (oluştur / düzenle / alan seçimi)
 // ==========================================================
+// Şablonu kaç belgede kullandınız (en çok kullanılan listenin en üstünde görünür)
+function tplKullanim(id) { return STATE.docs.reduce((n, d) => n + (d.tplId === id ? 1 : 0), 0); }
+function siraliSablonlar() {
+    return STATE.templates.map((t, i) => ({ t, i, n: tplKullanim(t.id) })).sort((a, b) => b.n - a.n || a.i - b.i).map(x => x.t);
+}
 function getSelectedTemplate() {
-    return STATE.templates.find(t => t.id === selectedTplId) || STATE.templates[0];
+    return STATE.templates.find(t => t.id === selectedTplId) || siraliSablonlar()[0];
 }
 
 function renderTemplates() {
     const q = ($('tplSearch').value || '').toLocaleLowerCase('tr');
-    const list = STATE.templates.filter(t => !q || t.name.toLocaleLowerCase('tr').includes(q));
+    const list = siraliSablonlar().filter(t => !q || t.name.toLocaleLowerCase('tr').includes(q));
     if (list.length && !list.some(t => t.id === selectedTplId)) selectedTplId = list[0].id;
     const adm = isAdmin();
     $('tplList').innerHTML = list.length ? list.map((t, i) => {
@@ -954,6 +973,7 @@ function renderTemplates() {
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
                 <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold shrink-0 ${active ? 'bg-white text-sky-700' : 'bg-slate-200 text-slate-700'}">${i + 1}</span>
                 <div class="text-xs font-extrabold truncate">${esc(t.name)}</div>
+                ${tplKullanim(t.id) ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${active ? 'bg-sky-700 text-sky-100' : 'bg-slate-200 text-slate-600'}" title="Bu şablonla oluşturulan belge sayısı">${tplKullanim(t.id)} belge</span>` : ''}
             </div>
             ${adm ? `<div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
                 <button onclick="openTplModal('${esc(t.id)}')" title="Düzenle" class="w-7 h-7 rounded-lg ${active ? 'bg-sky-700 text-white hover:bg-sky-800' : 'bg-white text-blue-600 hover:bg-blue-50 border border-slate-200'}"><i class="fa-solid fa-pen text-[11px]"></i></button>
@@ -980,7 +1000,8 @@ function editSelectedTpl() {
 let editingTplId = null;
 let lastFocusedTextarea = null;
 let tempSelectedFields = [];
-let REMOVED_AT = {};   // işareti kaldırılan alanın metindeki yeri (tekrar işaretlenince aynı yere döner)
+let tCaret = { start: 0, end: 0 };   // metin kutusunda en son fareyle/klavyeyle seçilen yer
+let editingFieldCode = null;         // düzenlenen özel alan
 
 function openTplModal(id = null) {
     if (!isAdmin()) return;
@@ -989,10 +1010,11 @@ function openTplModal(id = null) {
     $('tplModalTitle').querySelector('span').textContent = t ? 'Şablonu Düzenle' : 'Yeni Tebliğ Tebellüğ Şablonu';
     $('tName').value = t ? t.name : '';
     $('tTitle').value = t ? t.title : 'TEBLİĞ TEBELLÜĞ BELGESİ';
-    $('tLine1').value = t ? ((t.line1 || '') + ' ' + (t.line2 || '')).trim() : '{KURUM} {KARAR_TARIHI} tarih ve {KARAR_SAYISI} sayılı atama kararı gereği; ';
+    $('tLine1').value = t ? ((t.line1 || '') + ' ' + (t.line2 || '')).trim() : '';     // yeni şablon: metin boş gelir
     lastFocusedTextarea = $('tLine1');
-    REMOVED_AT = {};
-    tempSelectedFields = t && Array.isArray(t.selectedFields) ? [...t.selectedFields] : ['KURUM', 'KARAR_TARIHI', 'KARAR_SAYISI'];
+    tCaret = { start: $('tLine1').value.length, end: $('tLine1').value.length };
+    tempSelectedFields = t && Array.isArray(t.selectedFields) ? [...t.selectedFields] : [];   // yeni şablon: hiç alan seçili gelmez
+    editingFieldCode = null;
     $('newFieldBox').classList.add('hidden');
     renderFieldsChecklist();
     renderTypeSelect();
@@ -1015,11 +1037,26 @@ function renderTypeSelect() {
     if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
 }
 function toggleNewFieldForm() {
-    $('newFieldBox').classList.toggle('hidden');
-    if (!$('newFieldBox').classList.contains('hidden')) {
-        $('nfLabel').value = '';
-        setTimeout(() => $('nfLabel').focus(), 50);
-    }
+    const kutu = $('newFieldBox');
+    if (!kutu.classList.contains('hidden') && !editingFieldCode) { kutu.classList.add('hidden'); return; }
+    editingFieldCode = null;
+    $('nfTitle').textContent = 'Yeni Otomatik Alan Tanımla'; $('nfBtn').textContent = 'Alanı Oluştur ve Ekle';
+    kutu.classList.remove('hidden');
+    $('nfLabel').value = '';
+    setTimeout(() => $('nfLabel').focus(), 50);
+}
+// Oluşturduğunuz alanın adını / türünü değiştirir (kod aynı kalır, şablonlardaki {KOD} bozulmaz)
+function editCustomField(code) {
+    const f = STATE.fields.find(x => x.code === code);
+    if (!f || f.builtIn) return;
+    editingFieldCode = code;
+    $('newFieldBox').classList.remove('hidden');
+    $('nfTitle').textContent = 'Alanı Düzenle: {' + code + '}';
+    $('nfBtn').textContent = 'Değişikliği Kaydet';
+    renderTypeSelect();
+    $('nfLabel').value = f.label;
+    $('nfType').value = f.type === 'liste' ? 'liste:' + f.gid : f.type;
+    setTimeout(() => $('nfLabel').focus(), 50);
 }
 
 function toFieldCode(label) {
@@ -1034,6 +1071,17 @@ function createCustomField() {
     const label = $('nfLabel').value.trim();
     const tv = $('nfType').value, type = tv.startsWith('liste:') ? 'liste' : tv, gid = tv.startsWith('liste:') ? tv.slice(6) : null;
     if (!label) return showToast('Lütfen alan adını yazın', true);
+
+    if (editingFieldCode) {                                   // --- mevcut alanı düzenle ---
+        const f = STATE.fields.find(x => x.code === editingFieldCode);
+        if (!f) return;
+        if ((f.type === 'date_mesai') !== (type === 'date_mesai')) return showToast('"Tarih + Mesai" türü sonradan değiştirilemez; alanı silip yeniden oluşturun', true);
+        f.label = label; f.type = type; f.gid = gid;
+        editingFieldCode = null; saveState();
+        $('nfLabel').value = ''; $('newFieldBox').classList.add('hidden');
+        renderFieldsChecklist(); showToast('Alan güncellendi');
+        return;
+    }
 
     let code = toFieldCode(label);
     if (STATE.fields.some(f => f.code === code)) {
@@ -1059,24 +1107,56 @@ function deleteCustomField(code) {
     renderFieldsChecklist();
 }
 
+// ---- Metne alan ekleme / çıkarma: HER ZAMAN imlecin (fareyle tıkladığınız yerin) bulunduğu yerde ----
+(function () {
+    const ta = document.getElementById('tLine1');
+    if (!ta) return;
+    const izle = () => { tCaret = { start: ta.selectionStart, end: ta.selectionEnd }; };
+    ['click', 'keyup', 'mouseup', 'select', 'input', 'focus', 'touchend'].forEach(ev => ta.addEventListener(ev, izle));
+})();
+
+// Fazla boşlukları toplar; imlecin yeni yerini de hesaplar.
+function bosluklariToparla(s, imlec) {
+    let out = '', yeni = 0;
+    for (let i = 0; i < s.length; i++) {
+        if (i === imlec) yeni = out.length;
+        const ch = s[i];
+        if ((ch === ' ' || ch === '\t') && /[ \t]$/.test(out)) continue;
+        out += ch;
+    }
+    if (imlec >= s.length) yeni = out.length;
+    const bas = out.length - out.trimStart().length;
+    out = out.trimStart(); yeni = Math.max(0, yeni - bas);
+    out = out.trimEnd(); yeni = Math.min(yeni, out.length);
+    return { metin: out, imlec: yeni };
+}
+
 function removeCodeFromText(code) {
     const fd = STATE.fields.find(x => x.code === code);
-    let v = $('tLine1').value;
-    const tk = fd && fd.type === 'date_mesai' ? `{${code}} tarihi{MESAI_BITIMI}` : `{${code}}`;
-    const at = v.indexOf(tk) >= 0 ? v.indexOf(tk) : v.indexOf(`{${code}}`);
-    if (at >= 0) REMOVED_AT[code] = at;
-    v = v.split(`{${code}} tarihi{MESAI_BITIMI}`).join('').split(`{${code}}`).join('');
-    if (fd && fd.type === 'date_mesai') v = v.split('{MESAI_BITIMI}').join('');
-    $('tLine1').value = v.replace(/[ \t]{2,}/g, ' ').trim();
+    const ta = $('tLine1');
+    const v = ta.value;
+    let c = Math.min(tCaret.start, v.length);
+    const birlesik = `{${code}} tarihi{MESAI_BITIMI}`, tek = `{${code}}`;
+    [birlesik, tek].forEach(tk => {                       // imleç kodun ortasındaysa kodun başına al
+        let i = v.indexOf(tk);
+        while (i >= 0) { if (c > i && c < i + tk.length) c = i; i = v.indexOf(tk, i + tk.length); }
+    });
+    const IM = '\u0001';
+    let s = v.slice(0, c) + IM + v.slice(c);
+    s = s.split(birlesik).join('').split(tek).join('');   // kod metinde NEREDE olursa olsun kalkar
+    if (fd && fd.type === 'date_mesai') s = s.split('{MESAI_BITIMI}').join('');
+    const at = s.indexOf(IM);
+    s = s.replace(IM, '');
+    const r = bosluklariToparla(s, at < 0 ? s.length : at);
+    ta.value = r.metin;
+    ta.setSelectionRange(r.imlec, r.imlec);
+    tCaret = { start: r.imlec, end: r.imlec };
 }
+
 function toggleFieldSelection(code, checked) {
     if (checked) {
         if (!tempSelectedFields.includes(code)) tempSelectedFields.push(code);
-        const ta = $('tLine1');
-        if (!ta.value.includes(`{${code}}`)) {
-            if (REMOVED_AT[code] != null) { const pos = Math.min(REMOVED_AT[code], ta.value.length); ta.selectionStart = ta.selectionEnd = pos; }
-            insertCodeAtCursor(code);
-        }
+        if (!$('tLine1').value.includes(`{${code}}`)) insertCodeAtCursor(code);   // tıkladığınız yere gelir
         return;
     }
     tempSelectedFields = tempSelectedFields.filter(c => c !== code);
@@ -1087,14 +1167,15 @@ function insertCodeAtCursor(code) {
     const ta = $('tLine1');
     const fd = STATE.fields.find(x => x.code === code);
     const token = fd && fd.type === 'date_mesai' ? `{${code}} tarihi{MESAI_BITIMI}` : `{${code}}`;
-    const start = ta.selectionStart ?? ta.value.length;
-    const end = ta.selectionEnd ?? ta.value.length;
-    const pre = ta.value.slice(0, start), post = ta.value.slice(end);
+    const v = ta.value;
+    const start = Math.min(tCaret.start ?? v.length, v.length), end = Math.min(tCaret.end ?? start, v.length);
+    const pre = v.slice(0, start), post = v.slice(end);
     const ins = (pre && !/[\s(]$/.test(pre) ? ' ' : '') + token + (post && !/^[\s.,;:)]/.test(post) ? ' ' : '');
     ta.value = pre + ins + post;
+    const pos = pre.length + ins.length;
     ta.focus();
-    ta.selectionStart = ta.selectionEnd = pre.length + ins.length;
-    delete REMOVED_AT[code];
+    ta.setSelectionRange(pos, pos);
+    tCaret = { start: pos, end: pos };
     if (!tempSelectedFields.includes(code)) {
         tempSelectedFields.push(code);
         renderFieldsChecklist();
@@ -1115,7 +1196,7 @@ function renderFieldsChecklist() {
                 <button type="button" onmousedown="event.preventDefault()" onclick="insertCodeAtCursor('${esc(f.code)}')" title="Metne ekle" class="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-mono font-bold text-[10px] rounded">
                     +{${esc(f.code)}}
                 </button>
-                ${!f.builtIn ? `<button type="button" onclick="deleteCustomField('${esc(f.code)}')" title="Alanı sil" class="w-5 h-5 rounded text-rose-500 hover:bg-rose-50"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
+                ${!f.builtIn ? `<button type="button" onclick="editCustomField('${esc(f.code)}')" title="Alanı düzenle (ad / tür)" class="w-5 h-5 rounded text-blue-600 hover:bg-blue-50"><i class="fa-solid fa-pen text-[10px]"></i></button><button type="button" onclick="deleteCustomField('${esc(f.code)}')" title="Alanı sil" class="w-5 h-5 rounded text-rose-500 hover:bg-rose-50"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
             </div>
         </div>`;
     }).join('');
@@ -1240,6 +1321,12 @@ function docHTML(d) {
 // BÖLÜM — 10. BELGE OLUŞTURMA FORMU
 // ==========================================================
 let editingDocId = null;
+// Şablondaki tarih alanlarından biri seçilince "Tebliğ Tarihi" aynı tarih olur; siz elle değiştirirseniz artık karışmaz.
+let TEBLIG_TARIH_ELLE = false;
+function tarihSecildi(el) {
+    if (!TEBLIG_TARIH_ELLE && el.value) $('fTebligTarih').value = el.value;
+    updateLiveSnippet();
+}
 let activeModalTpl = null;
 
 function buildDynamicFormInputs(tpl, existingValues = {}, mesaiChecked = true) {
@@ -1267,14 +1354,14 @@ function buildDynamicFormInputs(tpl, existingValues = {}, mesaiChecked = true) {
             return `
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">${esc(f.label)} <span class="text-rose-500">*</span></label>
-                <input type="date" data-fcode="${esc(f.code)}" value="${esc(val)}" class="ed dyn-input" onchange="updateLiveSnippet()">
+                <input type="date" data-fcode="${esc(f.code)}" value="${esc(val)}" class="ed dyn-input" onchange="tarihSecildi(this)">
             </div>`;
         }
         if (f.type === 'date_mesai') {
             return `
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">${esc(f.label)} <span class="text-rose-500">*</span></label>
-                <input type="date" data-fcode="${esc(f.code)}" value="${esc(val)}" class="ed dyn-input" onchange="updateLiveSnippet()">
+                <input type="date" data-fcode="${esc(f.code)}" value="${esc(val)}" class="ed dyn-input" onchange="tarihSecildi(this)">
                 <label class="flex items-center gap-2 mt-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
                     <input type="checkbox" id="fMesaiBitimi" ${mesaiChecked ? 'checked' : ''} onchange="updateLiveSnippet()" class="w-4 h-4 rounded text-slate-900">
                     <span>Mesai bitimi</span>
@@ -1353,6 +1440,7 @@ function openCreateFromTemplate() {
     buildDynamicFormInputs(activeModalTpl, {}, true);
     populateTebligEdenSelect('');
     $('fTebligTarih').value = todayIso();
+    TEBLIG_TARIH_ELLE = false;
     $('fTebligEdenUnvan').value = '';
     $('fTebellugAd').value = '';
     $('fTebellugSicil').value = '';
@@ -1379,6 +1467,7 @@ function openEditDocModal(id) {
     buildDynamicFormInputs(activeModalTpl, d.fieldValues || {}, d.mesaiBitimi !== false);
     populateTebligEdenSelect(d.tebligEdenAd);
     $('fTebligTarih').value = d.tebligTarih || todayIso();
+    TEBLIG_TARIH_ELLE = true;      // kayıtlı belgede tarih kendiliğinden değişmez
     $('fTebligEdenUnvan').value = d.tebligEdenUnvan || '';
     $('fTebellugAd').value = d.tebellugAd || '';
     $('fTebellugSicil').value = d.tebellugSicil || '';
@@ -1519,7 +1608,7 @@ function printDocById(id) { const d = STATE.docs.find(x => x.id === id); if (d) 
 // BÖLÜM — 13. LİSTELER (KURUMLAR) VE TEBLİĞ EDENLER
 // ==========================================================
 function renderLists() {
-    const adm = isAdmin();
+    const adm = isAdmin(), duz = true;   // seçenek / kişi ekleme ve düzenleme herkese açık; silme ve liste yönetimi yöneticide
     $('groupsWrap').innerHTML = STATE.listGroups.length ? STATE.listGroups.map(g => `
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3" style="border-top:4px solid #1d4ed8">
             <div class="flex flex-wrap items-center gap-2">
@@ -1531,7 +1620,7 @@ function renderLists() {
                 <button onclick="editGroup('${esc(g.id)}')" title="Liste adını düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"><i class="fa-solid fa-pen"></i></button>
                 <button onclick="delGroup('${esc(g.id)}')" title="Listeyi sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash-can"></i></button>` : ''}
             </div>
-            ${adm ? `<form class="flex gap-2" onsubmit="addItem(event,'${esc(g.id)}')">
+            ${duz ? `<form class="flex gap-2" onsubmit="addItem(event,'${esc(g.id)}')">
                 <input type="text" id="gi_${esc(g.id)}" required placeholder="Yeni seçenek ekle..." class="flex-1 p-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-slate-800">
                 <button type="submit" class="px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Ekle</button>
             </form>` : ''}
@@ -1539,8 +1628,7 @@ function renderLists() {
                 ${g.items.length ? g.items.map((k, i) => `<tr class="hover:bg-slate-50">
                     <td class="p-2.5 text-slate-400 w-8">${i + 1}</td>
                     <td class="p-2.5 font-semibold text-slate-800">${esc(k.ad)}</td>
-                    <td class="p-2.5 text-right whitespace-nowrap">${adm ? `<button onclick="editItem('${esc(g.id)}','${esc(k.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="delItem('${esc(g.id)}','${esc(k.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`).join('') : '<tr><td class="p-4 text-center text-slate-400 font-semibold">Bu listede seçenek yok.</td></tr>'}
+                    <td class="p-2.5 text-right whitespace-nowrap">${duz ? `<button onclick="editItem('${esc(g.id)}','${esc(k.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>`: ''}${adm ? `<button onclick="delItem('${esc(g.id)}','${esc(k.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`).join('') : '<tr><td class="p-4 text-center text-slate-400 font-semibold">Bu listede seçenek yok.</td></tr>'}
             </tbody></table></div>
         </div>`).join('') : '<div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-400 font-semibold">Açılır liste alanı yok. Yönetici yeni liste oluşturabilir.</div>';
 
@@ -1551,9 +1639,8 @@ function renderLists() {
                 <div class="font-bold text-slate-800">${esc(t.ad)}</div>
                 <div class="text-[11px] text-slate-500">${esc(t.unvan)}</div>
             </td>
-            <td class="p-2.5 text-right whitespace-nowrap">${adm ? `
-                <button onclick="editTebligEden('${esc(t.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>
-                <button onclick="delTebligEden('${esc(t.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td>
+            <td class="p-2.5 text-right whitespace-nowrap">${duz ? `
+                <button onclick="editTebligEden('${esc(t.id)}')" title="Düzenle" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 mr-1"><i class="fa-solid fa-pen"></i></button>`: ''}${adm ? `<button onclick="delTebligEden('${esc(t.id)}')" title="Sil" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>` : ''}</td>
         </tr>`).join('') : '<tr><td class="p-5 text-center text-slate-400 font-semibold">Kayıtlı tebliğ eden kişi yok.</td></tr>';
 }
 
@@ -1676,6 +1763,8 @@ function openEditModal(ctx) {
     editCtx = ctx; $('editTitle').querySelector('span').textContent = ctx.title;
     $('editLabel1').textContent = ctx.l1; $('editInput1').value = ctx.v1;
     $('editRow2').classList.toggle('hidden', !ctx.l2); if (ctx.l2) { $('editLabel2').textContent = ctx.l2; $('editInput2').value = ctx.v2; }
+    const i2 = $('editInput2'); i2.type = ctx.sifre2 ? 'password' : 'text';                      // şifre kutusuysa gizli + göz düğmesi
+    if (i2._eye) { i2._eye.style.display = ctx.sifre2 ? '' : 'none'; i2._eye.firstChild.className = 'fa-solid fa-eye'; }
     $('editRow3').classList.toggle('hidden', !ctx.l3); if (ctx.l3) { $('editLabel3').textContent = ctx.l3; $('editInput3').value = ctx.v3; }
     $('editErr').classList.add('hidden'); $('editModal').classList.remove('hidden'); setTimeout(() => $('editInput1').focus(), 50);
 }
@@ -1723,6 +1812,7 @@ document.addEventListener('pointerdown', e => {
 // ==========================================================
 window.addEventListener('DOMContentLoaded', () => {
     setInterval(tickClock, 1000); tickClock();
+    ['passwordInput', 'uwSifre', 'uwAdminSifre', 'editInput2'].forEach(id => sifreGozEkle($(id)));
     oturumuGeriYukle();      // (SUNUCU İLETİŞİMİ bölümü) sekme açıkken sayfa yenilenirse oturum devam eder
 });
     
