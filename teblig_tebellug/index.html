@@ -473,16 +473,17 @@
        Buraya ŞİFRE / ANAHTAR YAZILMAZ. (Adres tek başına işe yaramaz.)
      ============================================================ -->
     
+<script> 
+const AYARLAR = {
+    BOSTA_CIKIS_DK: 20          // bu kadar dakika işlem yapılmazsa otomatik çıkış
+};
+</script>
+    
 <script src="../portal-ayar.js"></script>
 <script>
     // Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
 const API_URL = ADRESLER.teblig_tebellug;
     
-const AYARLAR = {
-    BOSTA_CIKIS_DK: 20          // bu kadar dakika işlem yapılmazsa otomatik çıkış
-};
-</script>
-<script>
 // ==============================================================
 // api.js — SUNUCU İLETİŞİMİ (giriş, veri alma, kaydetme)
 // ==============================================================
