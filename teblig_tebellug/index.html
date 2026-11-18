@@ -472,18 +472,13 @@
      ★ TEK AYAR: Google Apps Script "web uygulaması" adresini aşağıya yapıştırın.
        Buraya ŞİFRE / ANAHTAR YAZILMAZ. (Adres tek başına işe yaramaz.)
      ============================================================ -->
-    
-<script> 
+<script>
 const AYARLAR = {
+    SUNUCU_ADRESI: 'https://script.google.com/macros/s/AKfycbyhqr1DawydOy5m3smRxMSP47_JMFokNz4k2ycQdktUTylsBqESGe1bbxphJV_eA_wRAQ/exec',   // örn: https://script.google.com/macros/s/....../exec
     BOSTA_CIKIS_DK: 20          // bu kadar dakika işlem yapılmazsa otomatik çıkış
 };
 </script>
-    
-<script src="../portal-ayar.js"></script>
 <script>
-    // Apps Script web uygulaması linki (portal-ayar.js dosyasından gelir)
-const API_URL = ADRESLER.teblig_tebellug;
-    
 // ==============================================================
 // api.js — SUNUCU İLETİŞİMİ (giriş, veri alma, kaydetme)
 // ==============================================================
