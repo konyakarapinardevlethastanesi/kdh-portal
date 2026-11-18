@@ -14,6 +14,7 @@ const ADRESLER = {
   tel_hasta_anket:  'https://script.google.com/macros/s/AKfycbzN3AK2n7DqAbuscU8A0IlAKYwFVcM0fbzHHgtMmfJBnKumRjVOfnSVllm7H81xycXi/exec',
   ayrilis_baslayis: 'https://script.google.com/macros/s/AKfycbwOMUqKJmAj_DjGJ9vXGzVEAyKX5G6dB299J8eHZNdVV9A8s9mBzj4jUgqHUQSO5q4dOg/exec',
   izinyonetimi:     'https://script.google.com/macros/s/AKfycbxc4_X0MmCmYsdqJ0S4zvRjIyvMMqILxFd3Sm2HeCXmcqIU9pbLoxWBImDg1ajJXjqqkg/exec',
+  teblig_tebellug:  'https://script.google.com/macros/s/AKfycbyhqr1DawydOy5m3smRxMSP47_JMFokNz4k2ycQdktUTylsBqESGe1bbxphJV_eA_wRAQ/exec',
 
   // Boş yuvalar: yeni modül eklerken adı değiştirebilir veya olduğu gibi kullanabilirsiniz
   ek_1: '',  ek_2: '',  ek_3: '',  ek_4: '',  ek_5: '',  ek_6: '',
